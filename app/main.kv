@@ -1,0 +1,149 @@
+#:kivy 1.0.9
+#:import utils kivy.utils
+
+
+<Widget>:
+    canvas.after:
+        Line:
+            rectangle: self.x+1,self.y+1,self.width-1,self.height-1
+            dash_offset: 5
+            dash_length: 3
+
+<BaseWidget>:
+    canvas.before:
+        Color:
+            rgb: utils.get_color_from_hex("#121212")
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<BaseWidget1>:
+    canvas.before:
+        Color:
+            rgb: utils.get_color_from_hex("#2E2E2E")
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+
+<LoginPage>:
+    TextInput:
+        hint_text: 'Username'
+        font_size: 16
+        pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) + 2*root.height /8
+        width: 0.9 * root.width
+        height: 30
+        background_color: utils.get_color_from_hex("#3B3B3B")
+        foreground_color: utils.get_color_from_hex("#ffffff")
+        hint_text_color: utils.get_color_from_hex("#787878")
+
+    GridLayout:
+        cols: 2
+        rows: 2
+        width: 0.6 * root.width
+        pos: ((root.width - self.width) / 2) - root.width/8, ((root.height - self.height) / 2) + root.height / 8
+    
+        CheckBox:
+            id: licence
+            size_hint_x: root.width * 0.08
+
+        Label:
+            text: " I accept this license agreement."
+            halign:'left'
+            valign:'middle'
+            size_hint_x: root.width * 0.9
+            text_size: self.size
+
+        CheckBox:
+            id: terms
+            size_hint_x: root.width * 0.08
+
+        Label:
+            text: " I accept these terms of use."
+            halign:'left'
+            valign:'middle'
+            size_hint_x: root.width * 0.9
+            text_size: self.size
+
+    Button:
+        text: "Sign up"
+        pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) - root.height /8
+        width: 0.9 * root.width
+        height: 30
+        color: utils.get_color_from_hex("#ffffff")
+        background_color: utils.get_color_from_hex("#aaaaaa")
+        hint_text_color: utils.get_color_from_hex("#787878")
+        border_width: 0
+
+    Button:
+        text: "Import account"
+        pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) -2* root.height /8
+        width: 0.9 * root.width
+        height: 30
+        color: utils.get_color_from_hex("#ffffff")
+        background_color: utils.get_color_from_hex("#aaaaaa")
+        hint_text_color: utils.get_color_from_hex("#787878")
+        border_width: 0
+
+
+
+<User>:
+    size_hint: 1, None
+    BoxLayout:
+        orientation: "horizontal"
+        width: self.parent.sqrt(root.width) * 0.95
+        pos: (self.parent.sqrt(root.width) - self.width) / 2, self.parent.pos[1]
+        spacing: 10
+        height: self.parent.height
+
+        Image:
+            source: self.parent.parent.img
+            size_hint: .7, .99
+            width: self.parent.width * 0.2
+
+        Label:
+            font_size: 25
+            text: self.parent.parent.username
+            size_hint_x: 2.5
+            halign:'left'
+            valign:'middle'
+            text_size: self.size
+            spacing: 10
+
+        Label:
+            _tmp: [self.parent.parent.userid[x:x+2] for x in range(0, 12, 2)] #  "00 00 00\n00 00 00"
+            text: " ".join(self._tmp[0:3]) + "\n" + " ".join(self._tmp[3:6])
+            size_hint_x: .9
+
+
+<UsersPage>:
+    size_hint: 1, 1
+    pos: 0, 0
+
+    BoxLayout:
+        orientation: "vertical"
+        size: root.width, root.height
+
+        BoxLayout:
+            orientation: "horizontal"
+            height: 5
+            size_hint: root.width, .1
+            User:
+                username: "Name"
+                userid: "hihihihihihihihihihihi"
+                index: 0
+                size_hint: 1, 1
+        
+        BaseWidget:
+            size_hint: 1, .01
+
+        ScrollView:
+            do_scroll_x: False
+            do_scroll_y: True
+            size: root.width, root.height
+
+            StackLayout:
+                orientation: "tb-lr"
+                size_hint: root.width, (1.5/8) * len(self.children) - 0.2
+                size: root.width, root.height
+                spacing: 2

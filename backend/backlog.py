@@ -3,7 +3,6 @@ from backend.db.database import *
 from sqlalchemy.future import select
 
 import asyncio
-import json
 
 
 class Backlog(object):
@@ -24,7 +23,7 @@ class Connector(Backlog):
         self.conn[1].write(packet.read())
         await self.conn[1].drain()
 
-        return await readpacket(self.conn[0])
+        return await readpacket(*self.conn)
 
 
 
@@ -40,14 +39,15 @@ class Handler(Backlog):
 
     async def serve(self): 
         while True:
-            await self.handle(await readpacket(self.reader))
+            await self.handle(await readpacket(self.reader, self.writer))
 
-    async def handle(self, packet):
+    async def handle(self, packet): # handles a valid packet
         return await {
             PAC.NAN: self.nan,
             PAC.INF: self.inf,
             PAC.AUT: self.aut,
-            PAC.MSG: self.msg
+            PAC.MSG: self.msg,
+            PAC.CRT: self.crt
         }[packet.pactype](packet)
 
     async def nan(self, packet): pass # do jack shit testing
@@ -58,4 +58,5 @@ class Handler(Backlog):
 
     async def aut(self, packet): pass
     async def msg(self, packet): pass
+    async def crt(self, packet): pass
     

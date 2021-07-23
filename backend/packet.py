@@ -16,13 +16,18 @@ class Val(int): # enum value object (int backwards convertability)
 
 # package types
 class PAC(enum.Enum):
-    NAN =  Val(00, False) # no operation packet
+    NAN = Val( 0, False) # no operation packet
+    ERR = Val( 1, False) # error with packet
 
-    INF =  Val(10, False) # request node information
-    AUT =  Val(20, False) # request authority nodes
-    MSG =  Val(69, True ) # send message
+    INF = Val(20, False) # request node information
+    AUT = Val(30, False) # request authority nodes
+    MSG = Val(40, True ) # send message
+    CRT = Val(50, True ) # request account creation or updates
+    SIG = Val(60, False) # data to be signed
 
-    INFA = Val(11, True ) # responce for INF
+    INFA = Val(21, True ) # responce for INF
+    CRTA = Val(51, False) # acknowlege account creation
+    SIGA = Val(61, False) # signed data
 
 
 class ReadError(Exception): pass
@@ -35,6 +40,7 @@ class Packet(object):
                 self.data = json.loads(data)
             except TypeError:
                 self.data = data
+                self.pactype = PAC.ERR
             self.length = len(json.dumps(self.data))
         else:
             self.length = len(self.data)
@@ -59,8 +65,13 @@ class Packet(object):
         raise ReadError("Canot reread packet.")
 
 
-async def readpacket(reader):
+async def readpacket(reader, writer):
     length, pactype = struct.unpack("HH", await reader.readexactly(4))
     data = await reader.readexactly(length)
 
-    return Packet(PAC(pactype), data.decode())
+    pac = Packet(PAC(pactype), data.decode())
+    if pac.pactype == PAC.ERR:
+        writer.write(pac)
+        await writer.drain()
+        writer.close()
+    else: return pac
