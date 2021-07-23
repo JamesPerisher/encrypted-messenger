@@ -1,6 +1,13 @@
 #:kivy 1.0.9
 #:import utils kivy.utils
 
+#:set superbright utils.get_color_from_hex("#ffffff")
+#:set bright utils.get_color_from_hex("#787878")
+#:set dark utils.get_color_from_hex("#121212")
+#:set background utils.get_color_from_hex("#3B3B3B")
+#:set lightbackground  utils.get_color_from_hex("#2E2E2E")
+#:set buttonbackground utils.get_color_from_hex("#aaaaaa")
+
 
 <Widget>:
     canvas.after:
@@ -12,7 +19,7 @@
 <BaseWidget>:
     canvas.before:
         Color:
-            rgb: utils.get_color_from_hex("#121212")
+            rgb: dark
         Rectangle:
             size: self.size
             pos: self.pos
@@ -20,7 +27,7 @@
 <BaseWidget1>:
     canvas.before:
         Color:
-            rgb: utils.get_color_from_hex("#2E2E2E")
+            rgb: lightbackground
         Rectangle:
             size: self.size
             pos: self.pos
@@ -33,9 +40,9 @@
         pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) + 2*root.height /8
         width: 0.9 * root.width
         height: 30
-        background_color: utils.get_color_from_hex("#3B3B3B")
-        foreground_color: utils.get_color_from_hex("#ffffff")
-        hint_text_color: utils.get_color_from_hex("#787878")
+        background_color: background
+        foreground_color: superbright
+        hint_text_color: bright
 
     GridLayout:
         cols: 2
@@ -70,9 +77,9 @@
         pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) - root.height /8
         width: 0.9 * root.width
         height: 30
-        color: utils.get_color_from_hex("#ffffff")
-        background_color: utils.get_color_from_hex("#aaaaaa")
-        hint_text_color: utils.get_color_from_hex("#787878")
+        color: superbright
+        background_color: buttonbackground
+        hint_text_color: bright
         border_width: 0
 
     Button:
@@ -80,9 +87,9 @@
         pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) -2* root.height /8
         width: 0.9 * root.width
         height: 30
-        color: utils.get_color_from_hex("#ffffff")
-        background_color: utils.get_color_from_hex("#aaaaaa")
-        hint_text_color: utils.get_color_from_hex("#787878")
+        color: superbright
+        background_color: buttonbackground
+        hint_text_color: bright
         border_width: 0
 
 
@@ -92,6 +99,7 @@
     BoxLayout:
         orientation: "horizontal"
         width: self.parent.sqrt(root.width) * 0.95
+        size_hint: 1, 1
         pos: (self.parent.sqrt(root.width) - self.width) / 2, self.parent.pos[1]
         spacing: 10
         height: self.parent.height
@@ -120,22 +128,56 @@
     size_hint: 1, 1
     pos: 0, 0
 
+
     BoxLayout:
         orientation: "vertical"
         size: root.width, root.height
 
+
         BoxLayout:
             orientation: "horizontal"
-            height: 5
-            size_hint: root.width, .1
-            User:
-                username: "Name"
-                userid: "hihihihihihihihihihihi"
-                index: 0
-                size_hint: 1, 1
-        
+            size_hint: 1, .1
+            padding: 5
+            spacing: self.width/100
+
+            Image:
+                source: self.parent.parent.parent.user.img
+                size_hint: .2, 1
+                allow_stretch: True
+
+            Label:
+                font_size: 25
+                text: self.parent.parent.parent.user.username
+                halign:'left'
+                valign:'middle'
+                text_size: self.size
+
+            Button:
+                background_color: 0,0,0,0
+                size_hint_x: .1
+                Image:
+                    source: "app/images/search.png"
+                    size: self.parent.width, self.parent.height
+                    center: self.parent.center_x, self.parent.center_y
+                    allow_stretch: True
+            Widget:
+                size_hint: 0.01, 1
+            Button:
+                background_color: 0,0,0,0
+                size_hint_x: .1
+                Image:
+                    source: "app/images/shaire.png"
+                    size: self.parent.width, self.parent.height
+                    center: self.parent.center_x, self.parent.center_y
+                    allow_stretch: True
+            
         BaseWidget:
-            size_hint: 1, .01
+            size_hint: 1, .002
+            height: 5
+        
+        BaseWidget1:
+            size_hint: 1, .002
+            height: 5
 
         ScrollView:
             do_scroll_x: False

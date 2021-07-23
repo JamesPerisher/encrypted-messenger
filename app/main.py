@@ -21,11 +21,15 @@ class LoginPage(BaseWidget):
 
 
 class UsersPage(BaseWidget1):
+    def __init__(self, user=None, **kwargs):
+        self.user = user if user else User()
+        super().__init__(**kwargs)
+
     def add_user(self, user):
         self.children[0].children[0].children[0].add_widget(user)
 
-class User(BaseWidget1):
-    def __init__(self, username="[Username err]", userid="[id err]", index=0, img="app/images/UserAccount.png", **kwargs):
+class User(BaseWidget):
+    def __init__(self, username="[Username err]", userid="[id err]", index=0, img="app/images/useraccountbase.png", **kwargs):
         self.userid = userid
         self.username = username
         self.index = index
