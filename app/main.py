@@ -1,14 +1,14 @@
-import kivy
 import math
-# This will give you ability to use all the different fields as well as methods provided by kivy.
-from kivy.app import App
+import random
 
-from kivy.uix.widget import Widget
+from kivy.app import App, Builder
 from kivy.core.window import Window
 
-
+from kivy.uix.stacklayout import StackLayout
+from kivy.uix.widget import Widget
 
 Window.size = (400, 700)
+
 
 class BaseWidget(Widget):
     pass
@@ -40,31 +40,70 @@ class User(BaseWidget):
     def sqrt(self, width):
         return math.sqrt(width)
 
+class Message(BaseWidget):
+    def __init__(self, data="[msgerr]", time="[timeerr]", isleft=False, **kwargs):
+        self.data = data
+        self.isleft = isleft
+        self.lines = len(self.data.split("\n"))
+        self.time = time
+        super().__init__(**kwargs)
+
+    def sqrt(self, width):
+        return math.sqrt(width)
+
+class ScrollLayout(StackLayout):
+
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.size_hint_y = None
+        self.bind(minimum_height=self.setter('height'))
+
+class MessagePage(BaseWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.add_message(Message("\n", ""))
+
+    def add_message(self, message):
+        self.children[1].children[0].add_widget(message)
+
+    def update(self, a, b, c):
+        a.size[1] = c.size[1]
+        b.pos = [0, c.size[1]+10]
+        
+
 
 class Main(App):
     def build(self):
+        pass
+        # login page
         # return LoginPage()
-        pg =  UsersPage()
 
-        pg.add_user(User("Username0", "ab247ef933433d32a763d", 0))
-        pg.add_user(User("Username1", "ab247ef933433d32a763d", 1))
-        pg.add_user(User("Username2", "ab247ef933433d32a763d", 2))
-        pg.add_user(User("Username3", "ab247ef933433d32a763d", 2))
-        pg.add_user(User("Username4", "ab247ef933433d32a763d", 2))
-        pg.add_user(User("Username5", "ab247ef933433d32a763d", 2))
-        pg.add_user(User("Username6", "ab247ef933433d32a763d", 2))
-        pg.add_user(User("Username7", "ab247ef933433d32a763d", 2))
+        # userpage
+        # pg =  UsersPage()
+        # pg.add_user(User("Username0", "ab247ef933433d32a763d", 0))
+        # pg.add_user(User("Username1", "ab247ef933433d32a763d", 1))
+        # pg.add_user(User("Username2", "ab247ef933433d32a763d", 2))
+        # pg.add_user(User("Username3", "ab247ef933433d32a763d", 2))
+        # pg.add_user(User("Username4", "ab247ef933433d32a763d", 2))
+        # pg.add_user(User("Username5", "ab247ef933433d32a763d", 2))
+        # pg.add_user(User("Username6", "ab247ef933433d32a763d", 2))
+        # pg.add_user(User("Username7", "ab247ef933433d32a763d", 2))
+        # pg.add_user(User("Username0", "ab247ef933433d32a763d", 0))
+        # pg.add_user(User("Username1", "ab247ef933433d32a763d", 1))
+        # pg.add_user(User("Username2", "ab247ef933433d32a763d", 2))
+        # pg.add_user(User("Username3", "ab247ef933433d32a763d", 2))
+        # pg.add_user(User("Username4", "ab247ef933433d32a763d", 2))
+        # pg.add_user(User("Username5", "ab247ef933433d32a763d", 2))
+        # pg.add_user(User("Username6", "ab247ef933433d32a763d", 2))
+        # pg.add_user(User("Username7", "ab247ef933433d32a763d", 2))
+        # return pg
 
-        pg.add_user(User("Username0", "ab247ef933433d32a763d", 0))
-        pg.add_user(User("Username1", "ab247ef933433d32a763d", 1))
-        pg.add_user(User("Username2", "ab247ef933433d32a763d", 2))
-        pg.add_user(User("Username3", "ab247ef933433d32a763d", 2))
-        pg.add_user(User("Username4", "ab247ef933433d32a763d", 2))
-        pg.add_user(User("Username5", "ab247ef933433d32a763d", 2))
-        pg.add_user(User("Username6", "ab247ef933433d32a763d", 2))
-        pg.add_user(User("Username7", "ab247ef933433d32a763d", 2))
+        # message page
+        # mp = MessagePage()
+        # for i in range(10):
+        #     mp.add_message(Message((("hello World!\n"*random.randint(0, 10)) + str(i)), isleft=random.choice([True, False])))
 
-        return pg
+        # return mp
 
 
 if __name__ == "__main__":
