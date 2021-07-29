@@ -9,6 +9,7 @@
 #:set background utils.get_color_from_hex("#3B3B3B")
 #:set lightbackground  utils.get_color_from_hex("#2E2E2E")
 #:set buttonbackground utils.get_color_from_hex("#aaaaaa")
+#:set error utils.get_color_from_hex("#aa0000")
 
 
 # <Widget>:
@@ -67,8 +68,13 @@
 
 
 <LoginPage>:
+    Label:
+        pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) + 3*root.height /8
+        text: ""
+        color: error
     TextInput:
         hint_text: 'Username'
+        multiline: False
         font_size: 16
         pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) + 2*root.height /8
         width: 0.9 * root.width
@@ -80,6 +86,7 @@
     GridLayout:
         cols: 2
         rows: 2
+        spacing: 10
         width: 0.6 * root.width
         pos: ((root.width - self.width) / 2) - root.width/8, ((root.height - self.height) / 2) + root.height / 8
     
@@ -96,7 +103,7 @@
 
         CheckBox:
             id: terms
-            size_hint_x: root.width * 0.08
+            size_hint_x: 1
 
         Label:
             text: " I accept these terms of use."
@@ -105,25 +112,46 @@
             size_hint_x: root.width * 0.9
             text_size: self.size
 
-    Button:
-        text: "Sign up"
-        pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) - root.height /8
-        width: 0.9 * root.width
-        height: 30
-        color: superbright
-        background_color: buttonbackground
-        hint_text_color: bright
-        border_width: 0
+    BoxLayout:
+        orientation: "vertical"
+        width: self.parent.width * .9
+        pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) - root.height /7
 
-    Button:
-        text: "Import account"
-        pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) -2* root.height /8
-        width: 0.9 * root.width
-        height: 30
-        color: superbright
-        background_color: buttonbackground
-        hint_text_color: bright
-        border_width: 0
+        Button:
+            text: "Sign up"
+            width: 0.9 * root.width
+            height: 30
+            color: superbright
+            background_color: buttonbackground
+            hint_text_color: bright
+            border_width: 0
+
+            on_press: self.parent.parent.signup()
+
+        Widget:
+            size_hint: 1, 1
+
+        Label:
+            text: "Already have an account?"
+
+        Button:
+            text: "Import account"
+            width: 0.9 * root.width
+            height: 30
+            color: superbright
+            background_color: buttonbackground
+            hint_text_color: bright
+            border_width: 0
+
+            on_press: self.parent.parent.login()
+
+
+    Image:
+        source: "app/images/logo.png"
+        size_hint: None, None
+        size: self.parent.width, self.parent.height *.2
+        center: self.parent.width/2, self.parent.children[1].pos[1] / 2
+        allow_stretch: True
 
 
 
@@ -215,13 +243,15 @@
         ScrollView:
             do_scroll_x: False
             do_scroll_y: True
-            size: root.width, root.height
+            size_hint: 1, .9
+            size: root.width, self.parent.height
 
-            StackLayout:
+            ScrollLayout:
                 orientation: "tb-lr"
-                size_hint: root.width, (1.5/8) * len(self.children) - 0.2
-                size: root.width, root.height
+                size_hint_x: root.width
+                size: root.width, sum([x.size[1] for x in self.children]) + self.spacing[1]*len(self.children) + 50
                 spacing: 2
+
 
 
 <Message>:
@@ -264,7 +294,7 @@
         ScrollLayout:
             orientation: "tb-lr"
             size_hint_x: root.width
-            size: root.width, sum([x.size[1] for x in self.children]) * .5 + 100#+ 16*len(self.children) - 200
+            size: root.width, sum([x.size[1] for x in self.children]) * .5 + 100
             spacing: 10
 
     BoxLayout:

@@ -1,13 +1,15 @@
 import math
-import random
 
-from kivy.app import App, Builder
+from app.usersession import Session
+
 from kivy.core.window import Window
 
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.widget import Widget
+from kivy.app import App
 
 Window.size = (400, 700)
+SESSION = Session.from_file("userdata/session.json").save() # realy need to store this in secure place idk yet
 
 
 class BaseWidget(Widget):
@@ -17,8 +19,22 @@ class BaseWidget1(BaseWidget):
     pass
 
 class LoginPage(BaseWidget):
-    pass
+    def error(self, txt):
+        pass
+    def signup(self):
+        if self.children[3].text.strip() == "":
+            self.children[4].text = "Enter a Username"
+        elif not (self.children[2].children[1].active and self.children[2].children[3].active):
+            self.children[4].text = "You must agree to all terms and conditions"
 
+        else:
+            SESSION["username"] = self.children[3].text.strip()
+            print("continueing")
+
+    def login(self):
+        print("importing")
+
+        
 
 class UsersPage(BaseWidget1):
     def __init__(self, user=None, **kwargs):
@@ -70,6 +86,9 @@ class MessagePage(BaseWidget):
         a.size[1] = c.size[1]
         b.pos = [0, c.size[1]+10]
         
+class Seedgen(BaseWidget):
+    pass
+
 
 
 class Main(App):
@@ -80,29 +99,14 @@ class Main(App):
 
         # userpage
         # pg =  UsersPage()
-        # pg.add_user(User("Username0", "ab247ef933433d32a763d", 0))
-        # pg.add_user(User("Username1", "ab247ef933433d32a763d", 1))
-        # pg.add_user(User("Username2", "ab247ef933433d32a763d", 2))
-        # pg.add_user(User("Username3", "ab247ef933433d32a763d", 2))
-        # pg.add_user(User("Username4", "ab247ef933433d32a763d", 2))
-        # pg.add_user(User("Username5", "ab247ef933433d32a763d", 2))
-        # pg.add_user(User("Username6", "ab247ef933433d32a763d", 2))
-        # pg.add_user(User("Username7", "ab247ef933433d32a763d", 2))
-        # pg.add_user(User("Username0", "ab247ef933433d32a763d", 0))
-        # pg.add_user(User("Username1", "ab247ef933433d32a763d", 1))
-        # pg.add_user(User("Username2", "ab247ef933433d32a763d", 2))
-        # pg.add_user(User("Username3", "ab247ef933433d32a763d", 2))
-        # pg.add_user(User("Username4", "ab247ef933433d32a763d", 2))
-        # pg.add_user(User("Username5", "ab247ef933433d32a763d", 2))
-        # pg.add_user(User("Username6", "ab247ef933433d32a763d", 2))
-        # pg.add_user(User("Username7", "ab247ef933433d32a763d", 2))
+        # for i in range(10):
+        #     pg.add_user(User("Username{}".format(i), "".join(random.choice("abcdef0123456789") for x in range(156)), 0))
         # return pg
 
         # message page
         # mp = MessagePage()
         # for i in range(10):
         #     mp.add_message(Message((("hello World!\n"*random.randint(0, 10)) + str(i)), isleft=random.choice([True, False])))
-
         # return mp
 
 
