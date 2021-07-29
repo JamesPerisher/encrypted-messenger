@@ -71,11 +71,15 @@ class LoginPage(BaseScreen):
             self.children[0].children[4].text = "You must agree to all terms and conditions"
 
         else:
+            self.children[0].children[4].text = ""
             SESSION["username"] = self.children[0].children[3].text.strip()
+            self.sm.transition.direction = 'left'
             self.sm.current = "SeedgenPage"
 
     def login(self):
-        print("importing")
+        self.sm.screens[2].backpg = "LoginPage"
+        self.sm.transition.direction = 'left'
+        self.sm.current = "ImportPage"
 
 
 class UsersPage(BaseScreen1):
@@ -106,7 +110,19 @@ class SeedgenPage(BaseScreen):
         other.text = "   ".join(SESSION["_seed"])
 
     def back(self):
+        self.sm.transition.direction = 'right'
         self.sm.current = "LoginPage"
+
+    def next(self):
+        self.sm.screens[2].backpg = "SeedgenPage"
+
+        self.sm.transition.direction = 'left'
+        self.sm.current = "ImportPage"
+
+class ImportPage(BaseScreen):
+    def back(self):
+        self.sm.transition.direction = 'right'
+        self.sm.current = self.backpg
 
     def next(self):
         print("next")
@@ -118,6 +134,7 @@ class Main(App):
         screens = [
             LoginPage  (self.sm, name="LoginPage"  ),
             SeedgenPage(self.sm, name="SeedgenPage"),
+            ImportPage (self.sm, name="ImportPage" ),
             UsersPage  (self.sm, name="UsersPage"  ),
             MessagePage(self.sm, name="MessagePage")
         ]

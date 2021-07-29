@@ -410,3 +410,49 @@
                 size_hint: .4, .5
                 text: "Next"
                 on_press: self.parent.parent.parent.next()
+
+<ImportPage>: # this is basicly duplicated code couldn't be bothered to fix
+    BoxLayout:
+        size_hint: None, None
+        orientation: "vertical"
+        size: self.parent.width * .9, self.parent.height *.9
+        pos: (root.width - self.width) /2, (root.height - self.height) /2
+        spacing: 10
+
+        Label:
+            size_hint: 1, .4
+            text_size: self.size
+            text: "Enter the words for your seed below separated by a space.\nIf you have forgotten your seed try remember where you wrote it down as it is impossible to recover an account without it."
+        Widget:
+            size_hint: 1, .1
+        TextInput:
+            size_hint: 1, .4
+            background_normal: 'app/images/background.png'
+            background_active: 'app/images/background.png'
+            background_disabled_normal: 'app/images/background.png'
+            disabled_foreground_color: superdark
+
+            border: 30, 30, 30, 30
+            padding: 20
+
+            text_hint: "Enter your seed."
+
+        Widget:
+            size_hint: 1, .1
+
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint: 1, .2
+
+            Button:
+                size_hint: .4, .5
+                text: "Back"
+                on_press: self.parent.parent.parent.back()
+
+            Widget:
+                size_hint: .2, 1
+
+            Button:
+                size_hint: .4, .5
+                text: "Next"
+                on_press: self.parent.parent.parent.next()
