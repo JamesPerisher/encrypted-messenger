@@ -1,7 +1,7 @@
 import math
 
 from app.usersession import Session
-from backend.keymanagement import generate_seed
+from backend.keymanagement import generate_seed, generate_key, id_from_priv, id_from_pub
 
 from kivy.core.window import Window
 
@@ -76,8 +76,12 @@ class LoginPage(BaseScreen):
             self.sm.transition.direction = 'left'
             self.sm.current = "SeedgenPage"
 
+    def on_pre_enter(self):
+        self.children[0].children[4].text = ""
+
     def login(self):
         self.sm.screens[2].backpg = "LoginPage"
+        SESSION["_seed"] = None
         self.sm.transition.direction = 'left'
         self.sm.current = "ImportPage"
 
@@ -106,7 +110,8 @@ class MessagePage(BaseScreen):
 
 class SeedgenPage(BaseScreen):
     def update(self, other):
-        SESSION["_seed"] = generate_seed()
+        self.seed = generate_seed()
+        SESSION["_seed"] = self.seed
         other.text = "   ".join(SESSION["_seed"])
 
     def back(self):
@@ -115,6 +120,7 @@ class SeedgenPage(BaseScreen):
 
     def next(self):
         self.sm.screens[2].backpg = "SeedgenPage"
+        SESSION["_seed"] = self.seed
 
         self.sm.transition.direction = 'left'
         self.sm.current = "ImportPage"
@@ -124,13 +130,43 @@ class ImportPage(BaseScreen):
         self.sm.transition.direction = 'right'
         self.sm.current = self.backpg
 
-    def next(self):
-        print("next")
+
+    def on_pre_enter(self):
+        self.children[0].children[5].text = ""
+
+    async def auth(self, session):
+        session["privkey"] = generate_key(session["_seed"])
+        session["id"] = id_from_priv(session["privkey"])
+        session.save()
+
+    async def login (self, session):
+        await self.auth(session)
+
+        print(await self.sm.cm.get_info(session["id"]))
+
+    async def signup(self, session):
+        await self.auth(session)
+
+    async def next(self):
+        if SESSION.get("_seed", None):
+            if not SESSION.get("_seed", None) == self.children[0].children[2].text.split():
+                self.children[0].children[5].text = "Seed does not match"
+                return
+            await self.signup(SESSION)
+        else:
+            SESSION["_seed"] = self.children[0].children[2].text.split()
+        await self.login(SESSION)
+
+        self.sm.current = "UsersPage"
 
 
 class Main(App):
+    def __init__(self, clientmanager, **kwargs):
+        self.cm = clientmanager
+        super().__init__(**kwargs)
     def build(self):
         self.sm = ScreenManager()
+        self.sm.cm = self.cm
         screens = [
             LoginPage  (self.sm, name="LoginPage"  ),
             SeedgenPage(self.sm, name="SeedgenPage"),
@@ -143,13 +179,8 @@ class Main(App):
             self.sm.add_widget(i)
 
         self.sm.current = "LoginPage"
-        # self.sm.current = "SeedgenPage"
 
         return self.sm
-
-
-if __name__ == "__main__":
-   Main().run()
 
 
    

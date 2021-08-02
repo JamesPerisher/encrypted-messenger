@@ -1,2 +1,5 @@
-SQLAlchemy aiosqlite
+SQLAlchemy
+aiosqlite
 kivy
+PyCryptodome
+numpy

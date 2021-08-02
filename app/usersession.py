@@ -12,6 +12,15 @@ class Session(object):
     def __setitem__(self, index, value):
         return self.data.__setitem__(index, value)
 
+    def pop(self, id):
+        try:
+            return self.data.pop(id)
+        except KeyError:
+            return None
+
+    def get(self, id, default=None):
+        return self.data.get(id, default)
+
     
     @classmethod
     def from_file(cls, filepath):
@@ -24,10 +33,8 @@ class Session(object):
 
     def save(self, filepath=None):
         filepath = self.filepath if filepath == None else filepath
+        self.data = {x:self.data[x] for x in self.data if not x.startswith("_")} # remove tmp variables we dont want to save
         data = json.dumps(self.data)
-        for i in self.data:
-            if i.startswith("_"):
-                self.data.pop(i) # remove tmp variables we dont want to save
         with open(filepath, "w") as f:
             f.write(data)
         return self

@@ -65,9 +65,3 @@ class Authority(Node):
 class Client(Node):
     def __init__(self, id, key, authorities) -> None:
         super().__init__(id, key, authorities, isauthority=False)
-
-    async def debug(self):
-        print(await self.get_info("test0"))
-        print(await self.get_info("testid"))
-        print(await self.get_info("test2"))
-        print(await self.get_info("test3"))

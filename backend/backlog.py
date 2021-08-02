@@ -18,12 +18,15 @@ class Connector(Backlog):
         self.conn = None # will eventualy be (reader, writer)
 
     async def send(self, packet):
-        if not self.conn : self.conn = await asyncio.open_connection(*self.node.get_authority()) # make connif not exist (TODO: Error handling)
+        try:
+            if not self.conn : self.conn = await asyncio.open_connection(*self.node.get_authority()) # make connif not exist (TODO: Error handling)
 
-        self.conn[1].write(packet.read())
-        await self.conn[1].drain()
+            self.conn[1].write(packet.read())
+            await self.conn[1].drain()
 
-        return await readpacket(*self.conn)
+            return await readpacket(*self.conn)
+        except OSError:
+            return Packet(PAC.ERR, "net")
 
 
 
