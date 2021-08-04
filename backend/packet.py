@@ -18,6 +18,8 @@ class Val(int): # enum value object (int backwards convertability)
 class PAC(enum.Enum):
     NAN = Val( 0, False) # no operation packet
     ERR = Val( 1, False) # error with packet
+    RAP = Val( 2, False) # request auth packet
+    APA = Val( 3, False)
 
     INF = Val(20, False) # request node information
     AUT = Val(30, False) # request authority nodes
@@ -28,6 +30,7 @@ class PAC(enum.Enum):
     INFA = Val(21, True ) # responce for INF
     CRTA = Val(51, False) # acknowlege account creation
     SIGA = Val(61, False) # signed data
+    RAPA = Val(22, False) # random data by server
 
 
 class ReadError(Exception): pass

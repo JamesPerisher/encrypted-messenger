@@ -1,9 +1,12 @@
+from sqlalchemy.sql.selectable import Values
+from sqlalchemy import update
 from backend.packet import *
 from backend.db.database import *
 from sqlalchemy.future import select
+from backend.keymanagement import *
 
 import asyncio
-
+import secrets
 
 class Backlog(object):
     def __init__(self, node) -> None:
@@ -29,13 +32,13 @@ class Connector(Backlog):
             return Packet(PAC.ERR, "net")
 
 
-
 class Handler(Backlog):
     def __init__(self, node, reader, writer, database) -> None:
         super().__init__(node)
         self.reader = reader
         self.writer = writer
         self.db = database
+        self.verify = ""
 
     async def send(self, packet):
         self.writer.write(packet.read())
@@ -46,6 +49,7 @@ class Handler(Backlog):
 
     async def handle(self, packet): # handles a valid packet
         return await {
+            PAC.RAP: self.rap,
             PAC.NAN: self.nan,
             PAC.INF: self.inf,
             PAC.AUT: self.aut,
@@ -55,11 +59,23 @@ class Handler(Backlog):
 
     async def nan(self, packet): pass # do jack shit testing
 
+    async def rap(self, packet): # generate and store data for verifying next message
+        data = secrets.token_urlsafe(128)
+        self.verify = data
+        await self.send(Packet(PAC.RAPA, data))
+
     async def inf(self, packet):
         users = await self.db.execute(select(User).where(User.userid == packet.data))
         await self.send(Packet(PAC.INFA, [[x["User"].userid, x["User"].name, x["User"].pubkey] for x in users.all()]))
 
     async def aut(self, packet): pass
     async def msg(self, packet): pass
-    async def crt(self, packet): pass
+    async def crt(self, packet):
+        if verify(packet.data["pub"], self.verify, packet.data["verify"]):
+            await self.db.execute(update(User).where(User.userid == packet.data["id"]).values(name=packet.data["uname"]))
+            return await self.send(Packet(PAC.CRTA, "True"))
+        return await self.send(Packet(PAC.CRTA, "False"))
+        
+        
+        
     

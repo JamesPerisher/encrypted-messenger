@@ -2,7 +2,9 @@ from Crypto.PublicKey import RSA
 from Crypto import Random
 import secrets
 from hashlib import sha256
-
+from Crypto.Signature import pss
+from Crypto.Hash import SHA256
+from base64 import b64encode, b64decode
 
 def generate_seed(length=16):
     with open("backend/db/words.txt", "r") as f:
@@ -46,8 +48,27 @@ def generate_key(seed):
 def id_from_priv(key):
     return id_from_pub(RSA.import_key(key).public_key().export_key())
 
+def get_pub(key):
+    return RSA.import_key(key).public_key().export_key().decode()
+
 def id_from_pub(key):
     return sha256(key).hexdigest()
+
+def sign(key, data):
+    k = RSA.import_key(key)
+    h = SHA256.new(data.encode())
+
+    return b64encode(pss.new(k).sign(h)).decode()
+
+def verify(key, data, signature):
+    k = RSA.import_key(key.encode())
+    h = SHA256.new(data.encode())
+    verifier = pss.new(k)
+    try:
+        verifier.verify(h, b64decode(signature.encode()))
+        return True
+    except (ValueError, TypeError):
+        return False
 
 
 if __name__ == "__main__":
@@ -57,5 +78,3 @@ if __name__ == "__main__":
     k = generate_key(seed)
     print(k)
     print(id_from_priv(k))
-    # print(seed1)
-    # print(generate_key(seed1))

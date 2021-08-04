@@ -1,11 +1,13 @@
+import asyncio
 import math
 
 from app.usersession import Session
-from backend.keymanagement import generate_seed, generate_key, id_from_priv, id_from_pub
+from backend.keymanagement import generate_seed, generate_key, id_from_priv, id_from_pub, get_pub
 
 from kivy.core.window import Window
 
 from kivy.uix.stacklayout import StackLayout
+from kivy.clock import Clock
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.widget import Widget
 from kivy.app import App
@@ -126,28 +128,38 @@ class SeedgenPage(BaseScreen):
         self.sm.current = "ImportPage"
 
 class ImportPage(BaseScreen):
-    def back(self):
+    def back(self): # programaticaly go the last page
         self.sm.transition.direction = 'right'
         self.sm.current = self.backpg
 
 
-    def on_pre_enter(self):
-        self.children[0].children[5].text = ""
+    def on_pre_enter(self, text=""): # error message clearing
+        self.children[0].children[5].text = text
 
     async def auth(self, session):
-        session["privkey"] = generate_key(session["_seed"])
-        session["id"] = id_from_priv(session["privkey"])
-        session.save()
+        self.sm.cm.session = session
+        if SESSION.get("_seed", None):
+            session["privkey"] = generate_key(session["_seed"])
+            session["pubkey"] = get_pub(session["privkey"])
+            session["id"] = id_from_priv(session["privkey"])
+            session.save()
 
     async def login (self, session):
         await self.auth(session)
 
-        print(await self.sm.cm.get_info(session["id"]))
+        userdata = await self.sm.cm.get_info(session["id"])
+        if userdata.data == []:
+            Clock.schedule_once(lambda x: self.on_pre_enter("No user for provided seed."), 0)
+            return
+        print("login success", userdata.data) # login success
 
     async def signup(self, session):
         await self.auth(session)
 
-    async def next(self):
+        a = await self.sm.cm.register(session["id"], session["username"], session["pubkey"])
+        print("signup", a)
+
+    async def next(self): # hadle signing/signup page next button
         if SESSION.get("_seed", None):
             if not SESSION.get("_seed", None) == self.children[0].children[2].text.split():
                 self.children[0].children[5].text = "Seed does not match"
@@ -157,14 +169,20 @@ class ImportPage(BaseScreen):
             SESSION["_seed"] = self.children[0].children[2].text.split()
         await self.login(SESSION)
 
-        self.sm.current = "UsersPage"
-
 
 class Main(App):
     def __init__(self, clientmanager, **kwargs):
         self.cm = clientmanager
         super().__init__(**kwargs)
-    def build(self):
+
+    def on_request_close(self, arg): # close asyncio eventloop so program will exit
+        print("Exiting program")
+        asyncio.get_event_loop().stop()
+        return False
+
+
+    def build(self): # build all screens
+        Window.bind(on_request_close=self.on_request_close)
         self.sm = ScreenManager()
         self.sm.cm = self.cm
         screens = [

@@ -1,24 +1,29 @@
 from backend.node import *
 from backend.packet import *
-from kivy.app import async_runTouchApp
+from backend.db.database import *
 from app.main import Main
 import asyncio
 
-from threading import Thread
+from backend.db.config import *
+
+
 
 
 if __name__ == "__main__":
     clinode = Client("idk1", "idk1", AUTHORITIES)
     gui = Main(clinode).async_run(async_lib='asyncio')
-    print(gui)
 
+    db = DBManager(async_session)
 
     authnode = Authority("idk", "idk", AUTHORITIES, 10)
-    events = asyncio.gather(authnode.start(), gui)
+    events = asyncio.gather(authnode.start(db), gui)
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(events)
-    # loop.close()
+    try:
+        loop.run_until_complete(events)
+    except RuntimeError:
+        pass # program was killed or crashed (idk which one) its eather ur fault or mine I blame you
+    loop.close()
 
 
 

@@ -7,7 +7,7 @@ from backend.db.config import Base, engine
 async def dbstartup():
     # create db tables
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all) # only do this in testing lol
+        # await conn.run_sync(Base.metadata.drop_all) # only do this in testing lol
         await conn.run_sync(Base.metadata.create_all)
 
 
@@ -25,3 +25,13 @@ class Message(Base):
     data = Column(String, nullable=False)
     
 
+class DBManager:
+    def __init__(self, dbsesh) -> None:
+        self.dbsesh = dbsesh
+
+    async def execute(self, command):
+        async with self.dbsesh() as session:
+                async with session.begin():
+                    ret = await session.execute(command)
+                    await session.commit()
+                    return ret

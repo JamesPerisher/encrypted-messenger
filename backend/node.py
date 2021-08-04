@@ -4,8 +4,8 @@ import random
 from backend.packet import *
 from backend.backlog import *
 
-from backend.db.config import *
 from backend.db.database import *
+from backend.keymanagement import *
 
 
 AUTHORITIES = [("localhost", 6969)]
@@ -20,15 +20,10 @@ class Node(object):
         self.isauthority = isauthority
         self.backlog = Connector(self)
 
-    async def _start(self, db):
-        pass
-
-    async def start(self):
-        async with async_session() as session:
-            async with session.begin():
-                print("Session for db established")
-                self.db = True
-                await self._start(session)
+    async def check(self, gui, pac):
+        if pac.pactype == PAC.ERR:
+            return await gui.showerr(pac)
+        return pac
 
     async def send(self, packet):
         return await self.backlog.send(packet)
@@ -53,7 +48,7 @@ class Authority(Node):
             await Handler(self, reader, writer, db).serve() # create handler for this connection
         return handleclient
 
-    async def _start(self, db):
+    async def start(self, db):
         server = await asyncio.start_server(self.callback(db), "localhost", 6969)
         print("Serving on {}".format(server.sockets[0].getsockname()))
 
@@ -65,3 +60,9 @@ class Authority(Node):
 class Client(Node):
     def __init__(self, id, key, authorities) -> None:
         super().__init__(id, key, authorities, isauthority=False)
+    
+    async def register(self, id, username, pubkey):
+        data = await self.send(Packet(PAC.RAP, ""))
+        data = sign(self.session["privkey"], data.data)
+
+        return await self.send(Packet(PAC.CRT, {"id":id, "uname":username, "pub":pubkey, "verify":data}))
