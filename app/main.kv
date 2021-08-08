@@ -2,6 +2,7 @@
 #:import utils kivy.utils
 #:import Clock kivy.clock.Clock
 #:import run backend.asyncrun.run
+#:import sqrt math.sqrt
 
 
 #:set superbright utils.get_color_from_hex("#ffffff")
@@ -182,9 +183,9 @@
     size_hint: 1, None
     BoxLayout:
         orientation: "horizontal"
-        width: self.parent.sqrt(root.width) * 0.95
+        width: sqrt(root.width) * 0.95
         size_hint: 1, 1
-        pos: (self.parent.sqrt(root.width) - self.width) / 2, self.parent.pos[1]
+        pos: (sqrt(root.width) - self.width) / 2, self.parent.pos[1]
         spacing: 10
         height: self.parent.height
 
@@ -279,13 +280,13 @@
 
 <Message>:
     size_hint: 1, None
-    size: self.width, (self.lines+2.5) * 0.045*self.sqrt(root.width)
+    size: self.width, (self.lines+2.5) * 0.045*sqrt(root.width)
     pos: self.pos
     BoxLayout:
         orientation: "horizontal"
-        width: self.parent.sqrt(root.width) * 0.8
+        width: sqrt(root.width) * 0.8
         size_hint: 1, 1
-        pos: (self.parent.sqrt(root.width) - self.width) / 2, self.parent.pos[1]
+        pos: (sqrt(root.width) - self.width) / 2, self.parent.pos[1]
         spacing: 1
         height: self.parent.height
 
@@ -466,3 +467,23 @@
                 size_hint: .4, .5
                 text: "Next"
                 on_press: run(self.parent.parent.parent.next())
+
+<KVNotifications>:
+    size: 0, 0
+    size_hint: 0, 0
+    Button:
+        pos: (self.parent.rwidth-self.width)/2, self.parent.rheight - self.height - 6
+        disabled: True
+        background_color: bright[0:3] + [100]
+        color: bright[0:3] + [100]
+        size_hint: 1, None
+        size: self.parent.rwidth *.95, self.parent.rheight * .07
+
+        Label:
+            halign:'center'
+            valign:'middle'
+            pos: self.parent.pos
+            size: self.parent.size
+            text: "Hello World"
+            color: error
+            text_size: self.size

@@ -1,5 +1,4 @@
 import asyncio
-import math
 
 from app.usersession import Session
 from backend.keymanagement import generate_seed, generate_key, id_from_priv, id_from_pub, get_pub
@@ -9,6 +8,7 @@ from kivy.core.window import Window
 from kivy.uix.stacklayout import StackLayout
 from kivy.clock import Clock
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.animation import Animation
 from kivy.uix.widget import Widget
 from kivy.app import App
 
@@ -30,6 +30,18 @@ class BaseWidget(Widget):
 class BaseWidget1(BaseWidget):
     pass
 
+class KVNotifications(BaseWidget):
+    def __init__(self, rwidth=0, rheight=0, **kwargs):
+        self.rwidth = rwidth
+        self.rheight = rheight
+
+        self.anim  = Animation(y=self.rheight+6, duration=0)
+        self.anim += Animation(y=self.rheight-self.height, duration=.5, t='in_back')
+        self.anim += Animation(y=self.rheight-self.height, duration= 1)
+        self.anim += Animation(y=self.rheight+6, duration=.5, t='out_back')
+
+        super().__init__(**kwargs)
+
 
 class Message(BaseWidget):
     def __init__(self, data="[msgerr]", time="[timeerr]", isleft=False, **kwargs):
@@ -38,9 +50,6 @@ class Message(BaseWidget):
         self.lines = len(self.data.split("\n"))
         self.time = time
         super().__init__(**kwargs)
-
-    def sqrt(self, width):
-        return math.sqrt(width)
 
 
 class User(BaseWidget):
@@ -52,9 +61,6 @@ class User(BaseWidget):
         
         super().__init__(**kwargs)
 
-    def sqrt(self, width):
-        return math.sqrt(width)
-
 
 class BaseScreen(Screen):
     def __init__(self, sm, **kw):
@@ -64,8 +70,6 @@ class BaseScreen1(BaseScreen): pass
 
 
 class LoginPage(BaseScreen):
-    def error(self, txt):
-        pass
     def signup(self):
         if self.children[0].children[3].text.strip() == "":
             self.children[0].children[4].text = "Enter a Username"
@@ -169,7 +173,6 @@ class ImportPage(BaseScreen):
             SESSION["_seed"] = self.children[0].children[2].text.split()
         await self.login(SESSION)
 
-
 class Main(App):
     def __init__(self, clientmanager, **kwargs):
         self.cm = clientmanager
@@ -179,6 +182,14 @@ class Main(App):
         print("Exiting program")
         asyncio.get_event_loop().stop()
         return False
+
+    def shownotification(self, note, msg):
+        cc = self.sm.current_screen
+        cc.add_widget(note, 0)
+        note.children[0].children[0].text = msg
+        note.anim.start(note.children[0])
+
+        note.anim.bind(on_complete=lambda a,b : cc.remove_widget(note))
 
 
     def build(self): # build all screens
@@ -197,6 +208,8 @@ class Main(App):
             self.sm.add_widget(i)
 
         self.sm.current = "LoginPage"
+
+        # self.shownotification(KVNotifications(Window.width, Window.height), "Hello World 123!")
 
         return self.sm
 
