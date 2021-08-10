@@ -1,5 +1,5 @@
 import json
-
+import os
 
 class Session(object):
     def __init__(self, filepath, data) -> None:
@@ -24,8 +24,9 @@ class Session(object):
     
     @classmethod
     def from_file(cls, filepath):
-        with open(filepath, "a") as f:
-            f.close()
+        if not os.path.exists(filepath): # create file if it doesn't exist
+            os.mknod(filepath)
+
         with open(filepath, "r") as f:
             raw = f.read()
             data = json.loads("{}" if raw.strip() == "" else raw)
@@ -38,3 +39,6 @@ class Session(object):
         with open(filepath, "w") as f:
             f.write(data)
         return self
+
+
+        
