@@ -7,7 +7,10 @@ class Session(object):
         self.data = data
 
     def __getitem__(self, index):
-        return self.data.__getitem__(index)
+        try:
+            return self.data.__getitem__(index)
+        except KeyError:
+            return ""
 
     def __setitem__(self, index, value):
         return self.data.__setitem__(index, value)

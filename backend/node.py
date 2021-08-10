@@ -60,7 +60,7 @@ class Authority(Node):
 class Client(Node):
     def __init__(self, id, key, authorities) -> None:
         super().__init__(id, key, authorities, isauthority=False)
-    
+
     async def register(self, id, username, pubkey):
         data = await self.send(Packet(PAC.RAP, ""))
         data = sign(self.session["privkey"], data.data)

@@ -1,7 +1,9 @@
+from sqlalchemy.orm import session
 from backend.node import *
 from backend.packet import *
 from backend.db.database import *
 from app.main import Main
+from app.usersession import Session
 import asyncio
 
 from backend.db.config import *
@@ -11,9 +13,11 @@ from backend.db.config import *
 
 if __name__ == "__main__":
     clinode = Client("idk1", "idk1", AUTHORITIES)
-    gui = Main(clinode).async_run(async_lib='asyncio')
-
+    
     db = DBManager(async_session)
+    sesh = Session.from_file("userdata/session.json").save() # realy need to store this in secure place idk yet
+
+    gui = Main(clinode, sesh).async_run(async_lib='asyncio')
 
     authnode = Authority("idk", "idk", AUTHORITIES, 10)
     events = asyncio.gather(authnode.start(db), gui)

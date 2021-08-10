@@ -1,6 +1,6 @@
 import asyncio
+from backend.asyncrun import run
 
-from app.usersession import Session
 from backend.keymanagement import generate_seed, generate_key, id_from_priv, id_from_pub, get_pub
 
 from kivy.core.window import Window
@@ -13,9 +13,7 @@ from kivy.uix.widget import Widget
 from kivy.app import App
 
 
-Window.size = (400, 700)
-SESSION = Session.from_file("userdata/session.json").save() # realy need to store this in secure place idk yet
-
+Window.size = (400, 700) # for desktop debug only
 
 
 class ScrollLayout(StackLayout):
@@ -61,6 +59,10 @@ class User(BaseWidget):
         
         super().__init__(**kwargs)
 
+    @classmethod
+    def from_session(cls, session):
+        return cls(session["name"], session["id"])
+
 
 class BaseScreen(Screen):
     def __init__(self, sm, **kw):
@@ -78,7 +80,7 @@ class LoginPage(BaseScreen):
 
         else:
             self.children[0].children[4].text = ""
-            SESSION["username"] = self.children[0].children[3].text.strip()
+            self.sm.session["name"] = self.children[0].children[3].text.strip()
             self.sm.transition.direction = 'left'
             self.sm.current = "SeedgenPage"
 
@@ -87,14 +89,14 @@ class LoginPage(BaseScreen):
 
     def login(self):
         self.sm.screens[2].backpg = "LoginPage"
-        SESSION["_seed"] = None
+        self.sm.session["_seed"] = None
         self.sm.transition.direction = 'left'
         self.sm.current = "ImportPage"
 
 
 class UsersPage(BaseScreen1):
     def __init__(self, sm, user=None, **kwargs):
-        self.user = user if user else User()
+        self.user = user if user else User.from_session(sm.session)
         super().__init__(sm, **kwargs)
 
     def add_user(self, user):
@@ -117,8 +119,8 @@ class MessagePage(BaseScreen):
 class SeedgenPage(BaseScreen):
     def update(self, other):
         self.seed = generate_seed()
-        SESSION["_seed"] = self.seed
-        other.text = "   ".join(SESSION["_seed"])
+        self.sm.session["_seed"] = self.seed
+        other.text = "   ".join(self.sm.session["_seed"])
 
     def back(self):
         self.sm.transition.direction = 'right'
@@ -126,7 +128,7 @@ class SeedgenPage(BaseScreen):
 
     def next(self):
         self.sm.screens[2].backpg = "SeedgenPage"
-        SESSION["_seed"] = self.seed
+        self.sm.session["_seed"] = self.seed
 
         self.sm.transition.direction = 'left'
         self.sm.current = "ImportPage"
@@ -142,40 +144,52 @@ class ImportPage(BaseScreen):
 
     async def auth(self, session):
         self.sm.cm.session = session
-        if SESSION.get("_seed", None):
+        if self.sm.session.get("_seed", None):
             session["privkey"] = generate_key(session["_seed"])
-            session["pubkey"] = get_pub(session["privkey"])
             session["id"] = id_from_priv(session["privkey"])
+            session["pubkey"] = get_pub(session["privkey"])
             session.save()
 
-    async def login (self, session):
+    async def login (self, session, donote=True):
         await self.auth(session)
 
         userdata = await self.sm.cm.get_info(session["id"])
         if userdata.data == []:
-            Clock.schedule_once(lambda x: self.on_pre_enter("No user for provided seed."), 0)
-            return
-        print("login success", userdata.data) # login success
+            if donote:
+                Clock.schedule_once(lambda x: self.on_pre_enter("No user for provided seed."), 0) # TODO: proper error notification
+            return False
+        
+        session["id"]     = userdata.data[0][0]
+        session["name"]   = userdata.data[0][1]
+        session["pubkey"] = userdata.data[0][2]
+        session.save()
+
+        self.sm.remove_widget(self.sm.get_screen("UsersPage"))
+        self.sm.add_widget(UsersPage(self.sm, User.from_session(session), name="UsersPage"))
+        self.sm.current = "UsersPage"
+
+        return True
 
     async def signup(self, session):
         await self.auth(session)
 
-        a = await self.sm.cm.register(session["id"], session["username"], session["pubkey"])
+        a = await self.sm.cm.register(session["id"], session["name"], session["pubkey"])
         print("signup", a)
 
     async def next(self): # hadle signing/signup page next button
-        if SESSION.get("_seed", None):
-            if not SESSION.get("_seed", None) == self.children[0].children[2].text.split():
+        if self.sm.session.get("_seed", None):
+            if not self.sm.session.get("_seed", None) == self.children[0].children[2].text.split():
                 self.children[0].children[5].text = "Seed does not match"
                 return
-            await self.signup(SESSION)
+            await self.signup(self.sm.session)
         else:
-            SESSION["_seed"] = self.children[0].children[2].text.split()
-        await self.login(SESSION)
+            self.sm.session["_seed"] = self.children[0].children[2].text.split()
+        await self.login(self.sm.session)
 
 class Main(App):
-    def __init__(self, clientmanager, **kwargs):
+    def __init__(self, clientmanager, session, **kwargs):
         self.cm = clientmanager
+        self.session = session
         super().__init__(**kwargs)
 
     def on_request_close(self, arg): # close asyncio eventloop so program will exit
@@ -196,6 +210,7 @@ class Main(App):
         Window.bind(on_request_close=self.on_request_close)
         self.sm = ScreenManager()
         self.sm.cm = self.cm
+        self.sm.session = self.session
         screens = [
             LoginPage  (self.sm, name="LoginPage"  ),
             SeedgenPage(self.sm, name="SeedgenPage"),
@@ -208,6 +223,7 @@ class Main(App):
             self.sm.add_widget(i)
 
         self.sm.current = "LoginPage"
+        run(screens[2].login(self.session, False))
 
         # self.shownotification(KVNotifications(Window.width, Window.height), "Hello World 123!")
 
