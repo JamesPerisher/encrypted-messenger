@@ -7,6 +7,7 @@ __pycache__/
 *.db
 userdata/session*
 .*
+userdata/*.png
 userdata/*.cache
 
 # C extensions

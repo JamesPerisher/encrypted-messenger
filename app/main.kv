@@ -494,19 +494,34 @@
 <KVPOPup>:
     size: 0, 0
     size_hint: 0, 0
-    Button:
-        pos: (self.parent.rwidth-self.width)/2, self.parent.rheight - self.height - 6
-        disabled: True
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+
+        canvas.before:
+            Color:
+                rgb: dark
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+
+        pos: (self.parent.rwidth-self.width)/2, (self.parent.rheight - self.height )/2
         background_color: bright[0:3] + [100]
         color: bright[0:3] + [100]
         size_hint: 1, 1
-        size: self.parent.rwidth *.95, self.parent.rheight * .95
+        size: self.parent.rwidth *.9, self.parent.rheight * .9
 
         Label:
-            halign:'center'
-            valign:'middle'
-            pos: self.parent.pos
-            size: self.parent.size
-            text: "Hello World"
-            color: error
-            text_size: self.size
+            text: "err"
+            font_size: 30
+            size_hint: 1, .1
+
+        Image:
+            source: "app/images/logo.png"
+            size_hint: 1, .9
+
+        Button:
+            text: "hello"
+            size_hint: 1, .1
+            on_press: run(self.parent.parent.close())

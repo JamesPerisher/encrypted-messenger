@@ -3,7 +3,7 @@ from PIL import Image
 import asyncio
 
 
-async def make_code(data, upscale=10, fillpercent=1/4) -> Image: # make this a True async function
+def make_code(data, upscale=10, fillpercent=1/4) -> Image: # make this a True async function
 
     qrcode = pyqrcode.QRCode(data,error = 'H') # 30% image backup for overlay loss
     qrcode.png('userdata/qrcode.png.cache',scale=upscale)

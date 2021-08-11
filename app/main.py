@@ -1,6 +1,7 @@
 import asyncio
-from backend.asyncrun import run
 
+from backend.asyncrun import run
+from backend.shaire import make_code
 from backend.keymanagement import generate_seed, generate_key, id_from_priv, id_from_pub, get_pub
 
 from kivy.core.window import Window
@@ -29,7 +30,7 @@ class BaseWidget1(BaseWidget):
     pass
 
 class KVNotifications(BaseWidget):
-    def __init__(self, rwidth=0, rheight=0, **kwargs):
+    def __init__(self, sm, rwidth=0, rheight=0, **kwargs):
         self.rwidth = rwidth
         self.rheight = rheight
 
@@ -42,18 +43,26 @@ class KVNotifications(BaseWidget):
 
 
 class KVPOPup(BaseWidget):
-    def __init__(self, rwidth=0, rheight=0, **kwargs):
+    def __init__(self, sm, rwidth=0, rheight=0, **kwargs):
         self.rwidth = rwidth
         self.rheight = rheight
 
         self.anim  = Animation(y=self.rheight+6, duration=0)
-        self.anim += Animation(y=0.025*self.rheight, duration=.5, t='in_back')
-        self.anim += Animation(y=0.025*self.rheight, duration=60*5)
+        self.anim += Animation(y=0.05*self.rheight, duration=.5, t='in_back')
+        self.anim += Animation(y=0.05*self.rheight, duration=60*5)
 
-        self.anim1  = Animation(y=5, duration= .5)
-        self.anim1 += Animation(y=self.rheight+6, duration=.5, t='out_back')
+        self.anim1 = Animation(y=self.rheight+6, duration=.5, t='out_back')
+
+        make_code("encrypted-msger://user_{}".format(sm.app.session["id"])).save("userdata/shaire.png")
 
         super().__init__(**kwargs)
+        self.children[0].children[1].source = "userdata/shaire.png"
+        self.children[0].children[2].text = sm.app.session["name"]
+
+    async def close(self):
+        self.anim1.start(self.children[0])
+
+        self.anim1.bind(on_complete=lambda a,b : self.parent.remove_widget(self))
 
 
 class Message(BaseWidget):
@@ -118,7 +127,7 @@ class UsersPage(BaseScreen1):
         print("looking")
 
     async def shaire(self):
-        self.sm.app.shownotification(KVPOPup(Window.width, Window.height), "Hello World 123!")
+        self.sm.app.shownotification(KVPOPup(self.sm, Window.width, Window.height), "Done")
 
     def add_user(self, user):
         self.children[0].children[0].children[0].add_widget(user)
