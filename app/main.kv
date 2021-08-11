@@ -82,7 +82,62 @@
         Line:
             ellipse: self.pos[0]+self.size[0] - self.radius , self.pos[1]                              , 2*self.radius                                          , 2*self.radius                             , 90, 180
 
-        
+<KVNotifications>:
+    size: 0, 0
+    size_hint: 0, 0
+    Button:
+        pos: (self.parent.rwidth-self.width)/2, self.parent.rheight - self.height - 6
+        disabled: True
+        background_color: bright[0:3] + [100]
+        color: bright[0:3] + [100]
+        size_hint: 1, None
+        size: self.parent.rwidth *.95, self.parent.rheight * .07
+
+        Label:
+            halign:'center'
+            valign:'middle'
+            pos: self.parent.pos
+            size: self.parent.size
+            text: "Hello World"
+            color: error
+            text_size: self.size
+
+
+<KVPOPup>:
+    size: 0, 0
+    size_hint: 0, 0
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+
+        canvas.before:
+            Color:
+                rgb: dark
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+
+        pos: (self.parent.rwidth-self.width)/2, (self.parent.rheight - self.height )/2
+        background_color: bright[0:3] + [100]
+        color: bright[0:3] + [100]
+        size_hint: 1, 1
+        size: self.parent.rwidth *.9, self.parent.rheight * .9
+
+        Label:
+            text: "err"
+            font_size: 30
+            size_hint: 1, .1
+
+        Image:
+            source: "app/images/logo.png"
+            size_hint: 1, .9
+
+        Button:
+            text: "hello"
+            size_hint: 1, .1
+            on_press: run(self.parent.parent.close())
+
 
 
 <LoginPage>:
@@ -208,6 +263,22 @@
             text: " ".join(self._tmp[0:3]) + "\n" + " ".join(self._tmp[3:6])
             size_hint_x: .9
 
+<UserPropertyPage>:
+    size_hint: 1, 1
+    pos: 0, 0
+
+    ScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        size_hint: 1, .9
+        size: root.width, self.parent.height
+
+        ScrollLayout:
+            orientation: "tb-lr"
+            size_hint_x: root.width
+            size: root.width, sum([x.size[1] for x in self.children]) + self.spacing[1]*len(self.children) + 50
+            spacing: 2
+
 
 <UsersPage>:
     size_hint: 1, 1
@@ -229,6 +300,7 @@
                 source: self.parent.parent.parent.user.img
                 size_hint: .2, 1
                 allow_stretch: True
+                on_touch_down: run(self.parent.parent.parent.userproperties())
 
             Label:
                 font_size: 25
@@ -469,59 +541,3 @@
                 size_hint: .4, .5
                 text: "Next"
                 on_press: run(self.parent.parent.parent.next())
-
-<KVNotifications>:
-    size: 0, 0
-    size_hint: 0, 0
-    Button:
-        pos: (self.parent.rwidth-self.width)/2, self.parent.rheight - self.height - 6
-        disabled: True
-        background_color: bright[0:3] + [100]
-        color: bright[0:3] + [100]
-        size_hint: 1, None
-        size: self.parent.rwidth *.95, self.parent.rheight * .07
-
-        Label:
-            halign:'center'
-            valign:'middle'
-            pos: self.parent.pos
-            size: self.parent.size
-            text: "Hello World"
-            color: error
-            text_size: self.size
-
-
-<KVPOPup>:
-    size: 0, 0
-    size_hint: 0, 0
-    BoxLayout:
-        orientation: "vertical"
-        padding: 10
-
-        canvas.before:
-            Color:
-                rgb: dark
-            Rectangle:
-                size: self.size
-                pos: self.pos
-
-
-        pos: (self.parent.rwidth-self.width)/2, (self.parent.rheight - self.height )/2
-        background_color: bright[0:3] + [100]
-        color: bright[0:3] + [100]
-        size_hint: 1, 1
-        size: self.parent.rwidth *.9, self.parent.rheight * .9
-
-        Label:
-            text: "err"
-            font_size: 30
-            size_hint: 1, .1
-
-        Image:
-            source: "app/images/logo.png"
-            size_hint: 1, .9
-
-        Button:
-            text: "hello"
-            size_hint: 1, .1
-            on_press: run(self.parent.parent.close())

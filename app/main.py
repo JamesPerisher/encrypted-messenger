@@ -126,6 +126,10 @@ class UsersPage(BaseScreen1):
     async def search(self):
         print("looking")
 
+    async def userproperties(self):
+        self.sm.transition.direction = 'right'
+        self.sm.current = "UserPropertyPage"
+
     async def shaire(self):
         self.sm.app.shownotification(KVPOPup(self.sm, Window.width, Window.height), "Done")
 
@@ -163,11 +167,18 @@ class SeedgenPage(BaseScreen):
         self.sm.transition.direction = 'left'
         self.sm.current = "ImportPage"
 
+class UserProperty(BaseScreen): # TODO: idk make all this crap
+    def __init__(self, sm, **kw):
+        super().__init__(sm, **kw)
+
+class UserPropertyPage(BaseScreen):
+    def add_prop(self, userproperty):
+        self.children[0].children[0].add_widget(userproperty)
+
 class ImportPage(BaseScreen):
     def back(self): # programaticaly go the last page
         self.sm.transition.direction = 'right'
         self.sm.current = self.backpg
-
 
     def on_pre_enter(self, text=""): # error message clearing
         self.children[0].children[5].text = text
@@ -243,11 +254,12 @@ class Main(App):
         self.sm.session = self.session
         self.sm.app = self
         screens = [
-            LoginPage  (self.sm, name="LoginPage"  ),
-            SeedgenPage(self.sm, name="SeedgenPage"),
-            ImportPage (self.sm, name="ImportPage" ),
-            UsersPage  (self.sm, name="UsersPage"  ),
-            MessagePage(self.sm, name="MessagePage")
+            LoginPage       (self.sm, name="LoginPage"       ),
+            SeedgenPage     (self.sm, name="SeedgenPage"     ),
+            ImportPage      (self.sm, name="ImportPage"      ),
+            UsersPage       (self.sm, name="UsersPage"       ),
+            MessagePage     (self.sm, name="MessagePage"     ),
+            UserPropertyPage(self.sm, name="UserPropertyPage")
         ]
 
         for i in screens:
