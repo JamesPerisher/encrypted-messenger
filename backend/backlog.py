@@ -72,6 +72,9 @@ class Handler(Backlog):
     async def msg(self, packet): pass
     async def crt(self, packet):
         if verify(packet.data["pub"], self.verify, packet.data["verify"]):
+            if len((await self.db.execute(select(User).where(User.userid == packet.data["id"]))).all()) == 0:
+                u = User(userid = packet.data["id"], name = packet.data["uname"], pubkey = packet.data["pub"])
+                await self.db.add(u)
             await self.db.execute(update(User).where(User.userid == packet.data["id"]).values(name=packet.data["uname"]))
             return await self.send(Packet(PAC.CRTA, "True"))
         return await self.send(Packet(PAC.CRTA, "False"))
