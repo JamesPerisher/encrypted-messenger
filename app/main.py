@@ -41,6 +41,21 @@ class KVNotifications(BaseWidget):
         super().__init__(**kwargs)
 
 
+class KVPOPup(BaseWidget):
+    def __init__(self, rwidth=0, rheight=0, **kwargs):
+        self.rwidth = rwidth
+        self.rheight = rheight
+
+        self.anim  = Animation(y=self.rheight+6, duration=0)
+        self.anim += Animation(y=0.025*self.rheight, duration=.5, t='in_back')
+        self.anim += Animation(y=0.025*self.rheight, duration=60*5)
+
+        self.anim1  = Animation(y=5, duration= .5)
+        self.anim1 += Animation(y=self.rheight+6, duration=.5, t='out_back')
+
+        super().__init__(**kwargs)
+
+
 class Message(BaseWidget):
     def __init__(self, data="[msgerr]", time="[timeerr]", isleft=False, **kwargs):
         self.data = data
@@ -98,6 +113,12 @@ class UsersPage(BaseScreen1):
     def __init__(self, sm, user=None, **kwargs):
         self.user = user if user else User.from_session(sm.session)
         super().__init__(sm, **kwargs)
+    
+    async def search(self):
+        print("looking")
+
+    async def shaire(self):
+        self.sm.app.shownotification(KVPOPup(Window.width, Window.height), "Hello World 123!")
 
     def add_user(self, user):
         self.children[0].children[0].children[0].add_widget(user)
@@ -211,6 +232,7 @@ class Main(App):
         self.sm = ScreenManager()
         self.sm.cm = self.cm
         self.sm.session = self.session
+        self.sm.app = self
         screens = [
             LoginPage  (self.sm, name="LoginPage"  ),
             SeedgenPage(self.sm, name="SeedgenPage"),

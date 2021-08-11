@@ -3,3 +3,5 @@ aiosqlite
 kivy
 PyCryptodome
 numpy
+PyQRCode
+pypng

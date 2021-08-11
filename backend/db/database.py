@@ -48,7 +48,7 @@ class DBManager:
             await session.commit()
 
     @waitfordb
-    async def execute(self, command):
+    async def execute(self, command):  # TODO: filter out and secure data to prevent sql injection
         async with self.dbsesh() as session:
                 async with session.begin():
                     ret = await session.execute(command)

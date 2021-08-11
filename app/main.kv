@@ -240,20 +240,22 @@
             Button:
                 background_color: 0,0,0,0
                 size_hint_x: .1
+                on_press: run(self.parent.parent.parent.search())
                 Image:
                     source: "app/images/search.png"
                     size: self.parent.width, self.parent.height
-                    center: self.parent.center_x, self.parent.center_y
+                    center: self.parent.center_x, self.parent.pos[1] + self.parent.height/2
                     allow_stretch: True
             Widget:
                 size_hint: 0.01, 1
             Button:
                 background_color: 0,0,0,0
                 size_hint_x: .1
+                on_press: run(self.parent.parent.parent.shaire())
                 Image:
                     source: "app/images/shaire.png"
                     size: self.parent.width, self.parent.height
-                    center: self.parent.center_x, self.parent.center_y
+                    center: self.parent.center_x, self.parent.pos[1] + self.parent.height/2
                     allow_stretch: True
             
         BaseWidget:
@@ -478,6 +480,27 @@
         color: bright[0:3] + [100]
         size_hint: 1, None
         size: self.parent.rwidth *.95, self.parent.rheight * .07
+
+        Label:
+            halign:'center'
+            valign:'middle'
+            pos: self.parent.pos
+            size: self.parent.size
+            text: "Hello World"
+            color: error
+            text_size: self.size
+
+
+<KVPOPup>:
+    size: 0, 0
+    size_hint: 0, 0
+    Button:
+        pos: (self.parent.rwidth-self.width)/2, self.parent.rheight - self.height - 6
+        disabled: True
+        background_color: bright[0:3] + [100]
+        color: bright[0:3] + [100]
+        size_hint: 1, 1
+        size: self.parent.rwidth *.95, self.parent.rheight * .95
 
         Label:
             halign:'center'

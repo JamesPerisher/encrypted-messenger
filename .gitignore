@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#custom crap
+*.db
+userdata/session*
+.*
+userdata/*.cache
+
 # C extensions
 *.so
 
