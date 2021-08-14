@@ -18,9 +18,9 @@ def make_code(data, upscale=10, fillpercent=1/4) -> Image: # make this a True as
     box = (
         int(10*(x-a*x)/2)+2,
         int(10*(x-a*x)/2)+2,
-        int(10*(x+a*x)/2),
-        int(10*(x+a*x)/2)
-    ) 
+        int(10*(x+a*x)/2)-1,
+        int(10*(x+a*x)/2)-1
+    )
 
     im.crop(box)
     region = logo
