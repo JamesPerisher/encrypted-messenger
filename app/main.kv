@@ -20,7 +20,7 @@
 #         Line:
 #             rectangle: self.x+1,self.y+1,self.width-1,self.height-1
 #             dash_offset: 5
-            # dash_length: 3
+#             dash_length: 3
 
 <BaseWidget>:
     canvas.before:
@@ -263,9 +263,28 @@
             text: " ".join(self._tmp[0:3]) + "\n" + " ".join(self._tmp[3:6])
             size_hint_x: .9
 
+<UserProperty>:
+    size_hint: 1, .5
+
+<UserPropertyButton>:
+    Button:
+        size_hint: 1, None
+        width: sqrt(self.parent.width)
+        height: self.parent.height
+        text: "Log Out"
+        pos: self.parent.pos
+        on_press: run(self.parent.event())
+
+
 <UserPropertyPage>:
     size_hint: 1, 1
     pos: 0, 0
+
+    Button:
+        text: "Back"
+        size_hint: 1, .1
+        pos: 0, self.parent.height-self.height
+        on_press: run(self.parent.back())
 
     ScrollView:
         do_scroll_x: False

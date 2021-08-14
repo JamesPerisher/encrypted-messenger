@@ -24,6 +24,9 @@ class Session(object):
     def get(self, id, default=None):
         return self.data.get(id, default)
 
+    def clear(self):
+        self.data = dict()
+
     
     @classmethod
     def from_file(cls, filepath):
@@ -35,7 +38,7 @@ class Session(object):
             data = json.loads("{}" if raw.strip() == "" else raw)
             return cls(filepath, data)
 
-    def save(self, filepath=None):
+    async def save(self, filepath=None):
         filepath = self.filepath if filepath == None else filepath
         self.data = {x:self.data[x] for x in self.data if not x.startswith("_")} # remove tmp variables we dont want to save
         data = json.dumps(self.data)

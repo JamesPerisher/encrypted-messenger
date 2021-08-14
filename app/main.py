@@ -1,6 +1,6 @@
 import asyncio
 
-from backend.asyncrun import run
+from backend.asyncrun import run, asynclambda
 from backend.shaire import make_code
 from backend.keymanagement import generate_seed, generate_key, id_from_priv, id_from_pub, get_pub
 
@@ -53,7 +53,7 @@ class KVPOPup(BaseWidget):
 
         self.anim1 = Animation(y=self.rheight+6, duration=.5, t='out_back')
 
-        make_code("encrypted-msger://user_{}".format(sm.app.session["id"])).save("userdata/shaire.png")
+        make_code("encrypted-msger://user_{}".format(sm.app.session["id"])).save("userdata/shaire.png") # make this async
 
         super().__init__(**kwargs)
         self.children[0].children[1].source = "userdata/shaire.png"
@@ -167,13 +167,34 @@ class SeedgenPage(BaseScreen):
         self.sm.transition.direction = 'left'
         self.sm.current = "ImportPage"
 
-class UserProperty(BaseScreen): # TODO: idk make all this crap
-    def __init__(self, sm, **kw):
-        super().__init__(sm, **kw)
+class UserProperty(BaseWidget): # TODO: idk make all this crap
+    def __init__(self, **kw):
+        super().__init__(**kw)
+class UserPropertyButton(UserProperty):
+    def __init__(self, event=asynclambda(lambda x: x), **kw):
+        super().__init__(**kw)
+        self.event = event
 
 class UserPropertyPage(BaseScreen):
-    def add_prop(self, userproperty):
+    def __init__(self, sm, **kw):
+        super().__init__(sm, **kw)
+        run(self.build())
+
+    async def logout(self):
+        await self.sm.cm.logout()
+
+        self.sm.transition.direction = 'right'
+        self.sm.current = "LoginPage"
+
+    async def build(self):
+        await self.add_prop(UserPropertyButton(event=self.logout))
+
+    async def add_prop(self, userproperty):
         self.children[0].children[0].add_widget(userproperty)
+    
+    async def back(self):
+        self.sm.transition.direction = 'left'
+        self.sm.current = "UsersPage"
 
 class ImportPage(BaseScreen):
     def back(self): # programaticaly go the last page
@@ -189,7 +210,7 @@ class ImportPage(BaseScreen):
             session["privkey"] = generate_key(session["_seed"])
             session["id"] = id_from_priv(session["privkey"])
             session["pubkey"] = get_pub(session["privkey"])
-            session.save()
+            await session.save()
 
     async def login (self, session, donote=True):
         await self.auth(session)
@@ -203,7 +224,7 @@ class ImportPage(BaseScreen):
         session["id"]     = userdata.data[0][0]
         session["name"]   = userdata.data[0][1]
         session["pubkey"] = userdata.data[0][2]
-        session.save()
+        await session.save()
 
         self.sm.remove_widget(self.sm.get_screen("UsersPage"))
         self.sm.add_widget(UsersPage(self.sm, User.from_session(session), name="UsersPage"))
