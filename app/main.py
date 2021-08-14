@@ -44,6 +44,7 @@ class KVNotifications(BaseWidget):
 
 class KVPOPup(BaseWidget):
     def __init__(self, sm, rwidth=0, rheight=0, **kwargs):
+        self.sm = sm
         self.rwidth = rwidth
         self.rheight = rheight
 
@@ -53,16 +54,44 @@ class KVPOPup(BaseWidget):
 
         self.anim1 = Animation(y=self.rheight+6, duration=.5, t='out_back')
 
-        make_code("encrypted-msger://user_{}".format(sm.app.session["id"])).save("userdata/shaire.png") # make this async
-
         super().__init__(**kwargs)
-        self.children[0].children[1].source = "userdata/shaire.png"
-        self.children[0].children[2].text = sm.app.session["name"]
 
     async def close(self):
         self.anim1.start(self.children[0])
-
         self.anim1.bind(on_complete=lambda a,b : self.parent.remove_widget(self))
+
+    def add_widget(self, widget, *args, **kwargs):
+
+        def hmm(widget, *args, **kwargs): # overide add_widget so children[0] is the base widget after children[0] is added
+            self.children[0].add_widget(widget, *args, **kwargs)
+        self.add_widget = hmm
+        return super().add_widget(widget, *args, **kwargs)
+
+class KVPOPupShair(KVPOPup):
+    def __init__(self, sm, *args, **kwargs):
+        super().__init__(sm, *args, **kwargs)
+        make_code("encrypted-msger://user_{}".format(sm.app.session["id"])).save("userdata/shaire.png") # make this async
+        
+        self.children[0].children[1].source = "userdata/shaire.png"
+        self.children[0].children[2].text = sm.app.session["name"]
+
+class KVPOPupChangeName(KVPOPup):
+    def __init__(self, sm, *args, **kwargs):
+        super().__init__(sm, *args, **kwargs)
+        make_code("encrypted-msger://user_{}".format(sm.app.session["id"])).save("userdata/shaire.png") # make this async
+
+    async def change(self):
+
+        session = self.sm.session
+        session["name"] = self.children[0].children[3].text
+
+        await self.sm.cm.register(session["id"], session["name"], session["pubkey"])
+
+        self.sm.remove_widget(self.sm.get_screen("UsersPage"))
+        self.sm.add_widget(UsersPage(self.sm, User.from_session(self.sm.session), name="UsersPage"))
+
+
+        await self.close()
 
 
 class Message(BaseWidget):
@@ -131,7 +160,7 @@ class UsersPage(BaseScreen1):
         self.sm.current = "UserPropertyPage"
 
     async def shaire(self):
-        self.sm.app.shownotification(KVPOPup(self.sm, Window.width, Window.height), "Done")
+        self.sm.app.shownotification(KVPOPupShair(self.sm, Window.width, Window.height), "Done")
 
     def add_user(self, user):
         self.children[0].children[0].children[0].add_widget(user)
@@ -168,12 +197,16 @@ class SeedgenPage(BaseScreen):
         self.sm.current = "ImportPage"
 
 class UserProperty(BaseWidget): # TODO: idk make all this crap
-    def __init__(self, **kw):
+    def __init__(self, name="namerr", **kw):
+        self.name = name
         super().__init__(**kw)
 class UserPropertyButton(UserProperty):
     def __init__(self, event=asynclambda(lambda x: x), **kw):
         super().__init__(**kw)
         self.event = event
+class UserPropertySpace(UserProperty):
+    def __init__(self, **kw):
+        super().__init__(name="", **kw)
 
 class UserPropertyPage(BaseScreen):
     def __init__(self, sm, **kw):
@@ -186,8 +219,15 @@ class UserPropertyPage(BaseScreen):
         self.sm.transition.direction = 'right'
         self.sm.current = "LoginPage"
 
+    async def changeusername(self):
+        self.sm.app.shownotification(KVPOPupChangeName(self.sm, Window.width, Window.height), "Done")
+
+        
+
     async def build(self):
-        await self.add_prop(UserPropertyButton(event=self.logout))
+        await self.add_prop(UserPropertySpace())
+        await self.add_prop(UserPropertyButton(name="Change username", event=self.changeusername))
+        await self.add_prop(UserPropertyButton(name="Log out", event=self.logout))
 
     async def add_prop(self, userproperty):
         self.children[0].children[0].add_widget(userproperty)
@@ -262,7 +302,8 @@ class Main(App):
     def shownotification(self, note, msg):
         cc = self.sm.current_screen
         cc.add_widget(note, 0)
-        note.children[0].children[0].text = msg
+        if isinstance(note, KVNotifications):
+            note.children[0].children[0].text = msg
         note.anim.start(note.children[0])
 
         note.anim.bind(on_complete=lambda a,b : cc.remove_widget(note))

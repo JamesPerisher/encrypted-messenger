@@ -117,26 +117,52 @@
                 size: self.size
                 pos: self.pos
 
-
         pos: (self.parent.rwidth-self.width)/2, (self.parent.rheight - self.height )/2
         background_color: bright[0:3] + [100]
         color: bright[0:3] + [100]
         size_hint: 1, 1
         size: self.parent.rwidth *.9, self.parent.rheight * .9
 
-        Label:
-            text: "err"
-            font_size: 30
-            size_hint: 1, .1
 
-        Image:
-            source: "app/images/logo.png"
-            size_hint: 1, .9
+<KVPOPupShair>:
+    Label:
+        text: "err"
+        font_size: 30
+        size_hint: 1, .1
 
-        Button:
-            text: "hello"
-            size_hint: 1, .1
-            on_press: run(self.parent.parent.close())
+    Image:
+        source: "app/images/logo.png"
+        size_hint: 1, .9
+
+    Button:
+        text: "Done"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.close())
+
+
+
+<KVPOPupChangeName>:
+
+    Label:
+        size_hint: 1, .1
+        text: "Change username"
+
+    TextInput:
+        size_hint: 1, .2
+        multiline: False
+        text: self.parent.parent.sm.session["name"]
+
+    Widget:
+        size_hint: 1, .4
+
+    Button:
+        text: "Ok"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.change())
+    Button:
+        text: "Cancel"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.close())
 
 
 
@@ -264,14 +290,17 @@
             size_hint_x: .9
 
 <UserProperty>:
-    size_hint: 1, .5
+    size_hint: 1, .25
+
+<UserPropertySpace>:
+    size_hint: 1, .1
 
 <UserPropertyButton>:
     Button:
         size_hint: 1, None
         width: sqrt(self.parent.width)
         height: self.parent.height
-        text: "Log Out"
+        text: self.parent.name
         pos: self.parent.pos
         on_press: run(self.parent.event())
 
@@ -281,7 +310,7 @@
     pos: 0, 0
 
     Button:
-        text: "Back"
+        text: "Cancel"
         size_hint: 1, .1
         pos: 0, self.parent.height-self.height
         on_press: run(self.parent.back())
