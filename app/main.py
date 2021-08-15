@@ -1,6 +1,7 @@
 import asyncio
 
 from backend.asyncrun import run, asynclambda
+from backend.backlog import NoNetworkError
 from backend.shaire import make_code
 from backend.keymanagement import generate_seed, generate_key, id_from_priv, id_from_pub, get_pub
 
@@ -174,7 +175,7 @@ class LoginPage(BaseScreen):
     def on_pre_enter(self):
         self.children[0].children[4].text = ""
 
-    def login(self):
+    async def login(self):
         self.sm.screens[2].backpg = "LoginPage"
         self.sm.session["_seed"] = None
         self.sm.transition.direction = 'left'
@@ -313,9 +314,7 @@ class ImportPage(BaseScreen):
 
     async def signup(self, session):
         await self.auth(session)
-
-        a = await self.sm.cm.register(session["id"], session["name"], session["pubkey"])
-        print("signup", a)
+        await self.sm.cm.register(session["id"], session["name"], session["pubkey"])
 
     async def next(self): # hadle signing/signup page next button
         if self.sm.session.get("_seed", None):
@@ -352,6 +351,10 @@ class Main(App):
 
         note.anim.bind(on_complete=lambda a,b : cc.remove_widget(note))
 
+    def handle_exception(self, loop, context):
+        if isinstance(context.get("exception"), NoNetworkError):
+            return run(self.shownotification(KVNotifications(self.sm, Window.width, Window.height), "No network connection."))
+        return loop.default_exception_handler(context)
 
     def build(self): # build all screens
         Window.bind(on_request_close=self.on_request_close)
@@ -374,7 +377,9 @@ class Main(App):
         self.sm.current = "LoginPage"
         run(screens[2].login(self.session, False))
 
-        # self.shownotification(KVNotifications(Window.width, Window.height), "Hello World 123!")
+
+        loop = asyncio.get_event_loop()
+        loop.set_exception_handler(self.handle_exception)
 
         return self.sm
 

@@ -8,12 +8,11 @@ from backend.keymanagement import *
 import asyncio
 import secrets
 
+class NoNetworkError(Exception): pass
+
 class Backlog(object):
     def __init__(self, node) -> None:
         self.node = node
-        self.db = node.db
-        self.id = self.node.id
-
 
 class Connector(Backlog):
     def __init__(self, node) -> None:
@@ -31,7 +30,7 @@ class Connector(Backlog):
 
                 return await readpacket(*self.conn) # lock prevents this erroring with multiple symultaniouse reads
         except OSError: # network error
-            return Packet(PAC.ERR, "net") # TODO: Error handling for this -> frontend render this issue
+            raise NoNetworkError("No network connection") # TODO: Error handling for this -> frontend render this issue
 
 
 class Handler(Backlog):

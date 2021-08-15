@@ -12,12 +12,8 @@ AUTHORITIES = [("localhost", 6969)]
 
 
 class Node(object):
-    def __init__(self, id, key, authorities, isauthority) -> None:
-        self.id = id
-        self.key = key
-        self.db = False
+    def __init__(self, authorities=AUTHORITIES) -> None:
         self.authorities = authorities
-        self.isauthority = isauthority
         self.backlog = Connector(self)
 
     async def check(self, gui, pac):
@@ -39,17 +35,18 @@ class Node(object):
 
 
 class Authority(Node):
-    def __init__(self, id, key, authorities, capacity) -> None:
+    def __init__(self, capacity, db, authorities=AUTHORITIES) -> None:
         self.capacity = capacity
-        super().__init__(id, key, authorities, True)
+        self.db = db
+        super().__init__(authorities)
 
     def callback(self, db):
         async def handleclient(reader, writer):
             await Handler(self, reader, writer, db).serve() # create handler for this connection
         return handleclient
 
-    async def start(self, db):
-        server = await asyncio.start_server(self.callback(db), "localhost", 6969)
+    async def start(self):
+        server = await asyncio.start_server(self.callback(self.db), "localhost", 6969)
         print("Serving on {}".format(server.sockets[0].getsockname()))
 
         async with server:
@@ -58,8 +55,8 @@ class Authority(Node):
 
 
 class Client(Node):
-    def __init__(self, id, key, authorities) -> None:
-        super().__init__(id, key, authorities, isauthority=False)
+    def __init__(self, authorities=AUTHORITIES) -> None:
+        super().__init__(authorities)
 
     async def logout(self):
         self.session.clear()
