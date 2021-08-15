@@ -19,17 +19,19 @@ class Connector(Backlog):
     def __init__(self, node) -> None:
         super().__init__(node)
         self.conn = None # will eventualy be (reader, writer)
+        self.packetlock = asyncio.Lock()
 
-    async def send(self, packet):
+    async def send(self, packet) -> Packet:
         try:
-            if not self.conn : self.conn = await asyncio.open_connection(*self.node.get_authority()) # make connif not exist (TODO: Error handling)
+            if not self.conn : self.conn = await asyncio.open_connection(*self.node.get_authority()) # make connection if not exist
 
-            self.conn[1].write(packet.read())
-            await self.conn[1].drain()
+            async with self.packetlock: # wait for previouse packet to complete before sending a new one
+                self.conn[1].write(packet.read())
+                await self.conn[1].drain()
 
-            return await readpacket(*self.conn)
-        except OSError:
-            return Packet(PAC.ERR, "net")
+                return await readpacket(*self.conn) # lock prevents this erroring with multiple symultaniouse reads
+        except OSError: # network error
+            return Packet(PAC.ERR, "net") # TODO: Error handling for this -> frontend render this issue
 
 
 class Handler(Backlog):

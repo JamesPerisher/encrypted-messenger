@@ -86,12 +86,46 @@ class KVPOPupChangeName(KVPOPup):
         session["name"] = self.children[0].children[3].text
 
         await self.sm.cm.register(session["id"], session["name"], session["pubkey"])
+        await self.sm.app.reset_UserPage()
+        await self.close()
 
-        self.sm.remove_widget(self.sm.get_screen("UsersPage"))
-        self.sm.add_widget(UsersPage(self.sm, User.from_session(self.sm.session), name="UsersPage"))
 
+class KVPOPupSearch(KVPOPup):
+    def __init__(self, sm, *args, **kwargs):
+        super().__init__(sm, *args, **kwargs)
+        make_code("encrypted-msger://user_{}".format(sm.app.session["id"])).save("userdata/shaire.png") # make this async
+
+    async def go(self):
+
+        self.children[0].children[3].text
 
         await self.close()
+
+class KVPOPupSearch(KVPOPup):
+    def __init__(self, sm, *args, **kwargs):
+        super().__init__(sm, *args, **kwargs)
+
+    async def go(self):
+        data = await self.sm.cm.get_info(self.children[0].children[3].text)
+
+        await self.close()
+        if len(data.data) == 0:
+            await self.sm.app.shownotification(KVNotifications(self.sm, Window.width, Window.height), "Account not found.")
+            return
+
+        await self.sm.app.shownotification(KVPOPupAddUser(self.sm,  User(username=data.data[0][1], userid=data.data[0][0]), Window.width, Window.height))
+        
+
+class KVPOPupAddUser(KVPOPup):
+    def __init__(self, sm, user, *args, **kwargs):
+        self.user = user
+        super().__init__(sm, *args, **kwargs)
+
+    async def go(self): # add user to users in session
+        self.sm.session["friends"][self.user.userid] = 1
+        await self.sm.session.save()
+        await self.sm.app.reset_UserPage()
+
 
 
 class Message(BaseWidget):
@@ -151,18 +185,24 @@ class UsersPage(BaseScreen1):
     def __init__(self, sm, user=None, **kwargs):
         self.user = user if user else User.from_session(sm.session)
         super().__init__(sm, **kwargs)
+        run(self.build())
     
+    async def build(self):
+        for i in self.sm.session["friends"]:
+            data = await self.sm.cm.get_info(i)
+            await self.add_user(User(data.data[0][1], data.data[0][0]))
+
     async def search(self):
-        print("looking")
+        await self.sm.app.shownotification(KVPOPupSearch(self.sm, Window.width, Window.height))
 
     async def userproperties(self):
         self.sm.transition.direction = 'right'
         self.sm.current = "UserPropertyPage"
 
     async def shaire(self):
-        self.sm.app.shownotification(KVPOPupShair(self.sm, Window.width, Window.height), "Done")
+        await self.sm.app.shownotification(KVPOPupShair(self.sm, Window.width, Window.height))
 
-    def add_user(self, user):
+    async def add_user(self, user):
         self.children[0].children[0].children[0].add_widget(user)
 
 
@@ -220,7 +260,7 @@ class UserPropertyPage(BaseScreen):
         self.sm.current = "LoginPage"
 
     async def changeusername(self):
-        self.sm.app.shownotification(KVPOPupChangeName(self.sm, Window.width, Window.height), "Done")
+        await self.sm.app.shownotification(KVPOPupChangeName(self.sm, Window.width, Window.height))
 
         
 
@@ -266,8 +306,7 @@ class ImportPage(BaseScreen):
         session["pubkey"] = userdata.data[0][2]
         await session.save()
 
-        self.sm.remove_widget(self.sm.get_screen("UsersPage"))
-        self.sm.add_widget(UsersPage(self.sm, User.from_session(session), name="UsersPage"))
+        await self.sm.app.reset_UserPage()
         self.sm.current = "UsersPage"
 
         return True
@@ -299,7 +338,12 @@ class Main(App):
         asyncio.get_event_loop().stop()
         return False
 
-    def shownotification(self, note, msg):
+    async def reset_UserPage(self):
+        self.sm.remove_widget(self.sm.get_screen("UsersPage"))
+        self.sm.add_widget(UsersPage(self.sm, User.from_session(self.session), name="UsersPage"))
+        self.sm.current = "UsersPage"
+
+    async def shownotification(self, note, msg="msgerr"):
         cc = self.sm.current_screen
         cc.add_widget(note, 0)
         if isinstance(note, KVNotifications):

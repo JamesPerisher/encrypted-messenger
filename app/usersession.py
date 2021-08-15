@@ -1,6 +1,12 @@
 import json
 import os
 
+BASE_SESSION = {
+    "friends": {
+        # can add a default friend here like a bot or a help account idfk
+    }
+}
+
 class Session(object):
     def __init__(self, filepath, data) -> None:
         self.filepath = filepath
@@ -25,9 +31,8 @@ class Session(object):
         return self.data.get(id, default)
 
     def clear(self):
-        self.data = dict()
+        self.data = BASE_SESSION.copy()
 
-    
     @classmethod
     def from_file(cls, filepath):
         if not os.path.exists(filepath): # create file if it doesn't exist
@@ -36,6 +41,7 @@ class Session(object):
         with open(filepath, "r") as f:
             raw = f.read()
             data = json.loads("{}" if raw.strip() == "" else raw)
+            data = BASE_SESSION.copy() if data == dict() else data
             return cls(filepath, data)
 
     async def save(self, filepath=None):

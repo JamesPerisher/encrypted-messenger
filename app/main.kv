@@ -164,6 +164,70 @@
         size_hint: 1, .1
         on_press: run(self.parent.parent.close())
 
+<KVPOPupSearch>:
+
+    Label:
+        size_hint: 1, .1
+        text: "Scan QR code"
+
+
+    Camera:
+        id: camera
+        play: True
+        size_hint: 1, .9
+
+    Label:
+        size_hint: 1, .1
+        text: "Enter id"
+
+    TextInput:
+        size_hint: 1, .2
+        multiline: False
+        text: ""
+
+    Widget:
+        size_hint: 1, .4
+
+    Button:
+        text: "Ok"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.go())
+    Button:
+        text: "Cancel"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.close())
+
+
+<KVPOPupAddUser>:
+
+    Label:
+        size_hint: 1, .1
+        text: "Add user"
+
+    Image:
+        size_hint: 1, .4
+        source: self.parent.parent.user.img
+
+    Label:
+        size_hint: 1, .1
+        text: self.parent.parent.user.username
+    Label:
+        size_hint: 1, .1
+        text_size: self.size
+        text: self.parent.parent.user.userid
+
+    Widget:
+        size_hint: 1, .2
+
+    Button:
+        text: "Add"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.go())
+    Button:
+        text: "Cancel"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.close())
+
 
 
 <LoginPage>:
@@ -344,11 +408,15 @@
             padding: 5
             spacing: self.width/100
 
-            Image:
-                source: self.parent.parent.parent.user.img
+            Button:
+                background_color: 0,0,0,0
                 size_hint: .2, 1
-                allow_stretch: True
-                on_touch_down: run(self.parent.parent.parent.userproperties())
+                on_press: run(self.parent.parent.parent.userproperties())
+                Image:
+                    source: self.parent.parent.parent.parent.user.img
+                    size: self.parent.width, self.parent.height
+                    center: self.parent.center_x, self.parent.pos[1] + self.parent.height/2
+                    allow_stretch: True
 
             Label:
                 font_size: 25
