@@ -81,7 +81,6 @@ class KVPOPupShair(KVPOPup):
 class KVPOPupChangeName(KVPOPup):
     def __init__(self, sm, *args, **kwargs):
         super().__init__(sm, *args, **kwargs)
-        make_code("encrypted-msger://user_{}".format(sm.app.session["id"])).save("userdata/shaire.png") # make this async
 
     async def change(self):
 
@@ -96,7 +95,6 @@ class KVPOPupChangeName(KVPOPup):
 class KVPOPupSearch(KVPOPup):
     def __init__(self, sm, *args, **kwargs):
         super().__init__(sm, *args, **kwargs)
-        make_code("encrypted-msger://user_{}".format(sm.app.session["id"])).save("userdata/shaire.png") # make this async
 
     async def go(self):
 
