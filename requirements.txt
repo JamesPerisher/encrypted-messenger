@@ -5,3 +5,6 @@ PyCryptodome
 numpy
 PyQRCode
 pypng
+
+kivy-garden.zbarcam
+pyzbar

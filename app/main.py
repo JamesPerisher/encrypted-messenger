@@ -12,12 +12,14 @@ from kivy.clock import Clock
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.animation import Animation
 from kivy.uix.widget import Widget
+from kivy.uix.textinput import TextInput
+from kivy.uix.image import Image
 from kivy.app import App
 
 
 Window.size = (400, 700) # for desktop debug only
 
-
+# gi.require_version('Gst', '1.0')
 class ScrollLayout(StackLayout):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
@@ -114,7 +116,7 @@ class KVPOPupSearch(KVPOPup):
             await self.sm.app.shownotification(KVNotifications(self.sm, Window.width, Window.height), "Account not found.")
             return
 
-        await self.sm.app.shownotification(KVPOPupAddUser(self.sm,  User(username=data.data[0][1], userid=data.data[0][0]), Window.width, Window.height))
+        await self.sm.app.shownotification(KVPOPupAddUser(self.sm,  User(self.sm, username=data.data[0][1], userid=data.data[0][0]), Window.width, Window.height))
         
 
 class KVPOPupAddUser(KVPOPup):
@@ -128,18 +130,28 @@ class KVPOPupAddUser(KVPOPup):
         await self.sm.app.reset_UserPage()
 
 
-
-class Message(BaseWidget):
-    def __init__(self, data="[msgerr]", time="[timeerr]", isleft=False, **kwargs):
-        self.data = data
-        self.isleft = isleft
-        self.lines = len(self.data.split("\n"))
-        self.time = time
+class MessageImg(Image):
+    def __init__(self, message, **kwargs):
+        self.user = message.from_user
+        self.colour = message.colour
+        self.size = (2*message.line_height, ) *2
         super().__init__(**kwargs)
+
+class Message(TextInput):
+    def __init__(self, from_user, text="error", time="[timeerr]", colour="#ff00ffff", foreground_color="#ffffffff", **kwargs):
+        self.from_user = from_user
+        self.foreground_colora=foreground_color
+        self.time = time
+        self.colour = colour
+        super().__init__(text=text, **kwargs)
+
+    def get_width(self):
+        return Window.width
 
 
 class User(BaseWidget):
-    def __init__(self, username="[Username err]", userid="[id err]", index=0, img="app/images/useraccountbase.png", **kwargs):
+    def __init__(self, sm, username="[Username err]", userid="[id err]", index=0, img="app/images/useraccountbase.png", **kwargs):
+        self.sm = sm
         self.userid = userid
         self.username = username
         self.index = index
@@ -147,9 +159,15 @@ class User(BaseWidget):
         
         super().__init__(**kwargs)
 
+    async def press(self):
+        self.sm.remove_widget(self.sm.get_screen("MessagePage"))
+        self.sm.add_widget(MessagePage.from_user(self.sm, self, name="MessagePage"))
+        self.sm.transition.direction = 'left'
+        self.sm.current = "MessagePage"
+
     @classmethod
-    def from_session(cls, session):
-        return cls(session["name"], session["id"])
+    def from_session(cls, sm, session):
+        return cls(sm, session["name"], session["id"])
 
 
 class BaseScreen(Screen):
@@ -184,14 +202,14 @@ class LoginPage(BaseScreen):
 
 class UsersPage(BaseScreen1):
     def __init__(self, sm, user=None, **kwargs):
-        self.user = user if user else User.from_session(sm.session)
+        self.user = user if user else User.from_session(sm, sm.session)
         super().__init__(sm, **kwargs)
         run(self.build())
     
     async def build(self):
         for i in self.sm.session["friends"]:
             data = await self.sm.cm.get_info(i)
-            await self.add_user(User(data.data[0][1], data.data[0][0]))
+            await self.add_user(User(self.sm, data.data[0][1], data.data[0][0]))
 
     async def search(self):
         await self.sm.app.shownotification(KVPOPupSearch(self.sm, Window.width, Window.height))
@@ -208,17 +226,34 @@ class UsersPage(BaseScreen1):
 
 
 class MessagePage(BaseScreen):
-    def __init__(self, sm, **kwargs):
+    def __init__(self, sm, meuser, **kwargs):
+        self.meuser = meuser
         super().__init__(sm, **kwargs)
-        self.add_message(Message("\n", ""))
 
-    def add_message(self, message):
-        self.children[1].children[0].add_widget(message)
+    async def add_message(self, message):
+        # self.children[0].children[1].children[0].height += message.children[0].minimum_height+2
+        # self.children[0].children[1].children[0].add_widget(MessageImg(message))
+        self.children[0].children[1].children[0].add_widget(Message(message.from_user, message.from_user.username, colour="#00000000", foreground_color=message.colour))
+        self.children[0].children[1].children[0].add_widget(message)
+    
+    async def send(self):
+        await self.add_message(Message(self.meuser, self.children[0].children[0].children[1].text))
+        self.children[0].children[0].children[1].text = ""
+    
+    async def recieve(self): # multiuser message group idk fix this later
+        await self.add_message(Message(self.meuser, self.children[0].children[0].children[1].text))
+
+    async def back(self):
+        self.sm.transition.direction = 'right'
+        self.sm.current = "UsersPage"
 
     def update(self, a, b, c):
         a.size[1] = c.size[1]
         b.pos = [0, c.size[1]+10]
 
+    @classmethod
+    def from_user(cls, sm, meuser, *args, **kwargs):
+        return cls(sm, meuser, *args, **kwargs)
 
 class SeedgenPage(BaseScreen):
     def update(self, other):
@@ -339,7 +374,7 @@ class Main(App):
 
     async def reset_UserPage(self):
         self.sm.remove_widget(self.sm.get_screen("UsersPage"))
-        self.sm.add_widget(UsersPage(self.sm, User.from_session(self.session), name="UsersPage"))
+        self.sm.add_widget(UsersPage(self.sm, User.from_session(self.sm, self.session), name="UsersPage"))
         self.sm.current = "UsersPage"
 
     async def shownotification(self, note, msg="msgerr"):
@@ -367,7 +402,7 @@ class Main(App):
             SeedgenPage     (self.sm, name="SeedgenPage"     ),
             ImportPage      (self.sm, name="ImportPage"      ),
             UsersPage       (self.sm, name="UsersPage"       ),
-            MessagePage     (self.sm, name="MessagePage"     ),
+            MessagePage     (self.sm, "", name="MessagePage"     ),
             UserPropertyPage(self.sm, name="UserPropertyPage")
         ]
 

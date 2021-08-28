@@ -43,8 +43,8 @@ def runapp(coroutine):
 
 
 if __name__ == "__main__":
-    # print(runapp(fullstack()))
+    print(runapp(fullstack()))
     # print(runapp(server()))
-    print(runapp(client()))
+    # print(runapp(client()))
 
 

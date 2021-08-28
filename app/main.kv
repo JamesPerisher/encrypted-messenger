@@ -4,6 +4,8 @@
 #:import run backend.asyncrun.run
 #:import sqrt math.sqrt
 
+#:import ZBarCam kivy_garden.zbarcam.ZBarCam
+#:import ZBarSymbol pyzbar.pyzbar.ZBarSymbol
 
 #:set superbright utils.get_color_from_hex("#ffffff")
 #:set superdark utils.get_color_from_hex("#000000")
@@ -51,36 +53,6 @@
         Rectangle:
             size: self.size
             pos: self.pos
-
-
-<BorderWidget@Widget>:
-    background_color: 0,0,0,0
-    radius: 10
-    color: (10, 10, 10, 100)
-    # color: 10, 10, 10, 100
-    thick: 2
-    canvas.before:
-        Color:
-            rgba: self.color
-
-        Line:
-            points: self.pos[0]                             , self.pos[1]                              , self.size[0] + self.pos[0], self.pos[1]   
-        Line:
-            points: self.pos[0]-self.radius                 , self.pos[1] + self.radius                , self.pos[0]-self.radius                                , self.pos[1] + self.size[1] - self.radius
-        Line:
-            points: self.pos[0]                             , self.pos[1] + self.size[1]               , self.size[0] + self.pos[0]                             , self.pos[1] + self.size[1]
-        Line:
-            points: self.pos[0] + self.size[0] + self.radius, self.pos[1] + self.radius                , self.pos[0] + self.size[0] + self.radius               , self.pos[1] + self.size[1]  - self.radius
-        
-        
-        Line:
-            ellipse: self.pos[0]-self.radius                , self.pos[1]                              , 2*self.radius                                          , 2*self.radius                             , 180, 270
-        Line:
-            ellipse: self.pos[0]-self.radius                , self.pos[1]+self.size[1] - 2*self.radius , 2*self.radius                                          , 2*self.radius                             , 270, 360
-        Line:
-            ellipse: self.pos[0]+self.size[0] - self.radius , self.pos[1]+self.size[1] - 2*self.radius , 2*self.radius                                          , 2*self.radius                             , 0, 90
-        Line:
-            ellipse: self.pos[0]+self.size[0] - self.radius , self.pos[1]                              , 2*self.radius                                          , 2*self.radius                             , 90, 180
 
 <KVNotifications>:
     size: 0, 0
@@ -171,10 +143,10 @@
         text: "Scan QR code"
 
 
-    Camera:
-        id: camera
-        play: True
+    ZBarCam:
+        id: "camera"
         size_hint: 1, .9
+        # code_types: ZBarSymbol.QRCODE
 
     Label:
         size_hint: 1, .1
@@ -214,6 +186,8 @@
     Label:
         size_hint: 1, .1
         text_size: self.size
+        halign:'center'
+        valign:'middle'
         text: self.parent.parent.user.userid
 
     Widget:
@@ -326,6 +300,11 @@
 
 <User>:
     size_hint: 1, None
+    Button:
+        background_color: 0,0,0,0
+        pos: self.parent.pos
+        width: self.parent.width
+        on_press: run(self.parent.press())
     BoxLayout:
         orientation: "horizontal"
         width: sqrt(root.width) * 0.95
@@ -466,92 +445,107 @@
                 size: root.width, sum([x.size[1] for x in self.children]) + self.spacing[1]*len(self.children) + 50
                 spacing: 2
 
+<MessageImg>:
+    size_hint: None, None
+    pos: 10, self.pos[1]
+    source: self.user.img
+
+    radius: 2
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex(self.colour)
+        Line:
+            points: self.pos[0]-self.radius, self.pos[1] + self.radius, self.pos[0]-self.radius, self.pos[1] + self.size[1] - self.radius
+        Color:
+            rgba: superbright
 
 
 <Message>:
-    size_hint: 1, None
-    size: self.width, (self.lines+2.5) * 0.045*sqrt(root.width)
-    pos: self.pos
-    BoxLayout:
-        orientation: "horizontal"
-        width: sqrt(root.width) * 0.8
-        size_hint: 1, 1
-        pos: (sqrt(root.width) - self.width) / 2, self.parent.pos[1]
-        spacing: 1
-        height: self.parent.height
-
-        BorderWidget:
-            size_hint_x: None
-            pos: ((self.parent.pos[0]) if self.parent.parent.isleft else (self.parent.pos[0]+self.parent.size[0] - self.size[0])), self.pos[1]
-            width: self.children[0].width
-            color: (0, 0, 0, 0) if self.parent.parent.data.strip() == "" else self.color
-
-            Label:
-                pos: self.parent.pos
-                # font_size: 16
-                text: self.parent.parent.parent.data
-                valign:'middle'
-                text_size: self.size[0], self.size[1]
-                # spacing: 10
-                height: self.parent.height
-
-
+    disabled: True
+    size_hint: None, None
+    height: self.minimum_height
+    width: self.get_width()
+    foreground_color: utils.get_color_from_hex(self.foreground_colora)
+    pos: 10, self.pos[1]
+    background_color: (0, 1, 0, 0)
+    radius: 2
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex(self.colour)
+        Line:
+            points: self.pos[0]-self.radius, self.pos[1] + self.radius, self.pos[0]-self.radius, self.pos[1] + self.size[1] - self.radius
+        Color:
+            rgba: utils.get_color_from_hex(self.foreground_colora)
 
 <MessagePage>:
-    ScrollView:
-        do_scroll_x: False
-        do_scroll_y: True
-        size_hint: 1, None
-        pos: 0, self.parent.height/20 + 10
-        size: root.width, self.parent.height
-
-        ScrollLayout:
-            orientation: "tb-lr"
-            size_hint_x: root.width
-            size: root.width, sum([x.size[1] for x in self.children]) * .5 + 100
-            spacing: 10
-
     BoxLayout:
-        orientation: "horizontal"
-        width: self.parent.width
-        height: self.children[1].size[1]
-        size_hint_y: None
+        orientation:"vertical"
+        BoxLayout: # fix this at some point
+            orientation:"horizontal"
+            size_hint: 1, None
+            height: self.parent.height * 0.07
+            Button:
+                text:"Back"
+                on_press: run(self.parent.parent.parent.back())
+            Label:
+                text:"test2 (testmode)"
+        Widget:
+            size_hint: 1, .01
 
-        canvas.before:
-            Color:
-                rgb: lightbackground
-            Rectangle:
-                size: self.size
-                pos: self.pos
+        ScrollView:
+            do_scroll_x: False
+            do_scroll_y: True
+            size_hint: 1, .9
+            size: root.width, self.parent.height
 
-        TextInput:
-            background_color: lightbackground
-            on_text: Clock.schedule_once(lambda x: self.parent.parent.update(self.parent, self.parent.parent.children[1], self), 0)
-            canvas.after: Clock.schedule_once(lambda x: self.parent.parent.update(self.parent, self.parent.parent.children[1], self), 1)
-            hint_text: 'Send message'
-            font_size: 18
-            background_color: background
-            foreground_color: superbright
+            ScrollLayout:
+                orientation: "tb-lr"
+                size_hint_x: root.width
+                size: root.width, sum([x.size[1] for x in self.children]) + self.spacing[1]*len(self.children) + 50
+                spacing: 5
 
-            background_normal: 'app/images/background.png'
-            background_active: 'app/images/background.png'
+        BoxLayout:
+            orientation: "horizontal"
+            width: self.parent.width
+            height: self.children[1].size[1]
+            size_hint_y: None
 
-            border: 30, 30, 30, 30
+            canvas.before:
+                Color:
+                    rgb: lightbackground
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
 
-            hint_text_color: bright
-            size_hint: .8, None
-            padding: 20
-            height: max(min(5*self.line_height*1.5, self.minimum_height), self.parent.children[0].children[0].width * 1.3)
+            TextInput:
+                background_color: lightbackground
+                on_text: Clock.schedule_once(lambda x: self.parent.parent.parent.update(self.parent, self.parent.parent.children[1], self), 0)
+                canvas.after: Clock.schedule_once(lambda x: self.parent.parent.parent.update(self.parent, self.parent.parent.children[1], self), 1)
+                hint_text: 'Send message'
+                font_size: 18
+                background_color: background
+                foreground_color: superbright
 
-        Button:
-            size_hint: .1, None
-            height: self.width*1.3
-            background_color: 0,0,0,0
-            Image:
-                source: "app/images/send.png"
-                size: self.parent.width, self.parent.height
-                center: self.parent.center_x + self.parent.width/100, self.parent.center_y + self.parent.height/100
-                allow_stretch: True
+                background_normal: 'app/images/background.png'
+                background_active: 'app/images/background.png'
+
+                border: 30, 30, 30, 30
+
+                hint_text_color: bright
+                size_hint: .8, None
+                padding: 20
+                height: max(min(5*self.line_height*1.5, self.minimum_height), self.parent.children[0].children[0].width * 1.3)
+
+            Button:
+                size_hint: .1, None
+                height: self.width*1.3
+                background_color: 0,0,0,0
+                on_press: run(self.parent.parent.parent.send())
+                Image:
+                    source: "app/images/send.png"
+                    size: self.parent.width, self.parent.height
+                    center: self.parent.center_x + self.parent.width/100, self.parent.center_y + self.parent.height/100
+                    allow_stretch: True
 
 
 <SeedgenPage>:

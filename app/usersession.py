@@ -10,6 +10,7 @@ BASE_SESSION = {
 class Session(object):
     def __init__(self, filepath, data) -> None:
         self.filepath = filepath
+        self.user = None
         self.data = data
 
     def __getitem__(self, index):
