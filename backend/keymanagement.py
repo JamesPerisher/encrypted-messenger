@@ -1,80 +1,80 @@
 from Crypto.PublicKey import RSA
-from Crypto import Random
+from Crypto.Cipher import PKCS1_OAEP
 import secrets
 from hashlib import sha256
 from Crypto.Signature import pss
 from Crypto.Hash import SHA256
 from base64 import b64encode, b64decode
 
-def generate_seed(length=16):
-    with open("backend/db/words.txt", "r") as f:
-        words = f.read().strip().split("\n")
-
-    out = []
-    for i in range(length):
-        out.append(secrets.choice(words))
-
-    return out
+import pgpy
+from pgpy.constants import PubKeyAlgorithm, KeyFlags, HashAlgorithm, SymmetricKeyAlgorithm, CompressionAlgorithm
 
 
-class SeedRand:
-    def __init__(self, seed):
-        self.current = sha256(seed).digest()
+def generate_key(name="DefaultName", colour="#ff00ff"):
+    key = pgpy.PGPKey.new(PubKeyAlgorithm.RSAEncryptOrSign, 4096)
 
-    def gen(self, *args, **kwargs):
-        while True:
-            self.current = sha256(self.current).digest()
-            q = 31
-            while q != -1:
-                yield chr(self.current[q]).encode()
-                q -= 1
+    uid = pgpy.PGPUID.new(name, comment=colour)
 
-    def read(self, length):
-        out = list()
-        for i in range(length):
-            out.append(next(self.gen()))
-        return b"".join(out)[0: length]
+    key.add_uid(uid, usage={KeyFlags.Sign, KeyFlags.EncryptCommunications, KeyFlags.EncryptStorage},
+                hashes=[HashAlgorithm.SHA256, HashAlgorithm.SHA384, HashAlgorithm.SHA512, HashAlgorithm.SHA224],
+                ciphers=[SymmetricKeyAlgorithm.AES256, SymmetricKeyAlgorithm.AES192, SymmetricKeyAlgorithm.AES128],
+                compression=[CompressionAlgorithm.ZLIB, CompressionAlgorithm.BZ2, CompressionAlgorithm.ZIP, CompressionAlgorithm.Uncompressed])
 
-    # Methods provided for backward compatibility only.
-    def flush(self): pass
-    def reinit(self): pass
-    def close(self): pass
-
-def generate_key(seed):
-    key = RSA.generate(1024, SeedRand(("".join(seed)).encode()).read)
-    return key.export_key().decode()
-
+    return str(key)
 
 def id_from_priv(key):
-    return id_from_pub(RSA.import_key(key).public_key().export_key())
-
-def get_pub(key):
-    return RSA.import_key(key).public_key().export_key().decode()
+    return id_from_pub(get_pub(key))
 
 def id_from_pub(key):
-    return sha256(key).hexdigest()
+    key, _ = pgpy.PGPKey.from_blob(key)
+    return sha256(str(key.encrypt(pgpy.PGPMessage.new("id"))).encode()).hexdigest()
+    # return sha256(key.fingerprint.encode()).hexdigest()
+
+def get_pub(key):
+    key, _ = pgpy.PGPKey.from_blob(key)
+    return str(key.pubkey)
 
 def sign(key, data):
-    k = RSA.import_key(key)
-    h = SHA256.new(data.encode())
+    key, _ = pgpy.PGPKey.from_blob(key)
+    h = sha256(data.encode()).hexdigest()
 
-    return b64encode(pss.new(k).sign(h)).decode()
+    return str(key.sign(h))
 
 def verify(key, data, signature):
-    k = RSA.import_key(key.encode())
-    h = SHA256.new(data.encode())
-    verifier = pss.new(k)
-    try:
-        verifier.verify(h, b64decode(signature.encode()))
-        return True
-    except (ValueError, TypeError):
-        return False
+    key, _ = pgpy.PGPKey.from_blob(key)
+    h = sha256(data.encode()).hexdigest()
+    a = key.verify(h, pgpy.PGPSignature.from_blob(signature))
+    return a.__bool__()
 
+def encrypt(privkey, pubkey, data):
+    privkey, _ = pgpy.PGPKey.from_blob(privkey)
+    pubkey, _ = pgpy.PGPKey.from_blob(pubkey)
+
+    msg = pgpy.PGPMessage.new(data)
+    msg |= privkey.sign(msg)
+    msg = pubkey.encrypt(msg)
+    return str(msg)
+
+    
+def decrypt(privkey, pubkey, data):
+    privkey, _ = pgpy.PGPKey.from_blob(privkey)
+    pubkey, _ = pgpy.PGPKey.from_blob(pubkey)
+
+    try:
+        msg = privkey.decrypt(pgpy.PGPMessage.from_blob(data))
+    except:
+        return "Message decryption error."
+    if not pubkey.verify(msg).__bool__(): return "Message authenticity error."
+    return str(msg.message)
 
 if __name__ == "__main__":
-    seed = generate_seed()
-    seed1 = ['wine', 'smart', 'filter', 'jealous', 'coach', 'much', 'elegant', 'seminar', 'joke', 'usage', 'term', 'two', 'oppose', 'anxiety', 'language', 'core']
-    print(seed)
-    k = generate_key(seed)
-    print(k)
-    print(id_from_priv(k))
+    key = generate_key("h23r2wegresr3rmm", "sergea23r23rhello")
+    sig = sign(key, "testing")
+    print(sig)
+    print(verify(key, "testing", sig))
+
+    a = encrypt(key, get_pub(key), "Hello World!!!")
+    print(a)
+    print(decrypt(key, get_pub(key), a))
+
+    print(id_from_priv(key))

@@ -3,7 +3,7 @@ import asyncio
 from backend.asyncrun import run, asynclambda
 from backend.backlog import NoNetworkError
 from backend.shaire import make_code
-from backend.keymanagement import generate_seed, generate_key, id_from_priv, id_from_pub, get_pub
+from backend.keymanagement import generate_key, id_from_priv, id_from_pub, get_pub
 
 from kivy.core.window import Window
 
@@ -154,12 +154,15 @@ class User(BaseWidget):
         self.username = username
         self.index = index
         self.img = img
-        
         super().__init__(**kwargs)
+
+    def __repr__(self) -> str:
+        return "<User({}, {})>".format(self.username, self.userid)
 
     async def press(self):
         self.sm.remove_widget(self.sm.get_screen("MessagePage"))
-        self.sm.add_widget(MessagePage.from_user(self.sm, self, name="MessagePage"))
+
+        self.sm.add_widget(MessagePage.from_user(self.sm, self.parent.parent.parent.parent.user, self))
         self.sm.transition.direction = 'left'
         self.sm.current = "MessagePage"
 
@@ -224,9 +227,10 @@ class UsersPage(BaseScreen1):
 
 
 class MessagePage(BaseScreen):
-    def __init__(self, sm, meuser, **kwargs):
+    def __init__(self, sm, meuser, touser, **kwargs):
         self.meuser = meuser
-        super().__init__(sm, **kwargs)
+        self.touser = touser # can be (VirtualUser e.g. a group idk how the encryption would work)
+        super().__init__(sm, name="MessagePage", **kwargs)
 
     async def add_message(self, message):
         # self.children[0].children[1].children[0].height += message.children[0].minimum_height+2
@@ -235,11 +239,17 @@ class MessagePage(BaseScreen):
         self.children[0].children[1].children[0].add_widget(message)
     
     async def send(self):
-        await self.add_message(Message(self.meuser, self.children[0].children[0].children[1].text))
+
+        data = self.children[0].children[0].children[1].text
+        # a = await self.sm.cm.msg(self.meuser.userid, self.touser.userid, data)
+
+        # print(a)
+
+        await self.add_message(Message(self.meuser, data))
         self.children[0].children[0].children[1].text = ""
     
-    async def recieve(self): # multiuser message group idk fix this later
-        await self.add_message(Message(self.meuser, self.children[0].children[0].children[1].text))
+    async def recieve(self, from_user, data): # multiuser message group idk fix this later
+        await self.add_message(Message(from_user, data))
 
     async def back(self):
         self.sm.transition.direction = 'right'
@@ -250,8 +260,8 @@ class MessagePage(BaseScreen):
         b.pos = [0, c.size[1]+10]
 
     @classmethod
-    def from_user(cls, sm, meuser, *args, **kwargs):
-        return cls(sm, meuser, *args, **kwargs)
+    def from_user(cls, sm, meuser, touser, *args, **kwargs):
+        return cls(sm, meuser, touser, *args, **kwargs)
 
 class SeedgenPage(BaseScreen):
     def update(self, other):
@@ -400,7 +410,7 @@ class Main(App):
             SeedgenPage     (self.sm, name="SeedgenPage"     ),
             ImportPage      (self.sm, name="ImportPage"      ),
             UsersPage       (self.sm, name="UsersPage"       ),
-            MessagePage     (self.sm, "", name="MessagePage"     ),
+            MessagePage     (self.sm, "meuser(err)", "touser(err)"),
             UserPropertyPage(self.sm, name="UserPropertyPage")
         ]
 

@@ -69,10 +69,12 @@ class Handler(Backlog):
 
     async def inf(self, packet):
         users = await self.db.execute(select(User).where(User.userid == packet.data))
-        await self.send(Packet(PAC.INFA, [[x["User"].userid, x["User"].name, x["User"].pubkey] for x in users.all()]))
+        return await self.send(Packet(PAC.INFA, [[x["User"].userid, x["User"].name, x["User"].pubkey] for x in users.all()]))
 
     async def aut(self, packet): pass
-    async def msg(self, packet): pass
+    async def msg(self, packet):
+        print(packet)
+        return await self.send(Packet(PAC.MSGA))
     async def crt(self, packet):
         if verify(packet.data["pub"], self.verify, packet.data["verify"]):
             if len((await self.db.execute(select(User).where(User.userid == packet.data["id"]))).all()) == 0:

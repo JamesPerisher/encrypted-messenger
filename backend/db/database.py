@@ -14,8 +14,8 @@ class User(Base):
 
 class Message(Base):
     __tablename__ = 'MessageTable'
-    userid = Column(String, primary_key=True)
-    msgid = Column(String, primary_key=True)
+    fromuserid = Column(String, primary_key=True)
+    touserid = Column(String, primary_key=True)
     data = Column(String, nullable=False)
     
 
