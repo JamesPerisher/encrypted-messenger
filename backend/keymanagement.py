@@ -10,6 +10,17 @@ import pgpy
 from pgpy.constants import PubKeyAlgorithm, KeyFlags, HashAlgorithm, SymmetricKeyAlgorithm, CompressionAlgorithm
 
 
+def generate_seed(length=16):
+    with open("backend/db/words.txt", "r") as f:
+        words = f.read().strip().split("\n")
+
+    out = []
+    for i in range(length):
+        out.append(secrets.choice(words))
+
+    return out
+
+
 def generate_key(name="DefaultName", colour="#ff00ff"):
     key = pgpy.PGPKey.new(PubKeyAlgorithm.RSAEncryptOrSign, 4096)
 

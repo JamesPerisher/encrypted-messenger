@@ -201,6 +201,21 @@
         size_hint: 1, .1
         on_press: run(self.parent.parent.close())
 
+<ColorInput>:
+    background_normal: ''
+    background_down: ''
+    background_color: utils.get_color_from_hex(self.colour)
+    on_press: run(self.click())
+
+<ColourPage>:
+    BoxLayout:
+        orientation:"vertical"
+        ColorPicker:
+            size_hint: 1, .9
+        Button:
+            text:"Done"
+            size_hint: 1, .1
+            on_press: run(self.parent.parent.done())
 
 
 <LoginPage>:
@@ -210,27 +225,41 @@
         size: self.parent.width * .9, self.parent.height *.9
         pos: (root.width - self.width) /2, (root.height - self.height) /2
 
+        Widget:
+            size_hint: 1, .2
+
         Label:
-            pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) + 3*root.height /8
+            size_hint: 1, .1
             text: ""
             color: error
+
         TextInput:
             hint_text: 'Username'
             multiline: False
             font_size: 16
-            pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) + 2*root.height /8
-            width: 0.9 * root.width
             background_color: background
             foreground_color: superbright
             hint_text_color: bright
             size_hint: 1, .25
 
+        Widget:
+            size_hint: 1, .1
+
+        Label:
+            size_hint: 1, .1
+            text: "Select Colour"
+            color: superbright
+        ColorInput:
+            size_hint: 1, .1
+
+        Widget:
+            size_hint: 1, .1
+
         GridLayout:
             cols: 2
             rows: 2
             spacing: 10
-            width: 0.6 * root.width
-            pos: ((root.width - self.width) / 2) - root.width/8, ((root.height - self.height) / 2) + root.height / 8
+            size_hint: 1, .25
         
             CheckBox:
                 id: licence

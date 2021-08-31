@@ -3,7 +3,7 @@ import asyncio
 from backend.asyncrun import run, asynclambda
 from backend.backlog import NoNetworkError
 from backend.shaire import make_code
-from backend.keymanagement import generate_key, id_from_priv, id_from_pub, get_pub
+from backend.keymanagement import generate_key, id_from_priv, id_from_pub, get_pub, generate_seed
 
 from kivy.core.window import Window
 
@@ -14,7 +14,9 @@ from kivy.animation import Animation
 from kivy.uix.widget import Widget
 from kivy.uix.textinput import TextInput
 from kivy.uix.image import Image
+from kivy.uix.button import Button
 from kivy.app import App
+from kivy.utils import get_color_from_hex
 
 
 Window.size = (400, 700) # for desktop debug only
@@ -170,17 +172,55 @@ class User(BaseWidget):
     def from_session(cls, sm, session):
         return cls(sm, session["name"], session["id"])
 
-
 class BaseScreen(Screen):
     def __init__(self, sm, **kw):
         self.sm = sm
         super().__init__(**kw)
 class BaseScreen1(BaseScreen): pass
 
+class ColorInput(Button):
+    def __init__(self, **kwargs):
+        self.colour = "#eeeeee"
+        super().__init__(**kwargs)
+
+    async def getsm(self):
+        a = self
+        while True:
+            try:
+                if isinstance(a.sm, ScreenManager):
+                    return a.sm
+            except AttributeError:
+                pass
+            a = a.parent
+
+    async def update(self):
+        self.background_color = get_color_from_hex(self.colour)
+
+    async def click(self):
+        sm = await self.getsm()
+
+        sm.add_widget(ColourPage(sm, self, sm.current, name="ColourPage"))
+        sm.transition.direction = 'left'
+        sm.current = "ColourPage"
+
+class ColourPage(BaseScreen):
+    def __init__(self, sm, caller, back, **kw):
+        super().__init__(sm, **kw)
+        self.caller = caller
+        self.back = back
+
+    async def done(self):
+        self.caller.colour = self.children[0].children[1].hex_color
+        await self.caller.update()
+        self.sm.remove_widget(self)
+        self.sm.transition.direction = 'right'
+        self.sm.current = self.back
+
+
 
 class LoginPage(BaseScreen):
     def signup(self):
-        if self.children[0].children[3].text.strip() == "":
+        if self.children[0].children[7].text.strip() == "":
             self.children[0].children[4].text = "Enter a Username"
         elif not (self.children[0].children[2].children[1].active and self.children[0].children[2].children[3].active):
             self.children[0].children[4].text = "You must agree to all terms and conditions"
@@ -331,7 +371,7 @@ class ImportPage(BaseScreen):
     async def auth(self, session):
         self.sm.cm.session = session
         if self.sm.session.get("_seed", None):
-            session["privkey"] = generate_key(session["_seed"])
+            session["privkey"] = generate_key(session["name"], "#ff00ff")
             session["id"] = id_from_priv(session["privkey"])
             session["pubkey"] = get_pub(session["privkey"])
             await session.save()
