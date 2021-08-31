@@ -5,10 +5,12 @@ from hashlib import sha256
 from Crypto.Signature import pss
 from Crypto.Hash import SHA256
 from base64 import b64encode, b64decode
+import re
 
 import pgpy
 from pgpy.constants import PubKeyAlgorithm, KeyFlags, HashAlgorithm, SymmetricKeyAlgorithm, CompressionAlgorithm
 
+MAX_UNAME = 21
 
 def generate_seed(length=16):
     with open("backend/db/words.txt", "r") as f:
@@ -40,6 +42,36 @@ def id_from_pub(key):
     key, _ = pgpy.PGPKey.from_blob(key)
     return sha256(str(key.encrypt(pgpy.PGPMessage.new("id"))).encode()).hexdigest()
     # return sha256(key.fingerprint.encode()).hexdigest()
+
+def validate_hex(data): # verify valid hex colour
+    data = data[0:7] # remove alpha value
+    if re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', data):
+        return data
+    else:
+        return "#eeeeee"
+
+def validate_name(data): # verify username length
+    return data[0:MAX_UNAME]
+
+def get_info(key):
+    key, _ = pgpy.PGPKey.from_blob(key)
+    return (validate_name(key.userids[0].name), validate_hex(key.userids[0].comment))
+
+def change_info(key, name, colour):
+    old = get_info(key) # only update new shit
+    name = old[0] if name == None else validate_name(name)
+    colour = old[1] if colour == None else validate_hex(colour)
+
+    key, _ = pgpy.PGPKey.from_blob(key)
+    key.del_uid(old[0])
+    uid = pgpy.PGPUID.new(name, comment=colour)
+
+    key.add_uid(uid, usage={KeyFlags.Sign, KeyFlags.EncryptCommunications, KeyFlags.EncryptStorage},
+                hashes=[HashAlgorithm.SHA256, HashAlgorithm.SHA384, HashAlgorithm.SHA512, HashAlgorithm.SHA224],
+                ciphers=[SymmetricKeyAlgorithm.AES256, SymmetricKeyAlgorithm.AES192, SymmetricKeyAlgorithm.AES128],
+                compression=[CompressionAlgorithm.ZLIB, CompressionAlgorithm.BZ2, CompressionAlgorithm.ZIP, CompressionAlgorithm.Uncompressed])
+
+    return str(key)
 
 def get_pub(key):
     key, _ = pgpy.PGPKey.from_blob(key)
@@ -89,3 +121,5 @@ if __name__ == "__main__":
     print(decrypt(key, get_pub(key), a))
 
     print(id_from_priv(key))
+
+    print(get_info(get_pub(key)))

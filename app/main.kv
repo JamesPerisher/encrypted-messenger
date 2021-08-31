@@ -135,6 +135,30 @@
         size_hint: 1, .1
         on_press: run(self.parent.parent.close())
 
+<KVPOPupChangeColour>:
+
+    Label:
+        size_hint: 1, .1
+        text: "Change colour"
+
+    ColorInput:
+        size_hint: 1, .2
+        colour: utils.get_color_from_hex(self.parent.parent.sm.session["colour"])
+        text: self.parent.parent.sm.session["colour"]
+        canvas.after: run(self.update(self.parent.parent.sm.session["colour"]))
+
+    Widget:
+        size_hint: 1, .4
+
+    Button:
+        text: "Ok"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.change())
+    Button:
+        text: "Cancel"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.close())
+
 <KVPOPupSearch>:
 
     Label:
@@ -428,6 +452,7 @@
             Label:
                 font_size: 25
                 text: self.parent.parent.parent.user.username
+                color: utils.get_color_from_hex(self.parent.parent.parent.user.colour)
                 halign:'left'
                 valign:'middle'
                 text_size: self.size

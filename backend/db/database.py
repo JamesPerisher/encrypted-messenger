@@ -8,7 +8,6 @@ from backend.asyncrun import run
 class User(Base):
     __tablename__ = 'UserTable'
     userid = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
     pubkey = Column(String, nullable=False)
 
 

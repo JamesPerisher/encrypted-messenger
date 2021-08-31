@@ -3,7 +3,7 @@ import asyncio
 from backend.asyncrun import run, asynclambda
 from backend.backlog import NoNetworkError
 from backend.shaire import make_code
-from backend.keymanagement import generate_key, id_from_priv, id_from_pub, get_pub, generate_seed
+from backend.keymanagement import *
 
 from kivy.core.window import Window
 
@@ -87,9 +87,28 @@ class KVPOPupChangeName(KVPOPup):
     async def change(self):
 
         session = self.sm.session
-        session["name"] = self.children[0].children[3].text
+                
+        session["privkey"] = change_info(session["privkey"], self.children[0].children[3].text, None)
+        session["pubkey"] = get_pub(session["privkey"])
+        session["name"], session["colour"] = get_info(session["pubkey"])
 
-        await self.sm.cm.register(session["id"], session["name"], session["pubkey"])
+        await self.sm.cm.register(session["id"], session["pubkey"])
+        await self.sm.app.reset_UserPage()
+        await self.close()
+
+class KVPOPupChangeColour(KVPOPup):
+    def __init__(self, sm, *args, **kwargs):
+        super().__init__(sm, *args, **kwargs)
+
+    async def change(self):
+
+        session = self.sm.session
+                
+        session["privkey"] = change_info(session["privkey"], None, self.children[0].children[3].colour)
+        session["pubkey"] = get_pub(session["privkey"])
+        session["name"], session["colour"] = get_info(session["pubkey"])
+
+        await self.sm.cm.register(session["id"], session["pubkey"])
         await self.sm.app.reset_UserPage()
         await self.close()
 
@@ -150,10 +169,11 @@ class Message(TextInput):
 
 
 class User(BaseWidget):
-    def __init__(self, sm, username="[Username err]", userid="[id err]", index=0, img="app/images/useraccountbase.png", **kwargs):
+    def __init__(self, sm, username="[Username err]", colour="#eeeeee", userid="[id err]", index=0, img="app/images/useraccountbase.png", **kwargs):
         self.sm = sm
         self.userid = userid
         self.username = username
+        self.colour = validate_hex(colour)
         self.index = index
         self.img = img
         super().__init__(**kwargs)
@@ -170,7 +190,7 @@ class User(BaseWidget):
 
     @classmethod
     def from_session(cls, sm, session):
-        return cls(sm, session["name"], session["id"])
+        return cls(sm, session["name"], session["colour"], session["id"])
 
 class BaseScreen(Screen):
     def __init__(self, sm, **kw):
@@ -179,8 +199,8 @@ class BaseScreen(Screen):
 class BaseScreen1(BaseScreen): pass
 
 class ColorInput(Button):
-    def __init__(self, **kwargs):
-        self.colour = "#eeeeee"
+    def __init__(self, colour="#eeeeee", **kwargs):
+        self.colour = colour
         super().__init__(**kwargs)
 
     async def getsm(self):
@@ -193,7 +213,8 @@ class ColorInput(Button):
                 pass
             a = a.parent
 
-    async def update(self):
+    async def update(self, colour=None):
+        if colour: self.colour = colour
         self.background_color = get_color_from_hex(self.colour)
 
     async def click(self):
@@ -221,18 +242,19 @@ class ColourPage(BaseScreen):
 class LoginPage(BaseScreen):
     def signup(self):
         if self.children[0].children[7].text.strip() == "":
-            self.children[0].children[4].text = "Enter a Username"
+            self.children[0].children[8].text = "Enter a Username"
         elif not (self.children[0].children[2].children[1].active and self.children[0].children[2].children[3].active):
-            self.children[0].children[4].text = "You must agree to all terms and conditions"
+            self.children[0].children[8].text = "You must agree to all terms and conditions"
 
         else:
-            self.children[0].children[4].text = ""
-            self.sm.session["name"] = self.children[0].children[3].text.strip()
+            self.children[0].children[8].text = ""
+            self.sm.session["name"] = self.children[0].children[7].text.strip()
+            self.sm.session["colour"] = self.children[0].children[4].colour
             self.sm.transition.direction = 'left'
             self.sm.current = "SeedgenPage"
 
     def on_pre_enter(self):
-        self.children[0].children[4].text = ""
+        self.children[0].children[8].text = ""
 
     async def login(self):
         self.sm.screens[2].backpg = "LoginPage"
@@ -346,11 +368,13 @@ class UserPropertyPage(BaseScreen):
     async def changeusername(self):
         await self.sm.app.shownotification(KVPOPupChangeName(self.sm, Window.width, Window.height))
 
-        
+    async def changecolour(self):
+        await self.sm.app.shownotification(KVPOPupChangeColour(self.sm, Window.width, Window.height))
 
     async def build(self):
         await self.add_prop(UserPropertySpace())
         await self.add_prop(UserPropertyButton(name="Change username", event=self.changeusername))
+        await self.add_prop(UserPropertyButton(name="Change colour", event=self.changecolour))
         await self.add_prop(UserPropertyButton(name="Log out", event=self.logout))
 
     async def add_prop(self, userproperty):
@@ -371,7 +395,7 @@ class ImportPage(BaseScreen):
     async def auth(self, session):
         self.sm.cm.session = session
         if self.sm.session.get("_seed", None):
-            session["privkey"] = generate_key(session["name"], "#ff00ff")
+            session["privkey"] = generate_key(session["name"], session["colour"])
             session["id"] = id_from_priv(session["privkey"])
             session["pubkey"] = get_pub(session["privkey"])
             await session.save()
@@ -386,8 +410,8 @@ class ImportPage(BaseScreen):
             return False
         
         session["id"]     = userdata.data[0][0]
-        session["name"]   = userdata.data[0][1]
         session["pubkey"] = userdata.data[0][2]
+        session["name"], session["colour"] = get_info(session["pubkey"])
         await session.save()
 
         await self.sm.app.reset_UserPage()
@@ -397,7 +421,7 @@ class ImportPage(BaseScreen):
 
     async def signup(self, session):
         await self.auth(session)
-        await self.sm.cm.register(session["id"], session["name"], session["pubkey"])
+        await self.sm.cm.register(session["id"], session["pubkey"])
 
     async def next(self): # hadle signing/signup page next button
         if self.sm.session.get("_seed", None):

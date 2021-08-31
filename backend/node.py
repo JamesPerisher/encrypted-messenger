@@ -65,8 +65,8 @@ class Client(Node):
         self.session.clear()
         await self.session.save()
 
-    async def register(self, id, username, pubkey):
+    async def register(self, id, pubkey):
         data = await self.send(Packet(PAC.RAP, ""))
         data = sign(self.session["privkey"], data.data)
 
-        return await self.send(Packet(PAC.CRT, {"id":id, "uname":username, "pub":pubkey, "verify":data}))
+        return await self.send(Packet(PAC.CRT, {"id":id, "pub":pubkey, "verify":data}))

@@ -8,8 +8,6 @@ from backend.keymanagement import *
 import asyncio
 import secrets
 
-MAX_UNAME = 21
-
 class NoNetworkError(Exception): pass
 
 class Backlog(object):
@@ -69,7 +67,11 @@ class Handler(Backlog):
 
     async def inf(self, packet):
         users = await self.db.execute(select(User).where(User.userid == packet.data))
-        return await self.send(Packet(PAC.INFA, [[x["User"].userid, x["User"].name, x["User"].pubkey] for x in users.all()]))
+        out = list()
+        for i in users.all():
+            name, colour = get_info(i["User"].pubkey)
+            out.append([i["User"].userid, name, i["User"].pubkey, colour])
+        return await self.send(Packet(PAC.INFA, out))
 
     async def aut(self, packet): pass
     async def msg(self, packet):
@@ -78,9 +80,9 @@ class Handler(Backlog):
     async def crt(self, packet):
         if verify(packet.data["pub"], self.verify, packet.data["verify"]):
             if len((await self.db.execute(select(User).where(User.userid == packet.data["id"]))).all()) == 0:
-                u = User(userid = packet.data["id"], name = packet.data["uname"][0:MAX_UNAME], pubkey = packet.data["pub"])
+                u = User(userid = packet.data["id"], pubkey = packet.data["pub"])
                 await self.db.add(u)
-            await self.db.execute(update(User).where(User.userid == packet.data["id"]).values(name=packet.data["uname"][0:MAX_UNAME]))
+            await self.db.execute(update(User).where(User.userid == packet.data["id"]).values(pubkey=packet.data["pub"]))
             return await self.send(Packet(PAC.CRTA, "True"))
         return await self.send(Packet(PAC.CRTA, "False"))
         
