@@ -23,10 +23,10 @@ def generate_seed(length=16):
     return out
 
 
-def generate_key(name="DefaultName", colour="#ff00ff"):
+def generate_key(name="DefaultName", colour=""):
     key = pgpy.PGPKey.new(PubKeyAlgorithm.RSAEncryptOrSign, 4096)
 
-    uid = pgpy.PGPUID.new(name, comment=colour)
+    uid = pgpy.PGPUID.new(validate_name(name), comment=validate_hex(colour))
 
     key.add_uid(uid, usage={KeyFlags.Sign, KeyFlags.EncryptCommunications, KeyFlags.EncryptStorage},
                 hashes=[HashAlgorithm.SHA256, HashAlgorithm.SHA384, HashAlgorithm.SHA512, HashAlgorithm.SHA224],
