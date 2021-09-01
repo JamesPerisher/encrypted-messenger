@@ -1,15 +1,16 @@
 import asyncio
 import logging
+import time
 
-from backend.asyncrun import run
-from backend.keymanagement import *
+from backend.asyncrun import run, AsyncIterator
 from backend.backlog import NoNetworkError
+from backend.keymanagement import *
 from backend.packet import PAC
 
-from kivy.app import App
-from kivy.clock import Clock
-from kivy.lang import Builder
 from kivy.core.window import Window
+from kivy.lang import Builder
+from kivy.clock import Clock
+from kivy.app import App
 
 from kivy.uix.screenmanager import ScreenManager
 
@@ -52,7 +53,7 @@ class UsersPage(BaseScreen1):
         run(self.build())
     
     async def build(self):
-        for i in self.sm.session["friends"]:
+        async for i in AsyncIterator(self.sm.session["friends"]):
             data = await self.sm.cm.get_info(i)
             await self.add_user(User(self.sm, data.data[0][1], data.data[0][2], data.data[0][0]))
 
@@ -83,22 +84,45 @@ class MessagePage(BaseScreen):
             return
         other.__class__.keyboard_on_key_down(other, keyboard, keycode, display, modifyers)
 
-    async def add_message(self, message):
+    async def clear_messages(self):
+        async for i in AsyncIterator(self.children[0].children[1].children[0].children[-1::-1]):
+            self.children[0].children[1].children[0].remove_widget(i)
+
+    async def add_message(self, message, time=None): # need to figure out insertion index based on time
+        time = int(time.time()) if not time else time
         self.children[0].children[1].children[0].add_widget(Message(message.from_user, message.from_user.username, colour="#00000000", foreground_color=message.colour))
         self.children[0].children[1].children[0].add_widget(message)
-    
-    async def send(self):
 
+    async def relaod(self):
+        messages = await self.sm.cm.get_messages_list(self.meuser.userid, self.touser.userid)
+
+        await self.clear_messages()
+        async for i in AsyncIterator(messages):
+            await self.recieve(i)
+            
+    async def send(self):
         data = self.children[0].children[0].children[1].text
         ret = await self.sm.cm.msg(self.sm.session["privkey"], self.meuser.userid, self.touser.userid, data)
         if ret.pactype == PAC.MSGA:
             self.children[0].children[0].children[1].text = ""
-            await self.recieve(self.meuser, data, True)
+            await self.recieve([int(time.time()), get_msg_id(self.meuser.userid, self.touser.userid, ret.data), True])
     
-    async def recieve(self, from_user, data, raw=False): # multiuser message group idk fix this later
-        # await self.add_message(Message(self.meuser, data, "", self.meuser.colour))
-        if raw:
-            await self.add_message(Message(from_user, data, "", from_user.colour))
+    async def recieve(self, message): # multiuser message group idk fix this later
+
+        if message[2]:
+            m = Message(
+                self.meuser,
+                decrypt(self.sm.session["privkey"], (await self.sm.cm.get_info(self.meuser.userid)).data[0][2], await self.sm.cm.get_msg(message[1], 1)),
+                "", self.meuser.colour
+                )
+        else:
+            m = Message(
+                self.touser,
+                decrypt(self.sm.session["privkey"], (await self.sm.cm.get_info(self.touser.userid)).data[0][2], await self.sm.cm.get_msg(message[1], 0)),
+                "", self.touser.colour
+                )
+
+        await self.add_message(m, message[0])
 
     async def back(self):
         self.sm.transition.direction = 'right'

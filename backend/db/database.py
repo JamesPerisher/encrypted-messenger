@@ -4,7 +4,10 @@ import logging
 from sqlalchemy import Column, String, Integer
 
 from backend.db.config import Base, engine
+from backend.asyncrun import AsyncIterator
+from sqlalchemy.future import select
 from backend.asyncrun import run
+
 
 
 class User(Base):
@@ -18,7 +21,8 @@ class Message(Base):
     messageid = Column(String, primary_key=True)
     fromuserid = Column(String)
     touserid = Column(String)
-    data = Column(String, nullable=False)
+    data0 = Column(String, nullable=False)
+    data1 = Column(String, nullable=False)
     creation_time = Column(Integer, nullable=False)
     
 
@@ -47,13 +51,24 @@ class DBManager:
     @waitfordb
     async def add(self, *args):
         async with self.dbsesh() as session:
-            session.add_all(args)
-            await session.commit()
+            async with session.begin():
+                session.add_all(args)
+                await session.commit()
 
     @waitfordb
     async def execute(self, command):  # TODO: filter out and secure data to prevent sql injection
         async with self.dbsesh() as session:
-                async with session.begin():
-                    ret = await session.execute(command)
-                    await session.commit()
-                    return ret
+            async with session.begin():
+                ret = await session.execute(command)
+                await session.commit()
+                return ret
+
+    @waitfordb
+    async def cleanup(self, delete_before):
+        async with self.dbsesh() as session:
+            async with session.begin():
+                async for i in AsyncIterator((await session.execute(select(Message).where(Message.creation_time < delete_before))).all()):
+                    # inefficent loop whatever
+                    await session.delete(i)
+                await session.commit()
+

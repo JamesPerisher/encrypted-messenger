@@ -17,22 +17,25 @@ class Val(int): # enum value object (int backwards convertability)
 # package types
 class PAC(enum.Enum):
     NAN  = Val( 0, False) # Non network packet
-    ERR  = Val( 1, False) # error with packet
-    AERR = Val( 4, False) # Authentication error
-    RAP  = Val( 2, False) # request auth packet
-    APA  = Val( 3, False) # need to replace ^^^^^^
+    RAP  = Val( 1, False) # request auth packet
+    ERR  = Val( 2, False) # error with packet
+    AERR = Val( 3, False) # Authentication error
 
     INF = Val(20, False) # request node information
     AUT = Val(30, False) # request authority nodes
     MSG = Val(40, True ) # send message
     CRT = Val(50, True ) # request account creation or updates
     SIG = Val(60, False) # data to be signed
+    MLT = Val(70, True ) # request a list of message id's between 2 users
+    GMS = Val(80, True ) # request a specific message
 
+    RAPA = Val(11, False) # random data by server
     INFA = Val(21, True ) # responce for INF
+    MSGA = Val(41, False) # message aknowlegements
     CRTA = Val(51, False) # acknowlege account creation
     SIGA = Val(61, False) # signed data
-    MSGA = Val(41, False) # message aknowlegements
-    RAPA = Val(22, False) # random data by server
+    MLTA = Val(71, True ) # list of message id's between 2 users
+    GMSA = Val(81, False) # message data
 
 
 class ReadError(Exception): pass

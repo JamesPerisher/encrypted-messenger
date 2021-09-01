@@ -1,16 +1,18 @@
-from inspect import Attribute
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.sql.selectable import Values
-from sqlalchemy import update
-from backend.packet import *
-from backend.db.database import *
-from sqlalchemy.future import select
+from backend.asyncrun import AsyncIterator
 from backend.keymanagement import *
+from backend.db.database import *
+from backend.packet import *
+
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.future import select
+from sqlalchemy import update
 
 import asyncio
 import secrets
 import logging
 import time
+
+
 
 class NoNetworkError(Exception): pass
 
@@ -59,7 +61,9 @@ class Handler(Backlog):
             PAC.INF: self.inf,
             PAC.AUT: self.aut,
             PAC.MSG: self.msg,
-            PAC.CRT: self.crt
+            PAC.CRT: self.crt,
+            PAC.MLT: self.mlt,
+            PAC.GMS: self.gms
         }[packet.pactype](packet)
 
     async def nan(self, packet): pass # do jack shit testing
@@ -72,13 +76,43 @@ class Handler(Backlog):
     async def inf(self, packet):
         users = await self.db.execute(select(User).where(User.userid == packet.data))
         out = list()
-        for i in users.all():
+        async for i in AsyncIterator(users.all()):
             name, colour = get_info(i["User"].pubkey)
             out.append([i["User"].userid, name, i["User"].pubkey, colour])
         return await self.send(Packet(PAC.INFA, out))
 
     async def aut(self, packet): pass
 
+    async def gms(self, packet):
+        ret = (await self.db.execute(select(Message).where(Message.messageid == packet.data["id"]))).all()
+        ret = {
+            0: ret[0]["Message"].data0,
+            1: ret[0]["Message"].data1
+            }[packet.data["data"]]
+
+        return await self.send(Packet(PAC.GMSA, ret))
+        
+
+    async def mlt(self, packet):
+        try:
+            u1 = (await self.db.execute(select(User).where(User.userid == packet.data["u1"]))).all()[0]["User"].pubkey
+            u2 = (await self.db.execute(select(User).where(User.userid == packet.data["u2"]))).all()[0]["User"].pubkey
+        except (IndexError, KeyError, AttributeError, SQLAlchemyError) as e:
+            logging.debug('Error at %s', 'division', exc_info=e)
+            return await self.send(Packet(PAC.AERR))
+
+
+        a = await self.db.execute(select(Message).where(
+            (Message.fromuserid == packet.data["u1"] and Message.touserid == packet.data["u2"])
+            or
+            (Message.fromuserid == packet.data["u2"] and Message.touserid == packet.data["u1"])
+            ))
+
+        out = []
+        async for i in AsyncIterator(a.all()): # inefficent loop
+            out.append([i["Message"].creation_time, i["Message"].messageid, i["Message"].fromuserid==packet.data["u1"]])
+        return await self.send(Packet(PAC.MLTA, out))
+        
 
     async def msg(self, packet):
         try:
@@ -89,10 +123,11 @@ class Handler(Backlog):
             return await self.send(Packet(PAC.AERR))
 
         m = Message(
-            messageid= get_msg_id(packet.data["from"], packet.data["to"], packet.data["data"]),
+            messageid= get_msg_id(packet.data["from"], packet.data["to"], packet.data["data0"]),
             fromuserid=packet.data["from"],
             touserid=packet.data["to"],
-            data=packet.data["data"],
+            data0=packet.data["data0"],
+            data1=packet.data["data1"],
             creation_time=int(time.time())
             )
         await self.db.add(m)

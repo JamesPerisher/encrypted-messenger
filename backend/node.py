@@ -8,6 +8,7 @@ from backend.backlog import *
 
 from backend.db.database import *
 from backend.keymanagement import *
+from backend.asyncrun import InputIterator
 
 
 AUTHORITIES = [("localhost", 6969)]
@@ -17,11 +18,6 @@ class Node(object):
     def __init__(self, authorities=AUTHORITIES) -> None:
         self.authorities = authorities
         self.backlog = Connector(self)
-
-    async def check(self, gui, pac):
-        if pac.pactype == PAC.ERR:
-            return await gui.showerr(pac)
-        return pac
 
     async def send(self, packet):
         return await self.backlog.send(packet)
@@ -36,7 +32,15 @@ class Node(object):
 
         pubkey = (await self.get_info(touserid)).data[0][2]
         
-        return await self.send(Packet(PAC.MSG, {"from": fromuserid, "to":touserid, "data":encrypt(privkey, pubkey, data.encode())}))
+        encdata = encrypt(privkey, pubkey, data.encode())
+        ret = await self.send(Packet(PAC.MSG, 
+        {
+            "from": fromuserid, "to":touserid,
+            "data0":encdata,
+            "data1":encrypt(privkey, get_pub(privkey), data.encode())
+        }))
+
+        if ret.pactype == PAC.MSGA: return Packet(PAC.MSGA, encdata)
 
 
 class Authority(Node):
@@ -49,6 +53,11 @@ class Authority(Node):
         async def handleclient(reader, writer):
             await Handler(self, reader, writer, db).serve() # create handler for this connection
         return handleclient
+
+    async def interactive(self):
+        return
+        async for i in InputIterator(": "):
+            print(i)
 
     async def start(self):
         server = await asyncio.start_server(self.callback(self.db), "localhost", 6969)
@@ -71,3 +80,9 @@ class Client(Node):
         data = sign(self.session["privkey"], data.data)
 
         return await self.send(Packet(PAC.CRT, {"id":id, "pub":pubkey, "verify":data}))
+
+    async def get_messages_list(self, u1, u2):
+        return (await self.send(Packet(PAC.MLT, {"u1":u1, "u2":u2}))).data
+
+    async def get_msg(self, msgid, datatype):
+        return (await self.send(Packet(PAC.GMS, {"id":msgid, "data":datatype}))).data

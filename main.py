@@ -13,7 +13,7 @@ SESSION_FILE = "userdata/session.json"
 async def server():
     db = DBManager(async_session)
     authnode = Authority(10, db, AUTHORITIES)
-    return authnode.start()
+    return asyncio.gather(authnode.start(), authnode.interactive())
 
 async def client():
     from app.main import Main
