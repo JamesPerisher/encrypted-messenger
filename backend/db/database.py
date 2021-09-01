@@ -1,5 +1,7 @@
 import asyncio
-from sqlalchemy import Column, String
+import logging
+
+from sqlalchemy import Column, String, Integer
 
 from backend.db.config import Base, engine
 from backend.asyncrun import run
@@ -13,9 +15,11 @@ class User(Base):
 
 class Message(Base):
     __tablename__ = 'MessageTable'
-    fromuserid = Column(String, primary_key=True)
-    touserid = Column(String, primary_key=True)
+    messageid = Column(String, primary_key=True)
+    fromuserid = Column(String)
+    touserid = Column(String)
     data = Column(String, nullable=False)
+    creation_time = Column(Integer, nullable=False)
     
 
 class DBManager:
@@ -26,7 +30,7 @@ class DBManager:
 
     async def dbstartup(self):
         # create db tables
-        print("created db")
+        logging.debug("Created db if not existant")
         async with engine.begin() as conn:
             # await conn.run_sync(Base.metadata.drop_all) # only do this in testing lol
             await conn.run_sync(Base.metadata.create_all)

@@ -1,8 +1,10 @@
 import asyncio
+import logging
 
 from backend.asyncrun import run
 from backend.keymanagement import *
 from backend.backlog import NoNetworkError
+from backend.packet import PAC
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -74,6 +76,13 @@ class MessagePage(BaseScreen):
         self.touser = touser # can be (VirtualUser e.g. a group idk how the encryption would work)
         super().__init__(sm, name="MessagePage", **kwargs)
 
+    def key(self, other, keyboard, keycode, display, modifyers):
+        _, code = keycode
+        if code == "enter" and (not "shift" in modifyers):
+            run(self.send())
+            return
+        other.__class__.keyboard_on_key_down(other, keyboard, keycode, display, modifyers)
+
     async def add_message(self, message):
         self.children[0].children[1].children[0].add_widget(Message(message.from_user, message.from_user.username, colour="#00000000", foreground_color=message.colour))
         self.children[0].children[1].children[0].add_widget(message)
@@ -81,15 +90,15 @@ class MessagePage(BaseScreen):
     async def send(self):
 
         data = self.children[0].children[0].children[1].text
-        # a = await self.sm.cm.msg(self.meuser.userid, self.touser.userid, data)
-
-        # print(a)
-
-        await self.add_message(Message(self.meuser, data, "", self.meuser.colour))
-        self.children[0].children[0].children[1].text = ""
+        ret = await self.sm.cm.msg(self.sm.session["privkey"], self.meuser.userid, self.touser.userid, data)
+        if ret.pactype == PAC.MSGA:
+            self.children[0].children[0].children[1].text = ""
+            await self.recieve(self.meuser, data, True)
     
-    async def recieve(self, from_user, data): # multiuser message group idk fix this later
-        await self.add_message(Message(from_user, data, "", from_user.colour))
+    async def recieve(self, from_user, data, raw=False): # multiuser message group idk fix this later
+        # await self.add_message(Message(self.meuser, data, "", self.meuser.colour))
+        if raw:
+            await self.add_message(Message(from_user, data, "", from_user.colour))
 
     async def back(self):
         self.sm.transition.direction = 'right'
@@ -210,7 +219,7 @@ class Main(App):
         super().__init__(**kwargs)
 
     def on_request_close(self, arg): # close asyncio eventloop so program will exit
-        print("Exiting program")
+        logging.warn("Exiting program")
         asyncio.get_event_loop().stop()
         return False
 

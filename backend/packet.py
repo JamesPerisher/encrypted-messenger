@@ -16,10 +16,11 @@ class Val(int): # enum value object (int backwards convertability)
 
 # package types
 class PAC(enum.Enum):
-    NAN = Val( 0, False) # no operation packet
-    ERR = Val( 1, False) # error with packet
-    RAP = Val( 2, False) # request auth packet
-    APA = Val( 3, False) # need to replace ^^^^^^
+    NAN  = Val( 0, False) # Non network packet
+    ERR  = Val( 1, False) # error with packet
+    AERR = Val( 4, False) # Authentication error
+    RAP  = Val( 2, False) # request auth packet
+    APA  = Val( 3, False) # need to replace ^^^^^^
 
     INF = Val(20, False) # request node information
     AUT = Val(30, False) # request authority nodes

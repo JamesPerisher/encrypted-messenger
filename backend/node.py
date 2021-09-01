@@ -1,5 +1,6 @@
 import asyncio
 import random
+import logging
 from re import A
 
 from backend.packet import *
@@ -31,11 +32,11 @@ class Node(object):
     async def get_info(self, node): # get info about a node with name or id "node"
         return await self.send(Packet(PAC.INF, node))
     
-    async def msg(self, fromuserid, touserid, data): # send message to node
+    async def msg(self, privkey, fromuserid, touserid, data): # send message to node
 
         pubkey = (await self.get_info(touserid)).data[0][2]
         
-        return await self.send(Packet(PAC.MSG, {"from": fromuserid, "to":touserid, "data":encrypt(pubkey, data.encode())}))
+        return await self.send(Packet(PAC.MSG, {"from": fromuserid, "to":touserid, "data":encrypt(privkey, pubkey, data.encode())}))
 
 
 class Authority(Node):
@@ -51,7 +52,7 @@ class Authority(Node):
 
     async def start(self):
         server = await asyncio.start_server(self.callback(self.db), "localhost", 6969)
-        print("Serving on {}".format(server.sockets[0].getsockname()))
+        logging.debug("Serving on {}".format(server.sockets[0].getsockname()))
 
         async with server:
             await server.serve_forever()

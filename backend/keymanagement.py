@@ -89,6 +89,15 @@ def verify(key, data, signature):
     a = key.verify(h, pgpy.PGPSignature.from_blob(signature))
     return a.__bool__()
 
+def verify_msg(key, message):
+    key, _ = pgpy.PGPKey.from_blob(key)
+    msg = pgpy.PGPMessage.from_blob(message)
+    a = key.verify(msg)
+    return a.__bool__()
+
+def get_msg_id(fromuser, touser, data):
+    return sha256(("{}:{}:::{}".format(fromuser, touser, data)).encode()).hexdigest()
+
 def encrypt(privkey, pubkey, data):
     privkey, _ = pgpy.PGPKey.from_blob(privkey)
     pubkey, _ = pgpy.PGPKey.from_blob(pubkey)

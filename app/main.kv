@@ -2,14 +2,6 @@
 
 
 
-# <Widget>:
-#     canvas.after:
-#         Line:
-#             rectangle: self.x+1,self.y+1,self.width-1,self.height-1
-#             dash_offset: 5
-#             dash_length: 3
-
-
 <LoginPage>:
     BoxLayout:
         size_hint: None, None
@@ -251,6 +243,8 @@
                 size_hint: .8, None
                 padding: 20
                 height: max(min(5*self.line_height*1.5, self.minimum_height), self.parent.children[0].children[0].width * 1.3)
+
+                keyboard_on_key_down: lambda *arg, **kwargs : self.parent.parent.parent.key(self, *arg, **kwargs)
 
             Button:
                 size_hint: .1, None

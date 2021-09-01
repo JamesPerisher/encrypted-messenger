@@ -1,3 +1,5 @@
+from inspect import Attribute
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.selectable import Values
 from sqlalchemy import update
 from backend.packet import *
@@ -7,6 +9,8 @@ from backend.keymanagement import *
 
 import asyncio
 import secrets
+import logging
+import time
 
 class NoNetworkError(Exception): pass
 
@@ -74,11 +78,30 @@ class Handler(Backlog):
         return await self.send(Packet(PAC.INFA, out))
 
     async def aut(self, packet): pass
+
+
     async def msg(self, packet):
-        print(packet)
+        try:
+            fromuser = (await self.db.execute(select(User).where(User.userid == packet.data["from"]))).all()[0]["User"].pubkey
+            touser   = (await self.db.execute(select(User).where(User.userid == packet.data["to"  ]))).all()[0]["User"].pubkey
+        except (IndexError, KeyError, AttributeError, SQLAlchemyError) as e:
+            logging.debug('Error at %s', 'division', exc_info=e)
+            return await self.send(Packet(PAC.AERR))
+
+        m = Message(
+            messageid= get_msg_id(packet.data["from"], packet.data["to"], packet.data["data"]),
+            fromuserid=packet.data["from"],
+            touserid=packet.data["to"],
+            data=packet.data["data"],
+            creation_time=int(time.time())
+            )
+        await self.db.add(m)
+
         return await self.send(Packet(PAC.MSGA))
+
+
     async def crt(self, packet):
-        if verify(packet.data["pub"], self.verify, packet.data["verify"]):
+        if verify(packet.data["pub"], self.verify, packet.data["verify"]): # TODO: use new pgp based verification
             if len((await self.db.execute(select(User).where(User.userid == packet.data["id"]))).all()) == 0:
                 u = User(userid = packet.data["id"], pubkey = packet.data["pub"])
                 await self.db.add(u)

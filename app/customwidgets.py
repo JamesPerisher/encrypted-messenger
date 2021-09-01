@@ -16,6 +16,8 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.image import Image
 from kivy.uix.button import Button
 
+import logging
+
 
 class MessagePage: # should get overwritten on import
     from_user = lambda : ""
@@ -52,7 +54,7 @@ class CopyButton(Button):
     data = ""
     async def click(self):
         Clipboard.copy(self.data)
-        print("copied \"{}\" to clipboard".format(self.data))
+        logging.info("copied \"{}\" to clipboard".format(self.data))
 
     def on_press(self):
         run(self.click())
