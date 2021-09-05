@@ -9,6 +9,7 @@ from backend.packet import PAC
 
 from kivy.core.window import Window
 from kivy.lang import Builder
+from kivy.cache import Cache
 from kivy.clock import Clock
 from kivy.app import App
 
@@ -250,6 +251,7 @@ class Main(App):
         return False
 
     async def reset_UserPage(self):
+        await self.update_images()
         self.sm.remove_widget(self.sm.get_screen("UsersPage"))
         self.sm.add_widget(UsersPage(self.sm, User.from_session(self.sm, self.session), name="UsersPage"))
         self.sm.current = "UsersPage"
@@ -262,6 +264,10 @@ class Main(App):
         note.anim.start(note.children[0])
 
         note.anim.bind(on_complete=lambda a,b : cc.remove_widget(note))
+
+    async def update_images(self):
+        Cache.remove('kv.image')
+        Cache.remove('kv.texture')
 
     def handle_exception(self, loop, context):
         if isinstance(context.get("exception"), NoNetworkError):
