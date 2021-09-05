@@ -6,9 +6,9 @@ import asyncio
 def make_code(data, upscale=10, fillpercent=1/4) -> Image: # make this a True async function
 
     qrcode = pyqrcode.QRCode(data,error = 'H') # 30% image backup for overlay loss
-    qrcode.png('userdata/qrcode.png.cache',scale=upscale)
+    qrcode.png('userdata/qrcode.png',scale=upscale)
 
-    im = Image.open('userdata/qrcode.png.cache', formats=("png",)) # edit image on qrcode
+    im = Image.open('userdata/qrcode.png', formats=("png",)) # edit image on qrcode
     im = im.convert("RGBA")
     logo = Image.open('app/images/logo1.png')
 

@@ -55,7 +55,7 @@ class UsersPage(BaseScreen1):
     async def build(self):
         async for i in AsyncIterator(self.sm.session["friends"]):
             data = await self.sm.cm.get_info(i)
-            await self.add_user(User(self.sm, data.data[0][1], data.data[0][2], data.data[0][0]))
+            await self.add_user(User(self.sm, data.data[0][1], data.data[0][3], data.data[0][0]))
 
     async def search(self):
         await self.sm.app.shownotification(KVPOPupSearch(self.sm, Window.width, Window.height))
@@ -102,7 +102,7 @@ class MessagePage(BaseScreen):
             
     async def send(self):
         data = self.children[0].children[0].children[1].text
-        ret = await self.sm.cm.msg(self.sm.session["privkey"], self.meuser.userid, self.touser.userid, data)
+        ret = await self.sm.cm.msg(self.sm.session["_privkey"], self.meuser.userid, self.touser.userid, data)
         if ret.pactype == PAC.MSGA:
             self.children[0].children[0].children[1].text = ""
             await self.recieve([int(time.time()), get_msg_id(self.meuser.userid, self.touser.userid, ret.data), True])
@@ -112,13 +112,13 @@ class MessagePage(BaseScreen):
         if message[2]:
             m = Message(
                 self.meuser,
-                decrypt(self.sm.session["privkey"], (await self.sm.cm.get_info(self.meuser.userid)).data[0][2], await self.sm.cm.get_msg(message[1], 1)),
+                decrypt(self.sm.session["_privkey"], (await self.sm.cm.get_info(self.meuser.userid)).data[0][2], await self.sm.cm.get_msg(message[1], 1)),
                 "", self.meuser.colour
                 )
         else:
             m = Message(
                 self.touser,
-                decrypt(self.sm.session["privkey"], (await self.sm.cm.get_info(self.touser.userid)).data[0][2], await self.sm.cm.get_msg(message[1], 0)),
+                decrypt(self.sm.session["_privkey"], (await self.sm.cm.get_info(self.touser.userid)).data[0][2], await self.sm.cm.get_msg(message[1], 0)),
                 "", self.touser.colour
                 )
 
@@ -197,10 +197,11 @@ class ImportPage(BaseScreen):
     async def auth(self, session):
         self.sm.cm.session = session
         if self.sm.session.get("_seed", None):
-            session["privkey"] = generate_key(session["name"], session["colour"])
-            session["id"] = id_from_priv(session["privkey"])
-            session["pubkey"] = get_pub(session["privkey"])
-            await session.save()
+            session["_privkey"] = generate_key(session["name"], session["colour"])
+            session["id"] = id_from_priv(session["_privkey"])
+            session["pubkey"] = get_pub(session["_privkey"])
+            await session.cleanup(True) # dump seed from memory
+        await session.save()
 
     async def login (self, session, donote=True):
         await self.auth(session)
@@ -240,6 +241,7 @@ class Main(App):
     def __init__(self, clientmanager, session, **kwargs):
         self.cm = clientmanager
         self.session = session
+        self.session["_privkey"] = self.session["privkey"]
         super().__init__(**kwargs)
 
     def on_request_close(self, arg): # close asyncio eventloop so program will exit

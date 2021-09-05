@@ -1,6 +1,8 @@
 from backend.asyncrun import run, asynclambda
-from backend.shaire import make_code
 from backend.keymanagement import *
+
+from app.shaire import make_code
+from app.makepfpic import make_pf_pic
 
 from kivy.core.clipboard import Clipboard
 from kivy.core.window import Window
@@ -18,6 +20,8 @@ from kivy.uix.button import Button
 
 import logging
 
+
+BASE_IMAGE = "app/images/useraccountbase.png"
 
 class MessagePage: # should get overwritten on import
     from_user = lambda : ""
@@ -102,8 +106,9 @@ class KVPOPupChangeName(KVPOPup):
 
         session = self.sm.session
                 
-        session["privkey"] = change_info(session["privkey"], self.children[0].children[3].text, None)
-        session["pubkey"] = get_pub(session["privkey"])
+        session["_privkey"] = change_info(session["_privkey"], self.children[0].children[3].text, None)
+        session["pubkey"] = get_pub(session["_privkey"])
+        await self.sm.cm.register(session["id"], session["pubkey"])
         session["name"], session["colour"] = get_info(session["pubkey"])
 
         await self.sm.cm.register(session["id"], session["pubkey"])
@@ -118,8 +123,9 @@ class KVPOPupChangeColour(KVPOPup):
 
         session = self.sm.session
                 
-        session["privkey"] = change_info(session["privkey"], None, self.children[0].children[3].colour)
-        session["pubkey"] = get_pub(session["privkey"])
+        session["_privkey"] = change_info(session["_privkey"], None, self.children[0].children[3].colour)
+        session["pubkey"] = get_pub(session["_privkey"])
+        await self.sm.cm.register(session["id"], session["pubkey"])
         session["name"], session["colour"] = get_info(session["pubkey"])
 
         await self.sm.cm.register(session["id"], session["pubkey"])
@@ -247,13 +253,13 @@ class Message(TextInput):
         return Window.width
 
 class User(BaseWidget):
-    def __init__(self, sm, username="[Username err]", colour="#eeeeee", userid="[id err]", index=0, img="app/images/useraccountbase.png", **kwargs):
+    def __init__(self, sm, username="[Username err]", colour="#eeeeee", userid="[id err]", index=0, img=BASE_IMAGE, **kwargs):
         self.sm = sm
         self.userid = userid
         self.username = username
         self.colour = validate_hex(colour)
         self.index = index
-        self.img = img
+        self.img = img if img != BASE_IMAGE else make_pf_pic(userid, username, colour)
         super().__init__(**kwargs)
 
     def __repr__(self) -> str:

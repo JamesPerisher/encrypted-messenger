@@ -47,11 +47,21 @@ class Session(object):
 
     async def save(self, filepath=None):
         filepath = self.filepath if filepath == None else filepath
-        self.data = {x:self.data[x] for x in self.data if not x.startswith("_")} # remove tmp variables we dont want to save
-        data = json.dumps(self.data)
+        tmpdata = json.dumps(await self.cleanup())
         with open(filepath, "w") as f:
-            f.write(data)
+            f.write(tmpdata)
         return self
+
+    async def update(self):
+        self.data["privkey"] = self.data["_privkey"]
+        await self.save()
+
+    async def cleanup(self, autoset=False): # remove tmp variables from memory as a security measure
+        data = {x:self.data[x] for x in self.data if not x.startswith("_")}
+        if autoset:
+            self.data = data
+        else:
+            return data
 
 
         
