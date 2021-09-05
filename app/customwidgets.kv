@@ -91,7 +91,7 @@
     TextInput:
         size_hint: 1, .2
         multiline: False
-        text: self.parent.parent.sm.session["name"]
+        text: self.parent.parent.app.sm.session["name"]
 
     Widget:
         size_hint: 1, .4
@@ -114,9 +114,9 @@
 
     ColorInput:
         size_hint: 1, .2
-        colour: utils.get_color_from_hex(self.parent.parent.sm.session["colour"])
-        text: self.parent.parent.sm.session["colour"]
-        canvas.after: run(self.update(self.parent.parent.sm.session["colour"]))
+        colour: utils.get_color_from_hex(self.parent.parent.app.session["colour"])
+        text: self.parent.parent.app.session["colour"]
+        canvas.after: run(self.update(self.parent.parent.app.session["colour"]))
 
     Widget:
         size_hint: 1, .4

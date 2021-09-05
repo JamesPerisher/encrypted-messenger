@@ -1,7 +1,9 @@
-
 import asyncio
 import bisect
 from datetime import datetime
+
+
+DATE_FONT_SIZE = 11
 
 
 class Message:
@@ -19,8 +21,6 @@ class Message:
         return cls(data)
 
 
-
-
 class MessageList:
     def __init__(self, data=[]) -> None:
         self.data = sorted(data, key=lambda x: x["time"])
@@ -36,7 +36,7 @@ class MessageList:
     async def export(self):
         out = []
         for i in self.data:
-            line1 = "[color={}]{}[/color]    [size=8]{}[/size]".format(i["fromcolour"][1::], i["fromname"], datetime.fromtimestamp(i["time"]).strftime("%a %d %b %y  %I:%M %p"))
+            line1 = "[color={}]{}[/color]    [size={}]{}[/size]".format(i["fromcolour"][1::], i["fromname"], DATE_FONT_SIZE, datetime.fromtimestamp(i["time"]).strftime("%a %d %b %y  %I:%M %p"))
             line2 = i["data"].replace("[", "&bl;").replace("]", "&br;").replace("&", "&amp;")
             out.append(line1)
             out.append(line2)
