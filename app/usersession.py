@@ -53,7 +53,10 @@ class Session(object):
         return self
 
     async def update(self):
-        self.data["privkey"] = self.data["_privkey"]
+        try:
+            self.data["privkey"] = self.data["_privkey"]
+        except KeyError:
+            pass
         await self.save()
 
     async def cleanup(self, autoset=False): # remove tmp variables from memory as a security measure

@@ -273,39 +273,6 @@
             spacing: 2
 
 
-<MessageImg>:
-    size_hint: None, None
-    pos: 10, self.pos[1]
-    source: self.user.img
-
-    radius: 2
-    canvas.before:
-        Color:
-            rgba: utils.get_color_from_hex(self.colour)
-        Line:
-            points: self.pos[0]-self.radius, self.pos[1] + self.radius, self.pos[0]-self.radius, self.pos[1] + self.size[1] - self.radius
-        Color:
-            rgba: superbright
-
-
-<Message>:
-    disabled: True
-    size_hint: None, None
-    height: self.minimum_height
-    width: self.get_width()
-    foreground_color: utils.get_color_from_hex(self.foreground_colora)
-    pos: 10, self.pos[1]
-    background_color: (0, 1, 0, 0)
-    radius: 2
-    canvas.before:
-        Color:
-            rgba: utils.get_color_from_hex(self.colour)
-        Line:
-            points: self.pos[0]-self.radius, self.pos[1] + self.radius, self.pos[0]-self.radius, self.pos[1] + self.size[1] - self.radius
-        Color:
-            rgba: utils.get_color_from_hex(self.foreground_colora)
-
-
 <User>:
     size_hint: 1, None
     Button:

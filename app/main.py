@@ -7,6 +7,8 @@ from backend.backlog import NoNetworkError
 from backend.keymanagement import *
 from backend.packet import PAC
 
+from app.messagelist import Message, MessageList
+
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.cache import Cache
@@ -76,7 +78,8 @@ class MessagePage(BaseScreen):
     def __init__(self, sm, meuser, touser, **kwargs):
         self.meuser = meuser
         self.touser = touser # can be (VirtualUser e.g. a group idk how the encryption would work)
-        super().__init__(sm, name="MessagePage", **kwargs)
+        self.list = MessageList()
+        super().__init__(sm, **kwargs)
 
     def key(self, other, keyboard, keycode, display, modifyers):
         _, code = keycode
@@ -85,45 +88,40 @@ class MessagePage(BaseScreen):
             return
         other.__class__.keyboard_on_key_down(other, keyboard, keycode, display, modifyers)
 
-    async def clear_messages(self):
-        async for i in AsyncIterator(self.children[0].children[1].children[0].children[-1::-1]):
-            self.children[0].children[1].children[0].remove_widget(i)
 
-    async def add_message(self, message, time=None): # need to figure out insertion index based on time
-        time = int(time.time()) if not time else time
-        self.children[0].children[1].children[0].add_widget(Message(message.from_user, message.from_user.username, colour="#00000000", foreground_color=message.colour))
-        self.children[0].children[1].children[0].add_widget(message)
-
-    async def relaod(self):
+    async def reload(self):
+        self.list = MessageList()
         messages = await self.sm.cm.get_messages_list(self.meuser.userid, self.touser.userid)
 
-        await self.clear_messages()
         async for i in AsyncIterator(messages):
             await self.recieve(i)
+        await self.refresh()
             
     async def send(self):
         data = self.children[0].children[0].children[1].text
+        if data.strip() == "": return
         ret = await self.sm.cm.msg(self.sm.session["_privkey"], self.meuser.userid, self.touser.userid, data)
         if ret.pactype == PAC.MSGA:
             self.children[0].children[0].children[1].text = ""
-            await self.recieve([int(time.time()), get_msg_id(self.meuser.userid, self.touser.userid, ret.data), True])
+            await self.recieve([int(time.time()), get_msg_id(self.meuser.userid, self.touser.userid, ret.data), True]) # tell recieve we just sent a message
+            await self.refresh()
     
+    async def refresh(self):
+        self.children[0].children[1].children[0].text = await self.list.export()
+
     async def recieve(self, message): # multiuser message group idk fix this later
-
-        if message[2]:
-            m = Message(
-                self.meuser,
-                decrypt(self.sm.session["_privkey"], (await self.sm.cm.get_info(self.meuser.userid)).data[0][2], await self.sm.cm.get_msg(message[1], 1)),
-                "", self.meuser.colour
-                )
+        
+        if message[2]: # do i get the data encoded by foregn key (when from someone is me)
+            data = decrypt(self.sm.session["_privkey"], (await self.sm.cm.get_info(self.meuser.userid)).data[0][2], await self.sm.cm.get_msg(message[1], 1))
+            fromuser = self.meuser
         else:
-            m = Message(
-                self.touser,
-                decrypt(self.sm.session["_privkey"], (await self.sm.cm.get_info(self.touser.userid)).data[0][2], await self.sm.cm.get_msg(message[1], 0)),
-                "", self.touser.colour
-                )
+            data = decrypt(self.sm.session["_privkey"], (await self.sm.cm.get_info(self.touser.userid)).data[0][2], await self.sm.cm.get_msg(message[1], 0))
+            fromuser = self.touser
 
-        await self.add_message(m, message[0])
+        m = Message.from_bits(message[0], data, fromuser.userid, fromuser.username, fromuser.colour)
+        await self.list.add_message(m.data)
+
+
 
     async def back(self):
         self.sm.transition.direction = 'right'
@@ -201,7 +199,9 @@ class ImportPage(BaseScreen):
             session["_privkey"] = generate_key(session["name"], session["colour"])
             session["id"] = id_from_priv(session["_privkey"])
             session["pubkey"] = get_pub(session["_privkey"])
+            await session.update()
             await session.cleanup(True) # dump seed from memory
+            session["_privkey"] = session["privkey"]
         await session.save()
 
     async def login (self, session, donote=True):
@@ -285,7 +285,6 @@ class Main(App):
             SeedgenPage     (self.sm, name="SeedgenPage"     ),
             ImportPage      (self.sm, name="ImportPage"      ),
             UsersPage       (self.sm, name="UsersPage"       ),
-            MessagePage     (self.sm, "meuser(err)", "touser(err)"),
             UserPropertyPage(self.sm, name="UserPropertyPage")
         ]
 

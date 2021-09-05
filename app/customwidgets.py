@@ -155,7 +155,7 @@ class KVPOPupSearch(KVPOPup):
             await self.sm.app.shownotification(KVNotifications(self.sm, Window.width, Window.height), "Account not found.")
             return
 
-        await self.sm.app.shownotification(KVPOPupAddUser(self.sm,  User(self.sm, username=data.data[0][1], userid=data.data[0][0]), Window.width, Window.height))
+        await self.sm.app.shownotification(KVPOPupAddUser(self.sm,  User(self.sm, username=data.data[0][1], colour=data.data[0][3], userid=data.data[0][0]), Window.width, Window.height))
         
 
 class KVPOPupAddUser(KVPOPup):
@@ -233,25 +233,6 @@ class UserPropertySpace(UserProperty):
     def __init__(self, **kw):
         super().__init__(name="", **kw)
 
-
-class MessageImg(Image):
-    def __init__(self, message, **kwargs):
-        self.user = message.from_user
-        self.colour = message.colour
-        self.size = (2*message.line_height, ) *2
-        super().__init__(**kwargs)
-
-class Message(TextInput):
-    def __init__(self, from_user, text="error", time="[timeerr]", colour="#ff00ffff", foreground_color="#ffffffff", **kwargs):
-        self.from_user = from_user
-        self.foreground_colora=foreground_color
-        self.time = time
-        self.colour = colour
-        super().__init__(text=text, **kwargs)
-
-    def get_width(self):
-        return Window.width
-
 class User(BaseWidget):
     def __init__(self, sm, username="[Username err]", colour="#eeeeee", userid="[id err]", index=0, img=BASE_IMAGE, **kwargs):
         self.sm = sm
@@ -266,11 +247,15 @@ class User(BaseWidget):
         return "<User({}, {})>".format(self.username, self.userid)
 
     async def press(self):
-        self.sm.remove_widget(self.sm.get_screen("MessagePage"))
+        name = "MessagePage-{}".format(self.userid)
+        if name in self.sm.screen_names:
+            self.sm.transition.direction = 'left'
+            self.sm.current = name
+            return
 
-        self.sm.add_widget(MessagePage.from_user(self.sm, self.parent.parent.parent.parent.user, self))
+        self.sm.add_widget(MessagePage.from_user(self.sm, self.parent.parent.parent.parent.user, self, name=name))
         self.sm.transition.direction = 'left'
-        self.sm.current = "MessagePage"
+        self.sm.current = name
 
     @classmethod
     def from_session(cls, sm, session):

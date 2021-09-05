@@ -196,7 +196,7 @@
                 on_press: run(self.parent.parent.parent.back())
             Button:
                 text:"Reload"
-                on_press: run(self.parent.parent.parent.relaod())
+                on_press: run(self.parent.parent.parent.reload())
         Widget:
             size_hint: 1, .01
 
@@ -206,11 +206,13 @@
             size_hint: 1, .9
             size: root.width, self.parent.height
 
-            ScrollLayout:
-                orientation: "tb-lr"
-                size_hint_x: root.width
-                size: root.width, sum([x.size[1] for x in self.children]) + self.spacing[1]*len(self.children) + 50
-                spacing: 5
+            Label:
+                size_hint: None, None
+                pos: (root.width-self.width) / 2, self.pos[1]
+                text_size: root.width * .95, None
+                size: self.texture_size
+
+                markup: True
 
         BoxLayout:
             orientation: "horizontal"

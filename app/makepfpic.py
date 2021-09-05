@@ -1,6 +1,6 @@
 from PIL import Image, ImageChops, ImageFont, ImageDraw
 from kivy.utils import get_color_from_hex
-
+from backend.keymanagement import *
 
 FONT = "LemonMilkMedium-mLZYV.otf"
 BRIGHT = "#eeeeee"
@@ -37,7 +37,7 @@ def name_to_innitials(name):
                 return [i]
             elif ord(i)>96 and ord(i)<123:
                 return [i]
-        return [name[0]]#no letters found
+        return [name[0] if len(name) != 0 else "E"]#no letters found
     else:
         return output#BobSmith, Bob
     
@@ -64,7 +64,7 @@ def make_pf_pic(id, name, colour):
     rtext = "".join(initials).upper()
     
     im1 = Image.open("app/images/useraccountbase.png")
-    im2 = Image.new("RGBA", im1.size, colour)
+    im2 = Image.new("RGBA", im1.size, validate_hex(colour))
     
     image = ImageChops.multiply(im1, im2)
     draw = ImageDraw.Draw(image)
@@ -73,9 +73,9 @@ def make_pf_pic(id, name, colour):
     font = ImageFont.truetype("app/{}".format(FONT), fontsize)
     box = font.getsize(rtext)
 
-    draw.text(( (im1.width -box[0])/2, (im1.height-1.25*box[1])/2 ), rtext, fill = text_colour(colour), font = font, align="left")
+    draw.text(( (im1.width -box[0])/2, (im1.height-1.25*box[1])/2 ), rtext, fill = text_colour(validate_hex(colour)), font = font, align="left")
 
-    exportname = "userdata/{}.png".format(id)
+    exportname = "userdata/userimage-{}.png".format(id)
     image.save(exportname, formats=("png",))
 
     return exportname
