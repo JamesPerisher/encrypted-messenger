@@ -9,6 +9,8 @@ from backend.packet import PAC
 
 from app.messagelist import Message, MessageList
 
+from kivy.utils import get_color_from_hex
+from kivy.graphics import Line, Color
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.cache import Cache
@@ -105,9 +107,26 @@ class MessagePage(BaseScreen):
             self.children[0].children[0].children[1].text = ""
             await self.recieve([int(time.time()), get_msg_id(self.meuser.userid, self.touser.userid, ret.data), True]) # tell recieve we just sent a message
             await self.refresh()
+
+    async def draw_displacement(self, obj):
+        anchors = self.children[0].children[1].children[0].anchors
+        lineset = anchors[str(len(anchors)-1)][1] - anchors[str(len(anchors)-2)][1] # distance between a line
+
+        with obj.canvas:
+            for key in range(len(anchors)-2):
+                Color(*get_color_from_hex(self.colourtable[key]))
+                a = obj.height-anchors[str(key)][1] - lineset
+                b = obj.height-anchors[str(key+1)][1]
+                Line(points=[10, a, 10, b], width=1)
+                # # debug
+                # Line(points=[0, a, 20, a], width=1)
+                # Line(points=[0, b, 20, b], width=1)
+        obj.text = ("\n".join(obj.text.split("\n")[0:-2])) + "\n\n"
+
     
     async def refresh(self):
-        self.children[0].children[1].children[0].text = await self.list.export()
+        self.colourtable, self.children[0].children[1].children[0].text = await self.list.export()
+        Clock.schedule_once(lambda x: run(self.draw_displacement(self.children[0].children[1].children[0])), 0) # draw sidebar color thingy
 
     async def recieve(self, message): # multiuser message group idk fix this later
         
@@ -118,7 +137,7 @@ class MessagePage(BaseScreen):
             data = decrypt(self.app.session["_privkey"], (await self.app.cm.get_info(self.touser.userid)).data[0][2], await self.app.cm.get_msg(message[1], 0))
             fromuser = self.touser
 
-        m = Message.from_bits(message[0], data, fromuser.userid, fromuser.username, fromuser.colour)
+        m = Message.from_bits(message[0], data, message[1], fromuser.username, fromuser.colour)
         await self.list.add_message(m.data)
 
 

@@ -39,13 +39,18 @@ class Connector(Backlog):
             raise NoNetworkError("No network connection") # TODO: Error handling for this -> frontend render this issue
 
 
-class Handler(Backlog):
+class Handler(Backlog): # Is one handler for on specific user can be killed with no reprocussions
     def __init__(self, node, reader, writer, database) -> None:
         super().__init__(node)
         self.reader = reader
         self.writer = writer
         self.db = database
         self.verify = ""
+        self._start = time.time()
+
+    @property
+    def uptime(self):
+        return time.time() - self._start
 
     async def send(self, packet):
         self.writer.write(packet.read())

@@ -117,7 +117,7 @@ def decrypt(privkey, pubkey, data):
     except:
         return "Message decryption error."
     if not pubkey.verify(msg).__bool__(): return "Message authenticity error."
-    return str(msg.message)
+    return msg.message if isinstance(msg.message, str) else msg.message.decode() # TODO: handle non convertable charecters
 
 if __name__ == "__main__":
     key = generate_key("h23r2wegresr3rmm", "sergea23r23rhello")

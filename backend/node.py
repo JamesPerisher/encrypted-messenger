@@ -1,7 +1,6 @@
 import asyncio
 import random
 import logging
-from re import A
 
 from backend.packet import *
 from backend.backlog import *
@@ -13,51 +12,27 @@ from backend.asyncrun import InputIterator
 
 AUTHORITIES = [("localhost", 6969)]
 
-
-class Node(object):
-    def __init__(self, authorities=AUTHORITIES) -> None:
-        self.authorities = authorities
-        self.backlog = Connector(self)
-
-    async def send(self, packet):
-        return await self.backlog.send(packet)
-
-    def get_authority(self):
-        return random.choice(self.authorities)
-
-    async def get_info(self, node): # get info about a node with name or id "node"
-        return await self.send(Packet(PAC.INF, node))
-    
-    async def msg(self, privkey, fromuserid, touserid, data): # send message to node
-
-        pubkey = (await self.get_info(touserid)).data[0][2]
-        
-        encdata = encrypt(privkey, pubkey, data.encode())
-        ret = await self.send(Packet(PAC.MSG, 
-        {
-            "from": fromuserid, "to":touserid,
-            "data0":encdata,
-            "data1":encrypt(privkey, get_pub(privkey), data.encode())
-        }))
-
-        if ret.pactype == PAC.MSGA: return Packet(PAC.MSGA, encdata)
-
-
-class Authority(Node):
+class Authority:
     def __init__(self, capacity, db, authorities=AUTHORITIES) -> None:
+        self.authorities = authorities
         self.capacity = capacity
+        self.handlers = list()
         self.db = db
-        super().__init__(authorities)
 
     def callback(self, db):
         async def handleclient(reader, writer):
-            await Handler(self, reader, writer, db).serve() # create handler for this connection
+            handler = Handler(self, reader, writer, db) # create handler for this connection
+            self.handlers.append(handler)
+            await handler.serve() # wait for serving to finish then kill this (thread??)
         return handleclient
 
     async def interactive(self):
-        return
-        async for i in InputIterator(": "):
-            print(i)
+        async for i in InputIterator(">>> "):
+            if i.strip() == "" : continue
+            try:
+                print(eval(i))
+            except Exception as e:
+                print("{}: {}".format(e.__class__.__name__, e))
 
     async def start(self):
         server = await asyncio.start_server(self.callback(self.db), "localhost", 6969)
@@ -67,9 +42,30 @@ class Authority(Node):
             await server.serve_forever()
 
 
-class Client(Node):
+class Client:
     def __init__(self, authorities=AUTHORITIES) -> None:
-        super().__init__(authorities)
+        self.authorities = authorities
+        self.backlog = Connector(self)
+
+    def get_authority(self):
+        return random.choice(self.authorities)
+
+    async def send(self, packet):
+        return await self.backlog.send(packet)
+
+    async def get_info(self, node): # get info about a node with id "node"
+        return await self.send(Packet(PAC.INF, node))
+    
+    async def msg(self, privkey, fromuserid, touserid, data): # send message to node
+        pubkey = (await self.get_info(touserid)).data[0][2]
+        encdata = encrypt(privkey, pubkey, data.encode())
+        ret = await self.send(Packet(PAC.MSG, 
+        {
+            "from": fromuserid, "to":touserid,
+            "data0":encdata,
+            "data1":encrypt(privkey, get_pub(privkey), data.encode())
+        }))
+        if ret.pactype == PAC.MSGA: return Packet(PAC.MSGA, encdata)
 
     async def logout(self):
         self.session.clear()
