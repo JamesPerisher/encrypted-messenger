@@ -1,7 +1,6 @@
 from backend.asyncrun import run, asynclambda
 from backend.keymanagement import *
 
-from app.shaire import make_code
 from app.makepfpic import make_pf_pic
 
 from kivy.core.clipboard import Clipboard
@@ -91,7 +90,6 @@ class KVPOPup(BaseWidget):
 class KVPOPupShair(KVPOPup):
     def __init__(self, app, *args, **kwargs):
         super().__init__(app, *args, **kwargs)
-        make_code("encrypted-msger://user_{}".format(app.session["id"])).save("userdata/shaire.png") # make this async
         
         self.children[0].children[3].source = "userdata/shaire.png"
         self.children[0].children[4].text = app.session["name"]

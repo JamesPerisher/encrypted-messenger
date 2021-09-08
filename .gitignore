@@ -5,11 +5,10 @@ __pycache__/
 
 #custom crap
 *.db
-userdata/session*
 .*
+userdata/session*
+userdata/cache*
 userdata/*.png
-userdata/*.cache
-
 # C extensions
 *.so
 

@@ -27,6 +27,8 @@ class Connector(Backlog):
         self.packetlock = asyncio.Lock()
 
     async def send(self, packet) -> Packet:
+        prox = await self.node.cache.get(packet)
+        if prox: return prox
         try:
             if not self.conn : self.conn = await asyncio.open_connection(*self.node.get_authority()) # make connection if not exist
 
@@ -34,7 +36,9 @@ class Connector(Backlog):
                 self.conn[1].write(packet.read())
                 await self.conn[1].drain()
 
-                return await readpacket(*self.conn) # lock prevents this erroring with multiple symultaniouse reads
+                ret = await readpacket(*self.conn) # lock prevents this erroring with multiple symultaniouse reads
+                await self.node.cache.set(packet, ret)
+                return ret
         except OSError: # network error
             raise NoNetworkError("No network connection") # TODO: Error handling for this -> frontend render this issue
 
@@ -47,6 +51,7 @@ class Handler(Backlog): # Is one handler for on specific user can be killed with
         self.db = database
         self.verify = ""
         self._start = time.time()
+        self.current = None
 
     @property
     def uptime(self):

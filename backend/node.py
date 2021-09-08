@@ -3,18 +3,23 @@ import random
 import logging
 
 from backend.packet import *
-from backend.backlog import *
+from backend.handler import *
 
 from backend.db.database import *
 from backend.keymanagement import *
 from backend.asyncrun import InputIterator
+from backend.cacheproxy import *
 
 
 AUTHORITIES = [("localhost", 6969)]
 
-class Authority:
-    def __init__(self, capacity, db, authorities=AUTHORITIES) -> None:
+class Node:
+    def __init__(self, authorities=AUTHORITIES) -> None:
         self.authorities = authorities
+
+class Authority(Node):
+    def __init__(self, capacity, db, authorities) -> None:
+        super().__init__(authorities=authorities)
         self.capacity = capacity
         self.handlers = list()
         self.db = db
@@ -42,9 +47,10 @@ class Authority:
             await server.serve_forever()
 
 
-class Client:
-    def __init__(self, authorities=AUTHORITIES) -> None:
-        self.authorities = authorities
+class Client(Node):
+    def __init__(self, authorities) -> None:
+        super().__init__(authorities=authorities)
+        self.cache = None # will get set soon
         self.backlog = Connector(self)
 
     def get_authority(self):
@@ -54,7 +60,9 @@ class Client:
         return await self.backlog.send(packet)
 
     async def get_info(self, node): # get info about a node with id "node"
-        return await self.send(Packet(PAC.INF, node))
+        data = await self.send(Packet(PAC.INF, node))
+        # print(data.data[0][2], node) # security mesyure hehe idfk
+        return data
     
     async def msg(self, privkey, fromuserid, touserid, data): # send message to node
         pubkey = (await self.get_info(touserid)).data[0][2]
@@ -68,8 +76,15 @@ class Client:
         if ret.pactype == PAC.MSGA: return Packet(PAC.MSGA, encdata)
 
     async def logout(self):
-        self.session.clear()
+        self.session.clear() # clear login session
         await self.session.save()
+
+        self.cache.clear() # clear cached packages (messages, public keys, etc)
+        await self.cache.save()
+
+        for file in os.listdir("userdata"):
+            if file in ("README", "session.json", "cache.json") : continue
+            os.remove("userdata/{}".format(file))
 
     async def register(self, id, pubkey):
         await self.session.update()

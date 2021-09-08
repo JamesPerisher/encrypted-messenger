@@ -56,11 +56,24 @@ class Packet(object):
         self.valid = True
         self.pactype = pactype
 
+    # object defualt functionality
     def __len__(self):
         return self.length
-
+    def __hash__(self) -> int:
+        return hash("{}:{}".format(self.pactype, self.data))
+    def __eq__(self, o: object) -> bool:
+        return self.__hash__() == o.__hash__()
+    def __ne__(self, o: object) -> bool:
+        return not self.__eq__(o)
     def __repr__(self) -> str:
         return "Packet({}, {})".format(self.pactype, "\"{}\"".format(self.data) if isinstance(self.data, str) else self.data)
+
+    @classmethod
+    def jimport(cls, data):
+        data = json.loads(data)
+        return cls(PAC(data["type"]), data["data"])
+    def jexport(self):
+        return json.dumps({"type":self.pactype.value, "data":self.data})
 
     def read(self):
         if self.valid:

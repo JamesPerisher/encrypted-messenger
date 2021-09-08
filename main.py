@@ -1,6 +1,7 @@
 from backend.node import *
 from backend.packet import *
 from backend.db.database import *
+from backend.asyncrun import asynclambda
 from app.usersession import Session
 import asyncio
 
@@ -8,26 +9,31 @@ from backend.db.config import *
 
 
 SESSION_FILE = "userdata/session.json"
+SESSION_CACHE = "userdata/cache.json"
 
-
-async def server():
+async def server(interactive):
     db = DBManager(async_session)
     authnode = Authority(10, db, AUTHORITIES)
-    return asyncio.gather(authnode.start(), authnode.interactive())
+    return asyncio.gather(authnode.start(), authnode.interactive() if interactive else asynclambda(lambda x: x))
 
 async def client():
     from app.main import Main
 
+
     clinode = Client(AUTHORITIES)
     
-    sesh = Session.from_file(SESSION_FILE) # realy need to store this in secure place idk yet
+    cache = CacheProxy.from_file(clinode, SESSION_CACHE)
+    sesh = Session.from_file(SESSION_FILE)
+    clinode.cache = cache
+
+
     await sesh.save()
     gui =  Main(clinode, sesh)
 
     return gui.async_run(async_lib='asyncio')
 
-async def fullstack():
-    return asyncio.gather(await server(), await client())
+async def fullstack(interactive):
+    return asyncio.gather(await server(interactive), await client())
 
 
 
@@ -43,7 +49,7 @@ def runapp(coroutine):
 
 
 if __name__ == "__main__":
-    print(runapp(fullstack()))
+    print(runapp(fullstack(False)))
     # print(runapp(server()))
     # print(runapp(client()))
 

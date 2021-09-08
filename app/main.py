@@ -3,10 +3,11 @@ import logging
 import time
 
 from backend.asyncrun import run, AsyncIterator
-from backend.backlog import NoNetworkError
+from backend.handler import NoNetworkError
 from backend.keymanagement import *
 from backend.packet import PAC
 
+from app.shaire import make_code
 from app.messagelist import Message, MessageList
 
 from kivy.utils import get_color_from_hex
@@ -58,6 +59,8 @@ class UsersPage(BaseScreen1):
         run(self.build())
     
     async def build(self):
+        make_code("encrypted-msger://user_{}".format(self.app.session["id"])).save("userdata/shaire.png")
+
         async for i in AsyncIterator(self.app.session["friends"]):
             data = await self.app.cm.get_info(i)
             await self.add_user(User(self.app, data.data[0][1], data.data[0][3], data.data[0][0]))
@@ -229,7 +232,7 @@ class ImportPage(BaseScreen):
         userdata = await self.app.cm.get_info(session["id"])
         if userdata.data == []:
             if donote:
-                Clock.schedule_once(lambda x: self.on_pre_enter("No user for provided seed."), 0) # TODO: proper error notification
+                await self.app.shownotification(KVNotifications(self.app, Window.width, Window.height), "No user for provided seed.")
             return False
         
         session["id"]     = userdata.data[0][0]
@@ -264,10 +267,14 @@ class Main(App):
         self.session["_privkey"] = self.session["privkey"]
         super().__init__(**kwargs)
 
-    def on_request_close(self, arg): # close asyncio eventloop so program will exit
+    async def close(self):
+        await self.cm.cache.save()
         logging.warn("Exiting program")
         asyncio.get_event_loop().stop()
         return False
+
+    def on_request_close(self, arg): # close asyncio eventloop so program will exit
+        run(self.close())
 
     async def reset_UserPage(self):
         await self.update_images()
@@ -293,7 +300,13 @@ class Main(App):
             return run(self.shownotification(KVNotifications(self, Window.width, Window.height), "No network connection."))
         return loop.default_exception_handler(context)
 
+    async def login(self):
+        print("login")
+        a = await self.sm.get_screen("ImportPage").login(self.session, False)
+        print(a)
+
     def build(self): # build all screens
+        run(self.login())
         Window.bind(on_request_close=self.on_request_close)
         self.sm = ScreenManager()
         screens = [
@@ -311,6 +324,5 @@ class Main(App):
 
         loop = asyncio.get_event_loop()
         loop.set_exception_handler(self.handle_exception)
-        run(self.sm.get_screen("ImportPage").login(self.session, False))
 
         return self.sm

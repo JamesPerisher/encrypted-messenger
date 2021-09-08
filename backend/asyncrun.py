@@ -6,7 +6,7 @@ def run(coroutine): # insert event into the event loop
 
 
 async def asynclambda(func):
-    return func()
+    return func
 
 
 class AsyncIterator:
