@@ -198,9 +198,9 @@ class ColorInput(Button):
     async def click(self):
         app = await self.getapp()
 
-        app.add_widget(ColourPage(app, self, app.sm.current, name="ColourPage"))
-        app.transition.direction = 'left'
-        app.current = "ColourPage"
+        app.sm.add_widget(ColourPage(app, self, app.sm.current, name="ColourPage"))
+        app.sm.transition.direction = 'left'
+        app.sm.current = "ColourPage"
 
 class ColourPage(BaseScreen):
     def __init__(self, app, caller, back, **kw):

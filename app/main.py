@@ -45,7 +45,7 @@ class LoginPage(BaseScreen):
         self.children[0].children[8].text = ""
 
     async def login(self):
-        self.app.sm.screens[2].backpg = "LoginPage"
+        self.app.sm.get_screen("ImportPage").backpg = "LoginPage"
         self.app.session["_seed"] = None
         self.app.sm.transition.direction = 'left'
         self.app.sm.current = "ImportPage"
@@ -166,8 +166,8 @@ class SeedgenPage(BaseScreen):
         self.app.sm.current = "LoginPage"
 
     def next(self):
-        self.app.sm.screens[2].backpg = "SeedgenPage"
-        self.app.sm.session["_seed"] = self.seed
+        self.app.sm.get_screen("ImportPage").backpg = "SeedgenPage"
+        self.app.session["_seed"] = self.seed
 
         self.app.sm.transition.direction = 'left'
         self.app.sm.current = "ImportPage"
@@ -308,10 +308,9 @@ class Main(App):
             self.sm.add_widget(i)
 
         self.sm.current = "LoginPage"
-        run(screens[2].login(self.session, False))
-
 
         loop = asyncio.get_event_loop()
         loop.set_exception_handler(self.handle_exception)
+        run(self.sm.get_screen("ImportPage").login(self.session, False))
 
         return self.sm
