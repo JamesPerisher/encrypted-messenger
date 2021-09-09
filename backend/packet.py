@@ -25,7 +25,6 @@ class PAC(enum.Enum):
     AUT = Val(30, False) # request authority nodes
     MSG = Val(40, True ) # send message
     CRT = Val(50, True ) # request account creation or updates
-    SIG = Val(60, False) # data to be signed
     MLT = Val(70, True ) # request a list of message id's between 2 users
     GMS = Val(80, True ) # request a specific message
 
@@ -33,7 +32,6 @@ class PAC(enum.Enum):
     INFA = Val(21, True ) # responce for INF
     MSGA = Val(41, False) # message aknowlegements
     CRTA = Val(51, False) # acknowlege account creation
-    SIGA = Val(61, False) # signed data
     MLTA = Val(71, True ) # list of message id's between 2 users
     GMSA = Val(81, False) # message data
 
