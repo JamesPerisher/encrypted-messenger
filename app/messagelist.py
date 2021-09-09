@@ -45,6 +45,7 @@ class MessageList:
         return self._next
 
     async def add_message(self, item):
+        if item in self.data: return # prevent duplicate messages
 
         k = item["time"]
         i = bisect.bisect_right(self.keys, k)  # Determine where to insert item.

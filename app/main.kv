@@ -191,11 +191,28 @@
             orientation:"horizontal"
             size_hint: 1, None
             height: self.parent.height * 0.07
+            canvas.before:
+                Color:
+                    rgb: background
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
             Button:
-                text:"Back"
+                text:""
+                size_hint: .2, .9
+                pos_hint: {'y': .05}
                 on_press: run(self.parent.parent.parent.back())
+
+                background_color: (0, 0, 0, 0)
+                Image:
+                    source: "app/images/back.png"
+                    size: self.parent.width, self.parent.height
+                    center: self.parent.center_x, self.parent.pos[1] + self.parent.height/2
+                    allow_stretch: True
+
             Button:
-                text:"Reload"
+                text:"Reload (debug)"
                 on_press: run(self.parent.parent.parent.reload())
         Widget:
             size_hint: 1, .01

@@ -103,6 +103,7 @@ class MessagePage(BaseScreen):
 
     async def reload(self):
         retime = self.app.session["friends"][self.touser.userid]
+        await self.app.cm.cache.save()
         await self.app.session.save()
         self.app.session["friends"][self.touser.userid] = int(time.time())
         messages = await self.app.cm.get_messages_list(self.meuser.userid, self.touser.userid, retime)
@@ -310,9 +311,8 @@ class Main(App):
         return loop.default_exception_handler(context)
 
     async def login(self):
-        print("login")
         a = await self.sm.get_screen("ImportPage").login(self.session, False)
-        print(a)
+        logging.info("Login attempt {}.".format("successfull" if a else "failed"))
 
     def build(self): # build all screens
         run(self.login())
