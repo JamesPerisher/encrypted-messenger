@@ -93,8 +93,8 @@ class Client(Node):
 
         return await self.send(Packet(PAC.CRT, {"id":id, "pub":pubkey, "verify":data}))
 
-    async def get_messages_list(self, u1, u2):
-        return (await self.send(Packet(PAC.MLT, {"u1":u1, "u2":u2}))).data
+    async def get_messages_list(self, u1, u2, time):
+        return (await self.send(Packet(PAC.MLT, {"u1":u1, "u2":u2, "time": time}))).data
 
     async def get_msg(self, msgid, datatype):
         return (await self.send(Packet(PAC.GMS, {"id":msgid, "data":datatype}))).data

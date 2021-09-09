@@ -116,7 +116,7 @@ class Handler(Backlog): # Is one handler for on specific user can be killed with
             (Message.fromuserid == packet.data["u1"] and Message.touserid == packet.data["u2"])
             or
             (Message.fromuserid == packet.data["u2"] and Message.touserid == packet.data["u1"])
-            ))
+            ).where(Message.creation_time > packet.data["time"]))
 
         out = []
         async for i in AsyncIterator(a.all()): # inefficent loop

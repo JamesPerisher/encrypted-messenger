@@ -15,7 +15,7 @@ class CacheProxy:
         return self.data.get(req, False)
         
     async def set(self, req, res):
-        if req.pactype in (PAC.GMS, PAC.INF):
+        if req.pactype in (PAC.GMS, PAC.INF, PAC.NAN):
             self.data[req] = res
 
     async def save(self, filepath=None):
@@ -36,5 +36,15 @@ class CacheProxy:
         with open(filepath, "r") as f:
             raw = f.read()
             data = json.loads("{}" if raw.strip() == "" else raw)
-            data = BASE_CACHE.copy() if data == dict() else {Packet.jimport(x):Packet.jimport(data[x]) for x in data}
+            if data == dict():
+                data = BASE_CACHE.copy()
+            else:
+                _data = dict()
+                for x in data:
+                    try:
+                        k, d = Packet.jimport(x), Packet.jimport(data[x])
+                    except TypeError:
+                        k, d = Packet.jimport(x), data[x]
+                    _data[k] = d
+                data = _data
             return cls(node, filepath, data)

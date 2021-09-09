@@ -64,6 +64,15 @@ class MessageList:
         out.append(".[anchor={}].".format(self.next))
         out = "\n".join(out)
         return colourtable, out
+    
+    @classmethod
+    def jimport(cls, data):
+        ret = cls(data["data"])
+        ret._next = data["next"]
+        return ret
+    def jexport(self):
+        return {"next":self._next, "data": self.data}
+    
 
 
 async def main():

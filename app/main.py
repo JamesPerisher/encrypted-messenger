@@ -5,7 +5,7 @@ import time
 from backend.asyncrun import run, AsyncIterator
 from backend.handler import NoNetworkError
 from backend.keymanagement import *
-from backend.packet import PAC
+from backend.packet import PAC, Packet
 
 from app.shaire import make_code
 from app.messagelist import Message, MessageList
@@ -81,10 +81,17 @@ class UsersPage(BaseScreen1):
 
 class MessagePage(BaseScreen):
     def __init__(self, app, meuser, touser, **kwargs):
+        super().__init__(app, **kwargs)
         self.meuser = meuser
         self.touser = touser # can be (VirtualUser e.g. a group idk how the encryption would work)
-        self.list = MessageList()
-        super().__init__(app, **kwargs)
+        run(self.make())
+
+    async def make(self): # load cached messages
+        data = await self.app.cm.cache.get(Packet(PAC.NAN, self.touser.userid))
+        self.list = MessageList.jimport(data if data else {"data":{}, "next":-1})
+        self.app.cm.cache.data[Packet(PAC.NAN, self.touser.userid)] = self.list
+        await self.app.cm.cache.save()
+        await self.reload()
 
     def key(self, other, keyboard, keycode, display, modifyers):
         _, code = keycode
@@ -95,8 +102,10 @@ class MessagePage(BaseScreen):
 
 
     async def reload(self):
-        self.list = MessageList()
-        messages = await self.app.cm.get_messages_list(self.meuser.userid, self.touser.userid)
+        retime = self.app.session["friends"][self.touser.userid]
+        await self.app.session.save()
+        self.app.session["friends"][self.touser.userid] = int(time.time())
+        messages = await self.app.cm.get_messages_list(self.meuser.userid, self.touser.userid, retime)
 
         async for i in AsyncIterator(messages):
             await self.recieve(i)
