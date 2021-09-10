@@ -1,7 +1,8 @@
 import asyncio
 import bisect
+import json
 from datetime import datetime
-
+from backend.keymanagement import *
 
 DATE_FONT_SIZE = 11
 
@@ -34,10 +35,11 @@ class Message:
 
 
 class MessageList:
-    def __init__(self, data=[]) -> None:
+    def __init__(self, data=[], key=None) -> None:
         self.data = sorted(data, key=lambda x: x["time"])
         self.keys = [x["time"] for x in self.data]
         self._next = -1
+        self.key = key
     
     @property
     def next(self):
@@ -67,12 +69,16 @@ class MessageList:
         return colourtable, out
     
     @classmethod
-    def jimport(cls, data):
-        ret = cls(data["data"])
+    def jimport(cls, data, key):
+        try:
+            data = json.loads(decrypt(key, get_pub(key), data))
+        except json.decoder.JSONDecodeError:
+            data = {"data":{}, "next":-1}
+        ret = cls(data["data"], key)
         ret._next = data["next"]
         return ret
     def jexport(self):
-        return {"next":self._next, "data": self.data}
+        return encrypt(self.key, get_pub(self.key), json.dumps({"next":self._next, "data": self.data})) 
     
 
 

@@ -84,7 +84,7 @@ class MessagePage(BaseScreen):
 
     async def make(self): # load cached messages
         data = await self.app.cm.cache.get(Packet(PAC.NAN, self.touser.userid))
-        self.list = await MessageList.jimport(data if data else {"data":{}, "next":-1}, self.app.cm.cache)
+        self.list = MessageList.jimport(data if data else {"data":{}, "next":-1}, self.app.session["_privkey"])
         self.app.cm.cache.data[Packet(PAC.NAN, self.touser.userid)] = self.list
         await self.app.cm.cache.save()
         await self.reload()

@@ -68,8 +68,11 @@ class Packet(object):
 
     @classmethod
     def jimport(cls, data):
-        data = json.loads(data)
-        return cls(PAC(data["type"]), data["data"])
+        try:
+            data = json.loads(data)
+            return cls(PAC(data["type"]), data["data"])
+        except json.decoder.JSONDecodeError:
+            return data
     def jexport(self):
         return json.dumps({"type":self.pactype.value, "data":self.data})
 
