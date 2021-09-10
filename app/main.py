@@ -85,6 +85,7 @@ class MessagePage(BaseScreen):
     async def make(self): # load cached messages
         data = await self.app.cm.cache.get(Packet(PAC.NAN, self.touser.userid))
         self.list = MessageList.jimport(data if data else {"data":{}, "next":-1}, self.app.session["_privkey"])
+        self.app.lists.append(self.list)
         self.app.cm.cache.data[Packet(PAC.NAN, self.touser.userid)] = self.list
         await self.app.cm.cache.save()
         await self.reload()
@@ -269,6 +270,7 @@ class ImportPage(BaseScreen):
 class Main(App):
     def __init__(self, clientmanager, session, **kwargs):
         self.cm = clientmanager
+        self.lists = list()
         self.session = session
         self.session["_privkey"] = self.session["privkey"]
         super().__init__(**kwargs)

@@ -15,7 +15,7 @@ class CacheProxy:
         return self.data.get(req, False)
         
     async def set(self, req, res):
-        if req.pactype in (PAC.GMS, PAC.INF, PAC.NAN):
+        if req.pactype in (PAC.GMS, PAC.NAN):
             self.data[req] = res
 
     async def save(self, filepath=None):

@@ -111,6 +111,8 @@ class KVPOPupChangeName(KVPOPup):
         await self.app.cm.register(session["id"], session["pubkey"])
         await self.app.reset_UserPage()
         await self.close()
+        self.app.cm.cache.clear()
+        [x.clear() for x in self.app.lists]
 
 class KVPOPupChangeColour(KVPOPup):
     def __init__(self, app, *args, **kwargs):
@@ -128,7 +130,8 @@ class KVPOPupChangeColour(KVPOPup):
         await self.app.cm.register(session["id"], session["pubkey"])
         await self.app.reset_UserPage()
         await self.close()
-
+        self.app.cm.cache.clear()
+        [x.clear() for x in self.app.lists]
 
 class KVPOPupSearch(KVPOPup):
     def __init__(self, app, *args, **kwargs):
