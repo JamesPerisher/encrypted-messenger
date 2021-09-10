@@ -67,6 +67,9 @@
                 size_hint_x: root.width * 0.9
                 text_size: self.size
 
+        Widget:
+            size_hint: 1, .1
+
         BoxLayout:
             orientation: "vertical"
             width: self.parent.width * .9
@@ -81,7 +84,7 @@
                 hint_text_color: bright
                 border_width: 0
 
-                on_press: self.parent.parent.parent.signup()
+                on_press: run(self.parent.parent.parent.signup())
 
             Widget:
                 size_hint: 1, 1

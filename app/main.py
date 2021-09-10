@@ -29,21 +29,17 @@ Window.size = (400, 700) # for desktop debug only
 
 
 class LoginPage(BaseScreen):
-    def signup(self):
-        if self.children[0].children[7].text.strip() == "":
-            self.children[0].children[8].text = "Enter a Username"
-        elif not (self.children[0].children[2].children[1].active and self.children[0].children[2].children[3].active):
-            self.children[0].children[8].text = "You must agree to all terms and conditions"
+    async def signup(self):
+        if self.children[0].children[8].text.strip() == "":
+            await self.app.shownotification(KVNotifications(self, Window.width, Window.height), "No username.")
+        elif not (self.children[0].children[3].children[1].active and self.children[0].children[3].children[3].active):
+            await self.app.shownotification(KVNotifications(self, Window.width, Window.height), "You must agree to all terms and conditions.")
 
         else:
-            self.children[0].children[8].text = ""
-            self.app.session["name"] = self.children[0].children[7].text.strip()
-            self.app.session["colour"] = self.children[0].children[4].colour
+            self.app.session["name"] = self.children[0].children[8].text.strip()
+            self.app.session["colour"] = self.children[0].children[5].colour
             self.app.sm.transition.direction = 'left'
             self.app.sm.current = "SeedgenPage"
-
-    def on_pre_enter(self):
-        self.children[0].children[8].text = ""
 
     async def login(self):
         self.app.sm.get_screen("ImportPage").backpg = "LoginPage"
@@ -88,7 +84,7 @@ class MessagePage(BaseScreen):
 
     async def make(self): # load cached messages
         data = await self.app.cm.cache.get(Packet(PAC.NAN, self.touser.userid))
-        self.list = MessageList.jimport(data if data else {"data":{}, "next":-1})
+        self.list = await MessageList.jimport(data if data else {"data":{}, "next":-1}, self.app.cm.cache)
         self.app.cm.cache.data[Packet(PAC.NAN, self.touser.userid)] = self.list
         await self.app.cm.cache.save()
         await self.reload()
@@ -222,8 +218,8 @@ class ImportPage(BaseScreen):
         self.app.sm.transition.direction = 'right'
         self.app.sm.current = self.backpg
 
-    def on_pre_enter(self, text=""): # error message clearing
-        self.children[0].children[5].text = text
+    def on_pre_enter(self):
+        self.children[0].children[2].text = "" # clear seed input box
 
     async def auth(self, session):
         self.app.cm.session = session
