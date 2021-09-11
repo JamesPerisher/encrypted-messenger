@@ -1,15 +1,14 @@
 from backend.packet import *
 import os
-
+from backend.jsonifyer import JsonSaver
 
 BASE_CACHE = dict()
 
 
-class CacheProxy:
+class CacheProxy(JsonSaver):
     def __init__(self, node, filepath, data) -> None:
+        super().__init__(data, filepath=filepath)
         self.node = node
-        self.filepath = filepath
-        self.data = data
 
     async def get(self, req):
         return self.data.get(req, False)
@@ -18,12 +17,8 @@ class CacheProxy:
         if req.pactype in (PAC.GMS, PAC.NAN):
             self.data[req] = res
 
-    async def save(self, filepath=None):
-        filepath = self.filepath if filepath == None else filepath
-        tmpdata = json.dumps({x.jexport():self.data[x].jexport() for x in self.data})
-        with open(filepath, "w") as f:
-            f.write(tmpdata)
-        return self
+    async def fixdata(self, data):
+        return {x.jexport():self.data[x].jexport() for x in self.data}
 
     def clear(self):
         self.data = BASE_CACHE.copy()

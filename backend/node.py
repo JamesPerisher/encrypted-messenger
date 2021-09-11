@@ -28,7 +28,10 @@ class Authority(Node):
         async def handleclient(reader, writer):
             handler = Handler(self, reader, writer, db) # create handler for this connection
             self.handlers.append(handler)
-            await handler.serve() # wait for serving to finish then kill this (thread??)
+            try:
+                await handler.serve() # wait for serving to finish then kill this (thread??)
+            except:
+                logging.info("Killed handler {}".format(handler))
         return handleclient
 
     async def interactive(self):

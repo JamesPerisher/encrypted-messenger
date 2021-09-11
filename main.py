@@ -11,6 +11,7 @@ from backend.db.config import *
 SESSION_FILE = "userdata/session.json"
 SESSION_CACHE = "userdata/cache.json"
 
+
 async def server(interactive):
     db = DBManager(async_session)
     authnode = Authority(10, db, AUTHORITIES)

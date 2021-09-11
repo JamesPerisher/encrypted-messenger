@@ -229,7 +229,7 @@ class ImportPage(BaseScreen):
             session["id"] = id_from_priv(session["_privkey"])
             session["pubkey"] = get_pub(session["_privkey"])
             await session.update()
-            await session.cleanup(True) # dump seed from memory
+            await session.cleanup() # dump seed from memory
             session["_privkey"] = session["privkey"]
         await session.save()
 

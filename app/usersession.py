@@ -1,5 +1,6 @@
 import json
 import os
+from backend.jsonifyer import JsonSaver
 
 BASE_SESSION = {
     "friends": {
@@ -7,20 +8,11 @@ BASE_SESSION = {
     }
 }
 
-class Session(object):
-    def __init__(self, filepath, data) -> None:
-        self.filepath = filepath
+class Session(JsonSaver):
+    def __init__(self, data, filepath) -> None:
+        print(data, filepath)
+        super().__init__(data, filepath=filepath)
         self.user = None
-        self.data = data
-
-    def __getitem__(self, index):
-        try:
-            return self.data.__getitem__(index)
-        except KeyError:
-            return ""
-
-    def __setitem__(self, index, value):
-        return self.data.__setitem__(index, value)
 
     def pop(self, id):
         try:
@@ -36,21 +28,7 @@ class Session(object):
 
     @classmethod
     def from_file(cls, filepath):
-        if not os.path.exists(filepath): # create file if it doesn't exist
-            os.mknod(filepath)
-
-        with open(filepath, "r") as f:
-            raw = f.read()
-            data = json.loads("{}" if raw.strip() == "" else raw)
-            data = BASE_SESSION.copy() if data == dict() else data
-            return cls(filepath, data)
-
-    async def save(self, filepath=None):
-        filepath = self.filepath if filepath == None else filepath
-        tmpdata = json.dumps(await self.cleanup())
-        with open(filepath, "w") as f:
-            f.write(tmpdata)
-        return self
+        return super().from_file(filepath, BASE_SESSION)
 
     async def update(self):
         try:
@@ -58,9 +36,12 @@ class Session(object):
         except KeyError:
             pass
         await self.save()
+    
+    async def cleanup(self):
+        return await self.fixdata(self.data, True)
 
-    async def cleanup(self, autoset=False): # remove tmp variables from memory as a security measure
-        data = {x:self.data[x] for x in self.data if not x.startswith("_")}
+    async def fixdata(self, data, autoset=False): # remove tmp variables from memory as a security measure
+        data = {x:data[x] for x in data if not x.startswith("_")}
         if autoset:
             self.data = data
         else:
