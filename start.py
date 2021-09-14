@@ -1,9 +1,22 @@
 from backend.clienthandler import *
+from backend.serverhandler import *
+from backend.packet import *
+from backend.db.database import *
+from backend.asyncrun import asynclambda
 from app.usersession import Session
+import asyncio
+
+from backend.db.config import *
+
 
 SESSION_FILE = "userdata/session.json"
 SESSION_CACHE = "userdata/cache.json"
 
+
+async def server(interactive):
+    db = DBManager(async_session)
+    authnode = Authority(10, db, AUTHORITIES)
+    return asyncio.gather(authnode.start(), authnode.interactive() if interactive else asynclambda(lambda x: x))
 
 async def client():
     from app.main import Main
@@ -21,6 +34,11 @@ async def client():
 
     return gui.async_run(async_lib='asyncio')
 
+async def fullstack(interactive):
+    return asyncio.gather(await server(interactive), await client())
+
+
+
 
 def runapp(coroutine):
     loop = asyncio.get_event_loop()
@@ -33,6 +51,8 @@ def runapp(coroutine):
 
 
 if __name__ == "__main__":
+    # print(runapp(fullstack(False)))
+    # print(runapp(server()))
     print(runapp(client()))
 
 

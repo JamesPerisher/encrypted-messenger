@@ -1,0 +1,1 @@
+ buildozer android logcat | grep "I python"

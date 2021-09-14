@@ -1,5 +1,7 @@
 from backend.asyncrun import AsyncIterator
+from backend.asyncrun import InputIterator
 from backend.keymanagement import *
+from backend.basehandler import *
 from backend.db.database import *
 from backend.packet import *
 
@@ -14,33 +16,37 @@ import time
 
 
 
-class NoNetworkError(Exception): pass
+class Authority(Node):
+    def __init__(self, capacity, db, authorities) -> None:
+        super().__init__(authorities=authorities)
+        self.capacity = capacity
+        self.handlers = list()
+        self.db = db
 
-class Backlog(object):
-    def __init__(self, node) -> None:
-        self.node = node
+    def callback(self, db):
+        async def handleclient(reader, writer):
+            handler = Handler(self, reader, writer, db) # create handler for this connection
+            self.handlers.append(handler)
+            try:
+                await handler.serve() # wait for serving to finish then kill this (thread??)
+            except:
+                logging.info("Killed handler {}".format(handler))
+        return handleclient
 
-class Connector(Backlog):
-    def __init__(self, node) -> None:
-        super().__init__(node)
-        self.conn = None # will eventualy be (reader, writer)
-        self.packetlock = asyncio.Lock()
+    async def interactive(self):
+        async for i in InputIterator(">>> "):
+            if i.strip() == "" : continue
+            try:
+                print(eval(i))
+            except Exception as e:
+                print("{}: {}".format(e.__class__.__name__, e))
 
-    async def send(self, packet) -> Packet:
-        prox = await self.node.cache.get(packet)
-        if prox: return prox
-        try:
-            if not self.conn : self.conn = await asyncio.open_connection(*self.node.get_authority()) # make connection if not exist
+    async def start(self):
+        server = await asyncio.start_server(self.callback(self.db), "localhost", 6969)
+        logging.debug("Serving on {}".format(server.sockets[0].getsockname()))
 
-            async with self.packetlock: # wait for previouse packet to complete before sending a new one
-                self.conn[1].write(packet.read())
-                await self.conn[1].drain()
-
-                ret = await readpacket(*self.conn) # lock prevents this erroring with multiple symultaniouse reads
-                await self.node.cache.set(packet, ret)
-                return ret
-        except OSError: # network error
-            raise NoNetworkError("No network connection") # TODO: Error handling for this -> frontend render this issue
+        async with server:
+            await server.serve_forever()
 
 
 class Handler(Backlog): # Is one handler for on specific user can be killed with no reprocussions

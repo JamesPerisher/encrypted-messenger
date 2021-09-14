@@ -3,7 +3,7 @@ import logging
 import time
 
 from backend.asyncrun import run, AsyncIterator
-from backend.handler import NoNetworkError
+from backend.basehandler import NoNetworkError
 from backend.keymanagement import *
 from backend.packet import PAC, Packet
 
@@ -25,7 +25,7 @@ from app.customwidgets import *
 
 Builder.load_file('app/kvsettings.kv')
 Builder.load_file('app/main.kv')
-Window.size = (400, 700) # for desktop debug only
+# Window.size = (400, 700) # for desktop debug only
 
 
 class LoginPage(BaseScreen):

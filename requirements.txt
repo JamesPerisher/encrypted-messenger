@@ -1,4 +1,5 @@
 SQLAlchemy
+sqlalchemy[asyncio]
 aiosqlite
 kivy
 PyCryptodome
@@ -6,6 +7,4 @@ numpy
 PyQRCode
 pypng
 PGPy
-
-kivy-garden.zbarcam
-pyzbar
+Pillow
