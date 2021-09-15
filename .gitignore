@@ -6,7 +6,6 @@ __pycache__/
 #custom crap
 *.db
 .*
-blender
 userdata/session*
 userdata/cache*
 userdata/*.png
