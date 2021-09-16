@@ -24,7 +24,7 @@ from kivy.uix.screenmanager import ScreenManager
 import app.customwidgets
 from app.customwidgets import *
 
-from globalconfig import APPNAMELINK
+from globalconfig import APPNAMELINK, USERDATA_PATH
 Builder.load_file('app/kvsettings.kv')
 Builder.load_file('app/main.kv')
 # Window.size = (400, 700) # for desktop debug only
@@ -57,7 +57,7 @@ class UsersPage(BaseScreen1):
         run(self.build())
     
     async def build(self):
-        make_code("{}://user_{}".format(APPNAMELINK, self.app.session["id"])).save("userdata/shaire.png")
+        make_code("{}://user_{}".format(APPNAMELINK, self.app.session["id"])).save("{}/shaire.png".format(USERDATA_PATH))
 
         async for i in AsyncIterator(self.app.session["friends"]):
             data = await self.app.cm.get_info(i)
@@ -271,6 +271,9 @@ class ImportPage(BaseScreen):
             self.app.session["_seed"] = self.children[0].children[2].text.split()
         await self.login(self.app.session)
 
+from kivy.uix.boxlayout import BoxLayout
+class RootLayout(BoxLayout):
+    pass
 
 class Main(App):
     def __init__(self, clientmanager, session, **kwargs):
@@ -322,6 +325,7 @@ class Main(App):
         run(self.login())
         Window.bind(on_request_close=self.on_request_close)
         self.sm = ScreenManager()
+        root = RootLayout()
         screens = [
             LoginPage       (self, name="LoginPage"       ),
             SeedgenPage     (self, name="SeedgenPage"     ),
@@ -338,4 +342,6 @@ class Main(App):
         loop = asyncio.get_event_loop()
         loop.set_exception_handler(self.handle_exception)
 
-        return self.sm
+
+        root.add_widget(self.sm)
+        return root

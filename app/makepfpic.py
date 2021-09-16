@@ -2,7 +2,7 @@ from PIL import Image, ImageChops, ImageFont, ImageDraw
 from kivy.utils import get_color_from_hex
 from backend.keymanagement import *
 
-from globalconfig import FONT, BUTTONBACKGROUND, LIGHTBACKGROUND
+from globalconfig import FONT, BUTTONBACKGROUND, LIGHTBACKGROUND, USERDATA_PATH
 
 
 def name_to_innitials(name):
@@ -74,7 +74,7 @@ def make_pf_pic(id, name, colour):
 
     draw.text(( (im1.width -box[0])/2, (im1.height-1.25*box[1])/2 ), rtext, fill = text_colour(validate_hex(colour)), font = font, align="left")
 
-    exportname = "userdata/userimage-{}.png".format(id)
+    exportname = "{}/userimage-{}.png".format(USERDATA_PATH, id)
     image.save(exportname, formats=("png",))
 
     return exportname

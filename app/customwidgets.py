@@ -18,7 +18,7 @@ from kivy.uix.button import Button
 
 import logging
 
-from globalconfig import BASE_IMAGE
+from globalconfig import BASE_IMAGE, USERDATA_PATH
 
 
 class MessagePage: # should get overwritten on import
@@ -91,7 +91,7 @@ class KVPOPupShair(KVPOPup):
     def __init__(self, app, *args, **kwargs):
         super().__init__(app, *args, **kwargs)
         
-        self.children[0].children[3].source = "userdata/shaire.png"
+        self.children[0].children[3].source = "{}/shaire.png".format(USERDATA_PATH)
         self.children[0].children[4].text = app.session["name"]
         self.children[0].children[2].data = app.session["id"]
 

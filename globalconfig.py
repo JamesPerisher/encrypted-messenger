@@ -23,10 +23,9 @@ BASE_CACHE = dict() # can add defualt cached items
 DATABASE_URL = "sqlite+aiosqlite:///backend/db/database.db"
 MAX_UNAME = 21
 
-
-SESSION_FILE = "userdata/session.json"
-SESSION_CACHE = "userdata/cache.json"
-
+USERDATA_PATH = "userdata"
+SESSION_FILE  = "{}/session.json".format(USERDATA_PATH)
+SESSION_CACHE = "{}/cache.json"  .format(USERDATA_PATH)
 
 SUPERBRIGHT       = "#000000"
 DARK              = "#121212"
@@ -38,3 +37,4 @@ SUPERDARK         = "#ffffff"
 
 ERROR             = "#aa0000"
 HEIGHLIGHT_COLOUR = "#064ca0"
+APP_COLOUR        = "#290f47"

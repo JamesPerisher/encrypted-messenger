@@ -6,6 +6,7 @@ from backend.basehandler import *
 from backend.keymanagement import *
 from backend.cacheproxy import *
 
+from globalconfig import USERDATA_PATH
 
 
 class Connector(Backlog):
@@ -66,9 +67,9 @@ class Client(Node):
         self.cache.clear() # clear cached packages (messages, public keys, etc)
         await self.cache.save()
 
-        for file in os.listdir("userdata"):
+        for file in os.listdir(USERDATA_PATH):
             if file in ("README", "session.json", "cache.json") : continue
-            os.remove("userdata/{}".format(file))
+            os.remove("{}/{}".format(USERDATA_PATH, file))
 
     async def register(self, id, pubkey):
         await self.session.update()

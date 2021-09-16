@@ -13,6 +13,8 @@
 #:set background       utils.get_color_from_hex(GC.BACKGROUND)
 #:set lightbackground  utils.get_color_from_hex(GC.LIGHTBACKGROUND)
 #:set buttonbackground utils.get_color_from_hex(GC.BUTTONBACKGROUND)
+#:set appcolour utils.get_color_from_hex(GC.APP_COLOUR)
+
 #:set error            utils.get_color_from_hex(GC.ERROR)
 
 
@@ -27,3 +29,15 @@
 
 # Global settings
 
+<RootLayout>:
+    orientation:"vertical"
+
+    Widget:
+        size_hint: 1, None
+        canvas.before:
+            Color:
+                rgb: appcolour
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        height: dp(25) if utils.platform == "android" else 0 # status bar compensation for android
