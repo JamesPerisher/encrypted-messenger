@@ -24,6 +24,7 @@ from kivy.uix.screenmanager import ScreenManager
 import app.customwidgets
 from app.customwidgets import *
 
+from globalconfig import APPNAMELINK
 Builder.load_file('app/kvsettings.kv')
 Builder.load_file('app/main.kv')
 # Window.size = (400, 700) # for desktop debug only
@@ -56,7 +57,7 @@ class UsersPage(BaseScreen1):
         run(self.build())
     
     async def build(self):
-        make_code("encrypted-msger://user_{}".format(self.app.session["id"])).save("userdata/shaire.png")
+        make_code("{}://user_{}".format(APPNAMELINK, self.app.session["id"])).save("userdata/shaire.png")
 
         async for i in AsyncIterator(self.app.session["friends"]):
             data = await self.app.cm.get_info(i)

@@ -1,16 +1,12 @@
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
 import secrets
-from hashlib import sha256
-from Crypto.Signature import pss
-from Crypto.Hash import SHA256
-from base64 import b64encode, b64decode
+import pgpy
 import re
 
-import pgpy
 from pgpy.constants import PubKeyAlgorithm, KeyFlags, HashAlgorithm, SymmetricKeyAlgorithm, CompressionAlgorithm
+from hashlib import sha256
 
-MAX_UNAME = 21
+from globalconfig import MAX_UNAME
+
 
 def generate_seed(length=16):
     with open("backend/db/words.txt", "r") as f:

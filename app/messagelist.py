@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from backend.keymanagement import *
 
-DATE_FONT_SIZE = 11
+from globalconfig import DATE_FONT_SIZE
 
 
 class Message:

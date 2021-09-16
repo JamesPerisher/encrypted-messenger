@@ -1,4 +1,4 @@
-AUTHORITIES = [("localhost", 6969)]
+from globalconfig import AUTHORITIES
 
 class Node:
     def __init__(self, authorities=AUTHORITIES) -> None:

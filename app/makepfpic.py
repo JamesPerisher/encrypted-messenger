@@ -2,9 +2,8 @@ from PIL import Image, ImageChops, ImageFont, ImageDraw
 from kivy.utils import get_color_from_hex
 from backend.keymanagement import *
 
-FONT = "LemonMilkMedium-mLZYV.otf"
-BRIGHT = "#eeeeee"
-DARK   = "#333333"
+from globalconfig import FONT, BUTTONBACKGROUND, LIGHTBACKGROUND
+
 
 def name_to_innitials(name):
     # Custom fro developers
@@ -57,7 +56,7 @@ def split_test(splitlist): # Checks there are 2 elements both with letters
 
 def text_colour(colour):
     mathcolour = get_color_from_hex(colour)
-    return BRIGHT if round((mathcolour[3]/3)*(mathcolour[0] + mathcolour[1] + mathcolour[2])) == 0 else DARK
+    return BUTTONBACKGROUND if round((mathcolour[3]/3)*(mathcolour[0] + mathcolour[1] + mathcolour[2])) == 0 else LIGHTBACKGROUND
 
 def make_pf_pic(id, name, colour):
     initials = name_to_innitials(name)

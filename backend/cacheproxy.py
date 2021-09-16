@@ -2,7 +2,7 @@ from backend.packet import *
 import os
 from backend.jsonifyer import JsonSaver
 
-BASE_CACHE = dict()
+from globalconfig import BASE_CACHE
 
 
 class CacheProxy(JsonSaver):

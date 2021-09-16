@@ -1,4 +1,4 @@
-# encrypted-messenger
+# Kryptos
 
 
 # Packet information

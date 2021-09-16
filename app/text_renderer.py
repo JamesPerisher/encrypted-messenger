@@ -1,13 +1,6 @@
 import asyncio
-import re
 
-
-# Constants for messagemanagement
-APPNAMELINK = "encrypted-msger" # need to import this from config
-NEWWORD_A = "$A_NEW_RENDER_WORD_A$" # users migt be able to do some strange rendering with these but who cares
-NEWWORD_B = "$B_NEW_RENDER_WORD_B$" # users migt be able to do some strange rendering with these but who cares
-NEWWORD_FULL = "{}{}".format(NEWWORD_A, NEWWORD_B)
-COLOUR = "#064ca0"
+from globalconfig import APPNAMELINK, NEWWORD_A, NEWWORD_B, NEWWORD_FULL, HEIGHLIGHT_COLOUR
 
 
 class Renderer:
@@ -73,7 +66,7 @@ class Renderer:
         return raw.split("://", 1)[-1]
 
     def heighlight(self, raw):
-        return " [color={}]{}[/color] ".format(COLOUR, raw)
+        return " [color={}]{}[/color] ".format(HEIGHLIGHT_COLOUR, raw)
 
     # get nice render info from database
     async def user_function(self, id):

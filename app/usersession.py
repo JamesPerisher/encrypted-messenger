@@ -1,12 +1,7 @@
-import json
-import os
 from backend.jsonifyer import JsonSaver
 
-BASE_SESSION = {
-    "friends": {
-        # can add a default friend here like a bot or a help account idfk
-    }
-}
+from globalconfig import BASE_SESSION
+
 
 class Session(JsonSaver):
     def __init__(self, data, filepath) -> None:

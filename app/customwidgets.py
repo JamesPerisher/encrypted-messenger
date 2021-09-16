@@ -18,8 +18,8 @@ from kivy.uix.button import Button
 
 import logging
 
+from globalconfig import BASE_IMAGE
 
-BASE_IMAGE = "app/images/useraccountbase.png"
 
 class MessagePage: # should get overwritten on import
     from_user = lambda : ""

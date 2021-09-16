@@ -1,8 +1,7 @@
 from backend.clienthandler import *
 from app.usersession import Session
 
-SESSION_FILE = "userdata/session.json"
-SESSION_CACHE = "userdata/cache.json"
+from globalconfig import SESSION_FILE, SESSION_CACHE
 
 
 async def client():
