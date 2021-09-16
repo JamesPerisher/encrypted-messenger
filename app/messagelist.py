@@ -8,18 +8,7 @@ DATE_FONT_SIZE = 11
 
 
 class Message:
-
-    @property
-    def data(self):
-        return self._data
-
-    @data.setter
-    def data(self, value):
-        # render message txt to interactive text
-        self._data = value
-        self._data["data"] = self._data["data"].replace("[", "&bl;").replace("]", "&br;").replace("&", "&amp;")
-
-    def __init__(self, data) -> None: 
+    def __init__(self, data) -> None:
         self.data = data
 
     @classmethod
@@ -35,7 +24,8 @@ class Message:
 
 
 class MessageList:
-    def __init__(self, data=[], key=None) -> None:
+    def __init__(self, renderer, data=[], key=None) -> None:
+        self.renderer = renderer
         self.data = sorted(data, key=lambda x: x["time"])
         self.keys = [x["time"] for x in self.data]
         self._next = -1
@@ -48,6 +38,10 @@ class MessageList:
 
     async def add_message(self, item):
         if item in self.data: return # prevent duplicate messages
+
+        # render message data
+        item["data"] = await self.renderer.render_controls (item["data"])
+        item["data"] = await self.renderer.render_text_refs(item["data"])
 
         k = item["time"]
         i = bisect.bisect_right(self.keys, k)  # Determine where to insert item.
@@ -69,12 +63,12 @@ class MessageList:
         return colourtable, out
     
     @classmethod
-    def jimport(cls, data, key):
+    def jimport(cls, renderer, data, key):
         try:
             data = json.loads(decrypt(key, get_pub(key), data))
         except json.decoder.JSONDecodeError:
             data = {"data":{}, "next":-1}
-        ret = cls(data["data"], key)
+        ret = cls(renderer, data["data"], key)
         ret._next = data["next"]
         return ret
     def jexport(self):
@@ -83,7 +77,7 @@ class MessageList:
 
 
 async def main():
-    ml = MessageList()
+    ml = MessageList(None)
 
     await ml.add_message(Message.from_bits(1, "b", "fromid", "from", "fromcol").data)
     await ml.add_message(Message.from_bits(0, "a", "fromid", "from", "fromcol").data)

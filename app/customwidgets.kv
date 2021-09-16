@@ -303,6 +303,6 @@
             spacing: 10
 
         Label:
-            _tmp: [self.parent.parent.userid[x:x+2] for x in range(0, 12, 2)] #  "00 00 00\n00 00 00"
+            _tmp: [self.parent.parent.userid[x:x+2].upper() for x in range(0, 12, 2)] #  "00 00 00\n00 00 00"
             text: " ".join(self._tmp[0:3]) + "\n" + " ".join(self._tmp[3:6])
             size_hint_x: .9

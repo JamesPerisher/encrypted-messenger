@@ -8,6 +8,7 @@ from backend.keymanagement import *
 from backend.packet import PAC, Packet
 
 from app.shaire import make_code
+from app.text_renderer import Renderer
 from app.messagelist import Message, MessageList
 
 from kivy.utils import get_color_from_hex
@@ -82,9 +83,12 @@ class MessagePage(BaseScreen):
         self.touser = touser # can be (VirtualUser e.g. a group idk how the encryption would work)
         run(self.make())
 
+    async def ref(self, label, data):
+        print("clicked: ", data)
+
     async def make(self): # load cached messages
         data = await self.app.cm.cache.get(Packet(PAC.NAN, self.touser.userid))
-        self.list = MessageList.jimport(data if data else {"data":{}, "next":-1}, self.app.session["_privkey"])
+        self.list = MessageList.jimport(self.app.renderer, data if data else {"data":{}, "next":-1}, self.app.session["_privkey"])
         self.app.lists.append(self.list)
         self.app.cm.cache.data[Packet(PAC.NAN, self.touser.userid)] = self.list
         await self.app.cm.cache.save()
@@ -270,6 +274,7 @@ class ImportPage(BaseScreen):
 class Main(App):
     def __init__(self, clientmanager, session, **kwargs):
         self.cm = clientmanager
+        self.renderer = Renderer(self.cm)
         self.lists = list()
         self.session = session
         self.session["_privkey"] = self.session["privkey"]
