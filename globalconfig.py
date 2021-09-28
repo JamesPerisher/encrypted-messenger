@@ -1,6 +1,5 @@
 
-
-DATE_FONT_SIZE = 11
+# Message routing config
 AUTHORITIES = [("localhost", 6969)]
 
 # Constants for messagemanagement
@@ -9,9 +8,8 @@ NEWWORD_A = "$A_NEW_RENDER_WORD_A$" # users migt be able to do some strange rend
 NEWWORD_B = "$B_NEW_RENDER_WORD_B$" # users migt be able to do some strange rendering with these but who cares
 NEWWORD_FULL = "{}{}".format(NEWWORD_A, NEWWORD_B)
 
-BASE_IMAGE = "app/images/useraccountbase.png"
-FONT = "LemonMilkMedium-mLZYV.otf"
 
+# Server config
 BASE_SESSION = {
     "friends": {
         # can add a default friend here like a bot or a help account idfk
@@ -19,14 +17,23 @@ BASE_SESSION = {
 }
 BASE_CACHE = dict() # can add defualt cached items
 
-
 DATABASE_URL = "sqlite+aiosqlite:///backend/db/database.db"
 MAX_UNAME = 21
 
+# Userdata config
 USERDATA_PATH = "userdata"
 SESSION_FILE  = "{}/session.json".format(USERDATA_PATH)
 SESSION_CACHE = "{}/cache.json"  .format(USERDATA_PATH)
 
+
+# Should technicaly be able to load themes for these settings
+
+# Render config themes
+BASE_IMAGE = "app/images/useraccountbase.png"
+FONT = "LemonMilkMedium-mLZYV.otf"
+DATE_FONT_SIZE = 11
+
+# Render colour themes
 SUPERBRIGHT       = "#000000"
 DARK              = "#121212"
 LIGHTBACKGROUND   = "#2E2E2E"
