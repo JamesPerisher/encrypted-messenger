@@ -1,1 +1,0 @@
-buildozer android deploy run debug

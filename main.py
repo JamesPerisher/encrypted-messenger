@@ -1,37 +1,51 @@
-from backend.clienthandler import *
-from app.usersession import Session
+from backend.cache import Cache
+from backend.client import XMPPClient
+from backend.config import Config
+from backend.cryptomanager import CryptoManager
+from backend.handler import Handler
+from backend.signals import Event
 
-from globalconfig import SESSION_FILE, SESSION_CACHE
+import os
+import asyncio
 
+def run(coroutine): # insert event into the event loop
+    return asyncio.get_event_loop().create_task(coroutine)
 
-async def client():
-    from app.main import Main
+class Program:
+    async def empty(self, etype, data):
+        print(etype, data)
+        return ""
+    async def event(self, etype, data=""): # event handler
+        e = {
+            Event.ERROR      : self.empty(etype, data),
+            Event.ADD_FRIEND : self.empty(etype, data)
+        }[etype]
 
+        return await e(etype, data)
 
-    clinode = Client(AUTHORITIES)
-    
-    cache = CacheProxy.from_file(clinode, SESSION_CACHE)
-    sesh = Session.from_file(SESSION_FILE)
-    clinode.cache = cache
+    def make_files(self):
+        if not os.path.isdir(self.config.USERDATA_DIR): os.mkdir(self.config.USERDATA_DIR)
+        open(self.config.CACHE_FILE, "a").close()
+        open(self.config.XMPPDATA_FILE, "a").close()
+        open(self.config.PRIV_KEY, "a").close()
+        
 
+    def start(self): # make all the objects
+        # thread 1
+        self.config  = Config.from_prog(self)
+        self.make_files()
 
-    await sesh.save()
-    gui =  Main(clinode, sesh)
+        self.cache   = Cache.from_prog(self)
+        self.crypto  = CryptoManager.from_prog(self)
+        self.client = XMPPClient.from_prog(self)
+        self.handler = Handler.from_prog(self)
 
-    return gui.async_run(async_lib='asyncio')
+        print("made all objects")
 
+        self.client.start()
 
-def runapp(coroutine):
-    loop = asyncio.get_event_loop()
-    approutine = loop.run_until_complete(coroutine)
-    try:
-        loop.run_until_complete(approutine)
-    except RuntimeError:
-        pass # program was killed or crashed (idk which one) its eather ur fault or mine I blame you
-    loop.close()
 
 
 if __name__ == "__main__":
-    print(runapp(client()))
-
-
+    prog = Program()
+    prog.start()
