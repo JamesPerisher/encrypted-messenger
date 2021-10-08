@@ -35,7 +35,7 @@ xmpp.register_plugin('xep_0045')
 
 ## run daemon
 ```bash
-dockerd
+sudo dockerd
 ```
 
 ## run docker

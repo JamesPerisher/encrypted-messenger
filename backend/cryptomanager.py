@@ -1,5 +1,4 @@
 from backend.basics import BaseObject
-from backend.signals import Event
 
 
 class CryptoManager(BaseObject):
@@ -20,8 +19,7 @@ class CryptoManager(BaseObject):
 
     
     def get_password(self):
-        print("password")
-        return "privkeybasedpassword"
+        return "password"
 
     async def encrypt(self, pubkey, data):
         # make msg

@@ -1,0 +1,42 @@
+#:kivy 1.0.9
+#:import utils kivy.utils
+#:import Clock kivy.clock.Clock
+#:import run backend.asyncrun.run
+#:import sqrt math.sqrt
+
+#:import GC backend.config.Config
+
+#:set superbright      utils.get_color_from_hex( GC.SUPERDARK       )
+#:set superdark        utils.get_color_from_hex( GC.SUPERBRIGHT     )
+#:set bright           utils.get_color_from_hex( GC.BRIGHT          )
+#:set dark             utils.get_color_from_hex( GC.DARK            )
+#:set background       utils.get_color_from_hex( GC.BACKGROUND      )
+#:set lightbackground  utils.get_color_from_hex( GC.LIGHTBACKGROUND )
+#:set buttonbackground utils.get_color_from_hex( GC.BUTTONBACKGROUND)
+#:set appcolour        utils.get_color_from_hex( GC.APP_COLOUR      )
+#:set error            utils.get_color_from_hex( GC.ERROR           )
+
+
+# Debug settings
+
+# <Widget>:
+#     canvas.after:
+#         Line:
+#             rectangle: self.x+1,self.y+1,self.width-1,self.height-1
+#             dash_offset: 5
+#             dash_length: 3
+
+# Global settings
+
+<RootLayout>:
+    orientation:"vertical"
+
+    Widget:
+        size_hint: 1, None
+        canvas.before:
+            Color:
+                rgb: appcolour
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        height: dp(25) if utils.platform == "android" else 0 # status bar compensation for android

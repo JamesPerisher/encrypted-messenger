@@ -1,0 +1,308 @@
+#:kivy 1.0.9
+
+<BaseWidget>:
+    canvas.before:
+        Color:
+            rgb: dark
+        Rectangle:
+            size: self.size
+            pos: self.pos
+<BaseWidget1>:
+    canvas.before:
+        Color:
+            rgb: lightbackground
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+
+<KVNotifications>:
+    size: 0, 0
+    size_hint: 0, 0
+    Button:
+        pos: (self.parent.rwidth-self.width)/2, self.parent.rheight - self.height - 6
+        disabled: True
+        background_color: bright[0:3] + [100]
+        color: bright[0:3] + [100]
+        size_hint: 1, None
+        size: self.parent.rwidth *.95, self.parent.rheight * .07
+
+        Label:
+            halign:'center'
+            valign:'middle'
+            pos: self.parent.pos
+            size: self.parent.size
+            text: "Error69"
+            color: error
+            text_size: self.size
+
+
+<KVPOPup>:
+    size: 0, 0
+    size_hint: 0, 0
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+
+        canvas.before:
+            Color:
+                rgb: dark
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        pos: (self.parent.rwidth-self.width)/2, (self.parent.rheight - self.height )/2
+        background_color: bright[0:3] + [100]
+        color: bright[0:3] + [100]
+        size_hint: 1, 1
+        size: self.parent.rwidth *.9, self.parent.rheight * .9
+
+
+<KVPOPupShair>:
+    Label:
+        text: "err"
+        font_size: 30
+        size_hint: 1, .1
+
+    Image:
+        source: "app/images/logo.png"
+        size_hint: 1, 1
+
+    CopyButton:
+        text: "Copy ID"
+        font_size: 11
+        size_hint: 1, .1
+
+    Widget:
+        size_hint: 1, .05
+
+    Button:
+        text: "Done"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.close())
+
+
+<KVPOPupChangeName>:
+
+    Label:
+        size_hint: 1, .1
+        text: "Change username"
+
+    TextInput:
+        size_hint: 1, .2
+        multiline: False
+        text: self.parent.parent.app.session["name"]
+
+    Widget:
+        size_hint: 1, .4
+
+    Button:
+        text: "Ok"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.change())
+    Button:
+        text: "Cancel"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.close())
+
+
+<KVPOPupChangeColour>:
+
+    Label:
+        size_hint: 1, .1
+        text: "Change colour"
+
+    ColorInput:
+        size_hint: 1, .2
+        colour: utils.get_color_from_hex(self.parent.parent.app.session["colour"])
+        text: self.parent.parent.app.session["colour"]
+        canvas.after: run(self.update(self.parent.parent.app.session["colour"]))
+
+    Widget:
+        size_hint: 1, .4
+
+    Button:
+        text: "Ok"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.change())
+    Button:
+        text: "Cancel"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.close())
+
+
+<KVPOPupSearch>:
+
+    Label:
+        size_hint: 1, .1
+        text: "Scan QR code"
+
+
+    # ZBarCam:
+    #     id: "camera"
+    #     size_hint: 1, .9
+    #     # code_types: ZBarSymbol.QRCODE
+
+    Label:
+        size_hint: 1, .1
+        text: "Enter id"
+
+    TextInput:
+        size_hint: 1, .2
+        multiline: False
+        text: ""
+
+    Widget:
+        size_hint: 1, .4
+
+    Button:
+        text: "Ok"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.go())
+    Button:
+        text: "Cancel"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.close())
+
+
+<KVPOPupAddUser>:
+
+    Label:
+        size_hint: 1, .1
+        text: "Add user"
+
+    Image:
+        size_hint: 1, .4
+        source: self.parent.parent.user.img
+
+    Label:
+        size_hint: 1, .1
+        text: self.parent.parent.user.username
+    Label:
+        size_hint: 1, .1
+        text_size: self.size
+        halign:'center'
+        valign:'middle'
+        text: self.parent.parent.user.userid
+
+    Widget:
+        size_hint: 1, .2
+
+    Button:
+        text: "Add"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.go())
+    Button:
+        text: "Cancel"
+        size_hint: 1, .1
+        on_press: run(self.parent.parent.close())
+
+
+<BaseScreen>:
+    canvas.before:
+        Color:
+            rgb: dark
+        Rectangle:
+            size: self.size
+            pos: self.pos
+<BaseScreen1>:
+    canvas.before:
+        Color:
+            rgb: lightbackground
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+
+<ColorInput>:
+    background_normal: ''
+    background_down: ''
+    background_color: utils.get_color_from_hex(self.colour)
+    on_press: run(self.click())
+
+
+<ColourPage>:
+    BoxLayout:
+        orientation:"vertical"
+        ColorPicker:
+            size_hint: 1, .9
+        Button:
+            text:"Done"
+            size_hint: 1, .1
+            on_press: run(self.parent.parent.done())
+
+
+<UserProperty>:
+    size_hint: 1, .25
+
+
+<UserPropertySpace>:
+    size_hint: 1, .1
+
+
+<UserPropertyButton>:
+    Button:
+        size_hint: 1, None
+        width: sqrt(self.parent.width)
+        height: self.parent.height
+        text: self.parent.name
+        pos: self.parent.pos
+        on_press: run(self.parent.event())
+
+
+<UserPropertyPage>:
+    size_hint: 1, 1
+    pos: 0, 0
+
+    Button:
+        text: "Cancel"
+        size_hint: 1, .1
+        pos: 0, self.parent.height-self.height
+        on_press: run(self.parent.back())
+
+    ScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        size_hint: 1, .9
+        size: root.width, self.parent.height
+
+        ScrollLayout:
+            orientation: "tb-lr"
+            size_hint_x: root.width
+            size: root.width, sum([x.size[1] for x in self.children]) + self.spacing[1]*len(self.children) + 50
+            spacing: 2
+
+
+<User>:
+    size_hint: 1, None
+    Button:
+        background_color: 0,0,0,0
+        pos: self.parent.pos
+        width: self.parent.width
+        on_press: run(self.parent.press())
+    BoxLayout:
+        orientation: "horizontal"
+        width: sqrt(root.width) * 0.95
+        size_hint: 1, 1
+        pos: (sqrt(root.width) - self.width) / 2, self.parent.pos[1]
+        spacing: 10
+        height: self.parent.height
+
+        Image:
+            source: self.parent.parent.img
+            size_hint: .7, .99
+            width: self.parent.width * 0.2
+
+        Label:
+            font_size: 25
+            text: self.parent.parent.username
+            size_hint_x: 2.5
+            halign:'left'
+            valign:'middle'
+            text_size: self.size
+            spacing: 10
+
+        Label:
+            _tmp: [self.parent.parent.userid[x:x+2].upper() for x in range(0, 12, 2)] #  "00 00 00\n00 00 00"
+            text: " ".join(self._tmp[0:3]) + "\n" + " ".join(self._tmp[3:6])
+            size_hint_x: .9
