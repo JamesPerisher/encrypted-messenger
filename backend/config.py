@@ -9,8 +9,8 @@ class Config(BaseObject):
     PRIV_KEY      = "{}/privkey.pem".format(USERDATA_DIR)
     XMPPDATA_FILE = "{}/xmpdata.json".format(USERDATA_DIR)
 
-    DEFAULT_CACHE = {}
-    DEFAULT_XMPP  = {"jid":"user1@localhost", "name":"NameError", "colour":"#ff00ff"}
+    DEFAULT_SESSION = {"active":False}
+    DEFAULT_XMPP  = {"jid":"", "name":"", "colour":""}
 
 
     APPNAMELINK = "Kryptos"
@@ -25,3 +25,5 @@ class Config(BaseObject):
     BUTTONBACKGROUND    = "#ffffff"
     ERROR               = "#aa0000"
     APP_COLOUR          = "#290f47"
+
+    NOTIFICATION_DISPLAY_TIME = 1.5

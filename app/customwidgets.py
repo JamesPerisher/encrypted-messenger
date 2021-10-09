@@ -36,13 +36,13 @@ class BaseWidget1(BaseWidget):
     pass
 
 class KVNotifications(BaseWidget):
-    def __init__(self, app, rwidth=0, rheight=0, **kwargs):
+    def __init__(self, prog, rwidth=0, rheight=0, **kwargs):
         self.rwidth = rwidth
         self.rheight = rheight
 
         self.anim  = Animation(y=self.rheight+6, duration=0)
         self.anim += Animation(y=self.rheight-self.height, duration=.5, t='in_back')
-        self.anim += Animation(y=self.rheight-self.height, duration= 1)
+        self.anim += Animation(y=self.rheight-self.height, duration= prog.config.NOTIFICATION_DISPLAY_TIME)
         self.anim += Animation(y=self.rheight+6, duration=.5, t='out_back')
 
         super().__init__(**kwargs)
@@ -151,12 +151,11 @@ class ColorInput(Button):
         self.colour = colour
         super().__init__(**kwargs)
 
-    async def getapp(self):
+    async def getprog(self):
         a = self
         while True:
             try:
-                if isinstance(a.app, App):
-                    return a.app
+                return a.prog
             except AttributeError:
                 pass
             a = a.parent
@@ -166,24 +165,24 @@ class ColorInput(Button):
         self.background_color = get_color_from_hex(self.colour)
 
     async def click(self):
-        app = await self.getapp()
+        prog = await self.getprog()
 
-        app.sm.add_widget(ColourPage(app, self, app.sm.current, name="ColourPage"))
-        app.sm.transition.direction = 'left'
-        app.sm.current = "ColourPage"
+        prog.app.sm.add_widget(ColourPage(prog, self, prog.app.sm.current, name="ColourPage"))
+        prog.app.sm.transition.direction = 'left'
+        prog.app.sm.current = "ColourPage"
 
 class ColourPage(BaseScreen):
-    def __init__(self, app, caller, back, **kw):
-        super().__init__(app, **kw)
+    def __init__(self, prog, caller, back, **kw):
+        super().__init__(prog, **kw)
         self.caller = caller
         self.back = back
 
     async def done(self):
         self.caller.colour = self.children[0].children[1].hex_color
         await self.caller.update()
-        self.app.sm.remove_widget(self)
-        self.app.sm.transition.direction = 'right'
-        self.app.sm.current = self.back
+        self.prog.app.sm.remove_widget(self)
+        self.prog.app.sm.transition.direction = 'right'
+        self.prog.app.sm.current = self.back
 
 class UserProperty(BaseWidget): # TODO: idk make all this crap
     def __init__(self, name="namerr", **kw):

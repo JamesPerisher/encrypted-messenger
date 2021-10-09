@@ -1,3 +1,4 @@
+import asyncio
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.app import App
@@ -89,17 +90,29 @@ class AppMain(BaseObject, App):
     def __init__(self, prog, **kwargs):
         BaseObject.__init__(self, prog)
         App.__init__(self, **kwargs)
+        self.started = asyncio.Event()
 
     def on_request_close(self, arg): run(self.close())
 
     async def close(self): pass
     async def reset_UserPage(self): pass
-    async def shownotification(self, note, msg="msgerr"): pass
+
+    async def shownotification(self, notificationclass, msg="msgerr", args=()):
+        note = notificationclass(self.prog, *args, Window.width, Window.height)
+        self.root.add_widget(note, 0)
+        if isinstance(note, KVNotifications):
+            note.children[0].children[0].text = msg
+
+        note.anim.start(note.children[0])
+        note.anim.bind(on_complete=lambda a,b : self.root.remove_widget(note))
+
+
     async def update_images(self): pass
     async def login(self): pass
 
 
     def build(self): # build all screens
+        self.started.set()
         Window.bind(on_request_close=self.on_request_close)
         self.sm = ScreenManager()
         root = RootLayout()

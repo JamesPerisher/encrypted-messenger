@@ -1,5 +1,6 @@
 from json import loads
-from backend.cache import Cache
+from app.customwidgets import KVNotifications
+from backend.session import Session
 from backend.client import XMPPClient
 from backend.config import Config
 from backend.cryptomanager import CryptoManager
@@ -13,20 +14,38 @@ import asyncio
 from backend.asyncrun import run
 
 class Program:
-    async def empty(self, etype, data):
-        print(etype, data)
-        return ""
-    async def event(self, etype, data=""): # event handler
+    ignoreevents = False
+    async def event(self, etype, data=""): # event handler syncronouse handling
+        if self.ignoreevents: return
         e = {
+            Event.LOGIN       : self.login,
             Event.ADD_FRIEND  : self.empty,
             Event.LOGGED_IN   : self.empty,
 
             Event.AUTH_ERROR  : self.empty,
-            Event.NET_ERROR   : self.empty,
+            Event.NET_ERROR   : self.net_error,
             Event.DISCONNECTED: self.empty
         }[etype]
-
         return await e(etype, data)
+
+    async def empty(self, etype, data):
+        # await self.app.shownotification(KVNotifications, "test")
+        print(etype, data)
+        return ""
+
+
+    async def net_error(self, etype, data):
+        await self.app.shownotification(KVNotifications, "Network Error: {}".format(data))
+
+    async def login(self, etype, data):
+        self.ignoreevents = True
+        await self.app.started.wait()
+        self.app.sm.current = self.app.LoginPage.name
+        await asyncio.sleep(0.5)
+        self.ignoreevents = False
+
+
+
 
     def handle_exception(self, loop, context):
         pass
@@ -41,7 +60,7 @@ class Program:
         loop = asyncio.get_event_loop()
         loop.set_exception_handler(self.handle_exception)
 
-        await self.app.async_run(async_lib='asyncio')
+        asyncio.gather(self.session.status(), self.app.async_run(async_lib='asyncio'))
 
     async def save(self):
         pass
@@ -52,7 +71,7 @@ class Program:
         self.config  = Config.from_prog(self)
         self.make_files()
 
-        self.cache   = Cache.from_prog(self)
+        self.session = Session.from_prog(self)
         self.crypto  = CryptoManager.from_prog(self)
         self.client  = XMPPClient.from_prog(self)
         self.handler = Handler.from_prog(self)
