@@ -15,7 +15,6 @@ class Config(BaseObject):
 
     APPNAMELINK = "Kryptos"
 
-
     # Theme
     SUPERDARK           = "#000000"
     SUPERBRIGHT         = "#121212"

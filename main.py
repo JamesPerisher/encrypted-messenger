@@ -56,7 +56,7 @@ class Program:
         self.crypto  = CryptoManager.from_prog(self)
         self.client  = XMPPClient.from_prog(self)
         self.handler = Handler.from_prog(self)
-        self.app     = AppMain.from_prog(self) 
+        self.app     = AppMain.from_prog(self)
 
         print("made all objects")
 

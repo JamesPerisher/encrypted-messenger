@@ -185,11 +185,6 @@ class ColourPage(BaseScreen):
         self.app.sm.transition.direction = 'right'
         self.app.sm.current = self.back
 
-
-
-
-
-
 class UserProperty(BaseWidget): # TODO: idk make all this crap
     def __init__(self, name="namerr", **kw):
         self.name = name
@@ -203,12 +198,13 @@ class UserPropertySpace(UserProperty):
         super().__init__(name="", **kw)
 
 class User(BaseWidget):
-    def __init__(self, app, username="[Username err]", colour="#eeeeee", userid="[id err]", index=0, img="", **kwargs):
-        self.app = app
+    def __init__(self, prog, username="[Username err]", colour="#eeeeee", userid="[id err]", index=0, img="", **kwargs):
+        self.prog = prog
         self.userid = userid
         self.username = username
         self.colour = "#ff00ff"
         self.index = index
+        self.img = ""
         super().__init__(**kwargs)
 
     def __repr__(self) -> str:
