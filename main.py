@@ -1,7 +1,7 @@
 from json import loads
 from app.customwidgets import KVNotifications
 from backend.session import Session
-from backend.client import XMPPClient
+from backend.client import Client
 from backend.config import Config
 from backend.cryptomanager import CryptoManager
 from backend.handler import Handler
@@ -20,7 +20,7 @@ class Program:
         e = {
             Event.LOGIN       : self.login,
             Event.ADD_FRIEND  : self.empty,
-            Event.LOGGED_IN   : self.empty,
+            Event.LOGGED_IN   : self.loggedin,
 
             Event.AUTH_ERROR  : self.empty,
             Event.NET_ERROR   : self.net_error,
@@ -33,6 +33,11 @@ class Program:
         print(etype, data)
         return ""
 
+    async def loggedin(self, etype, data):
+        self.app.sm.transition.direction = 'left'
+        self.app.sm.current = self.app.UsersPage.name
+
+        await self.session.save(await self.session.maketoken())
 
     async def net_error(self, etype, data):
         await self.app.shownotification(KVNotifications, "Network Error: {}".format(data))
@@ -40,11 +45,10 @@ class Program:
     async def login(self, etype, data):
         self.ignoreevents = True
         await self.app.started.wait()
+        self.app.sm.transition.direction = 'left'
         self.app.sm.current = self.app.LoginPage.name
         await asyncio.sleep(0.5)
         self.ignoreevents = False
-
-
 
 
     def handle_exception(self, loop, context):
@@ -56,36 +60,37 @@ class Program:
         open(self.config.XMPPDATA_FILE, "a").close()
         open(self.config.PRIV_KEY, "a").close()
 
-    async def poststart(self):
+    def asyncstart(self):
         loop = asyncio.get_event_loop()
         loop.set_exception_handler(self.handle_exception)
 
-        asyncio.gather(self.session.status(), self.app.async_run(async_lib='asyncio'))
+        return asyncio.gather(
+            self.session.status(), # check stored sessions
+            self.app.async_run(async_lib='asyncio'), # run gui
+            self.client.start() # start client manager
+            )
 
     async def save(self):
         pass
         
 
     def start(self): # make all the objects
-        # thread 1
         self.config  = Config.from_prog(self)
         self.make_files()
 
         self.session = Session.from_prog(self)
         self.crypto  = CryptoManager.from_prog(self)
-        self.client  = XMPPClient.from_prog(self)
+        self.client  = Client.from_prog(self)
         self.handler = Handler.from_prog(self)
         self.app     = AppMain.from_prog(self)
 
         print("made all objects")
 
-        run(self.poststart())
-        self.client.start()
+        asyncio.get_event_loop().run_until_complete(self.asyncstart())
 
         print("end")
 
 
 
 if __name__ == "__main__":
-    prog = Program()
-    prog.start()
+    Program().start()

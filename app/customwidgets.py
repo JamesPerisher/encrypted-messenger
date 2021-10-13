@@ -224,6 +224,24 @@ class User(BaseWidget):
     def from_session(cls, app, session):
         return cls(app, session["name"], session["colour"], session["id"])
 
+class PinButton(Button):
+    def on_press(self):
+        self.color = self._color
+        self.doupdate(self.text)
+        return super().on_press()
 
+    def doupdate(self, text):
+        if len(text) == 1:
+            self.parent.data += text
+        else:
+            if text == "OK":
+                run(self.parent.callback(self.parent.data))
+                self.parent.data = ""
+            else:
+                self.parent.data = self.parent.data[0:-1]
+                
+        self.parent.update.text = len(self.parent.data) * "*"
 
-
+    def on_release(self):
+        self.color = self._default
+        return super().on_release()

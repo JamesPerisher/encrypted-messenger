@@ -18,8 +18,11 @@ Builder.load_file('app/appmain.kv')
 
 
 class LoginPage(BaseScreen):
-    async def signup(self): pass
-    async def login(self): pass
+    async def login(self):
+        self.prog.client.displayname   = self.children[0].children[10].text
+        self.prog.client.jid           = self.children[0].children[8].text
+        self.prog.client.password      = self.children[0].children[6].text
+        self.prog.client.displaycolour = self.children[0].children[4].colour
 
 
 class UsersPage(BaseScreen1):
@@ -73,14 +76,9 @@ class UserPropertyPage(BaseScreen):
     async def add_prop(self, userproperty): pass
     async def back(self): pass
 
-class ImportPage(BaseScreen):
-    def back(self): pass
-    def on_pre_enter(self): pass
-
-    async def auth(self, session): pass
-    async def login (self, session, donote=True): pass
-    async def signup(self, session): pass
-    async def next(self): pass
+class PinPage(BaseScreen):
+    async def next(self, pin):
+        print(pin)
 
 from kivy.uix.boxlayout import BoxLayout
 class RootLayout(BoxLayout):
@@ -120,14 +118,14 @@ class AppMain(BaseObject, App):
         # create
         self.EmptyPage        = BaseScreen      (self.prog, name="EmptyPage"       ) # overwrite with loadingpage later
         self.LoginPage        = LoginPage       (self.prog, name="LoginPage"       )
-        self.ImportPage       = ImportPage      (self.prog, name="ImportPage"      )
+        self.PinPage          = PinPage      (self.prog, name="ImportPage"      )
         self.UsersPage        = UsersPage       (self.prog, name="UsersPage"       )
         self.UserPropertyPage = UserPropertyPage(self.prog, name="UserPropertyPage")
 
         # add
         self.sm.add_widget(self.EmptyPage       )
         self.sm.add_widget(self.LoginPage       )
-        self.sm.add_widget(self.ImportPage      )
+        self.sm.add_widget(self.PinPage         )
         self.sm.add_widget(self.UsersPage       )
         self.sm.add_widget(self.UserPropertyPage)
 

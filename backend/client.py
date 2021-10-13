@@ -1,20 +1,69 @@
+import asyncio
 from backend.basics import BaseObject
 from backend.signals import Event
+from backend.asyncrun import run
 
 import slixmpp
 import logging
-import json
-
 logging.basicConfig(level=logging.INFO) # update config
 
 
+class Client(BaseObject):
+    xmpp = None
+    _displayname = ""
+    _displaycolour = "#ff0ff"
+    _jid = ""
+    _password = ""
+    _active = asyncio.Event()
+
+    @property
+    def displayname(self):
+        return self._displayname
+    @displayname.setter
+    def displayname(self, value):
+        self._displayname = value
+        self._active.set()
+    @property
+    def displaycolour(self):
+        return self._displaycolour
+    @displaycolour.setter
+    def displaycolour(self, value):
+        self._displaycolour = value
+        self._active.set()
+
+    @property
+    def nick(self):
+        return "{}-{}".format(self.displayname, self.displaycolour)
+
+    @property
+    def jid(self):
+        return self._jid
+    @jid.setter
+    def jid(self, value):
+        self._jid = value
+        self._active.set()
+
+    @property
+    def password(self):
+        return self._password
+    @password.setter
+    def password(self, value):
+        self._password = value
+        self._active.set()
+
+    async def start(self):
+        while True:
+            await self._active.wait()
+            self._active.clear()
+
+            self.xmpp = XMPPClient(self.prog, self.jid, self.password)
+            await self.xmpp.setnick(self.nick)
+            self.xmpp.connect()
+
 class XMPPClient(slixmpp.ClientXMPP, BaseObject):
-    def __init__(self, prog, jid, password, name, colour):
+    def __init__(self, prog, jid, password):
         slixmpp.ClientXMPP.__init__(self, jid, password)
         BaseObject.__init__(self, prog)
-
-        self.name = name
-        self.colour = colour
 
         self.register_plugin('xep_0172') # nicknames
 
@@ -24,29 +73,11 @@ class XMPPClient(slixmpp.ClientXMPP, BaseObject):
         self.add_event_handler("connection_failed", self.neterror)
         self.add_event_handler("disconnected"     , self.dcerr)
 
-    @classmethod
-    def from_file(cls, prog, file):
-        with open(file, "r") as f:
-            try:
-                data = json.loads(f.read())
-            except json.decoder.JSONDecodeError:
-                data = prog.config.DEFAULT_XMPP
-            return cls(prog, data["jid"], prog.crypto.get_password(), data["name"], data["colour"])
-
-    @classmethod
-    def from_prog(cls, prog):
-        return cls.from_file(prog, prog.config.XMPPDATA_FILE)
-
     async def sendmsg(self, tojid, data):
         self.send_message(tojid, data)
 
-    @property
-    def nick(self):
-        return "{}-{}".format(self.name, self.colour)
-
-    async def setName(self, name=None, colour=None):
-        self.name   = name   if name else self.name
-        self.colour = colour if colour else self.colour
+    async def setnick(self, nick):
+        self.nick = nick
         self.plugin['xep_0172'].publish_nick(self.nick) # update on server
 
     async def msgevent(self, fromjid, data):

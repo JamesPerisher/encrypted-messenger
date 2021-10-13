@@ -16,14 +16,18 @@ class Config(BaseObject):
     APPNAMELINK = "Kryptos"
 
     # Theme
-    SUPERDARK           = "#000000"
-    SUPERBRIGHT         = "#121212"
-    BRIGHT              = "#2E2E2E"
-    DARK                = "#3B3B3B"
-    BACKGROUND          = "#787878"
-    LIGHTBACKGROUND     = "#aaaaaa"
-    BUTTONBACKGROUND    = "#ffffff"
-    ERROR               = "#aa0000"
-    APP_COLOUR          = "#290f47"
+
+    SUPERBRIGHT       = "#000000"
+    DARK              = "#121212"
+    LIGHTBACKGROUND   = "#2E2E2E"
+    BACKGROUND        = "#3B3B3B"
+    BRIGHT            = "#787878"
+    BUTTONBACKGROUND  = "#aaaaaa"
+    SUPERDARK         = "#ffffff"
+    
+    ERROR             = "#aa0000"
+    HEIGHLIGHT_COLOUR = "#064ca0"
+    APP_COLOUR        = "#290f47"
+
 
     NOTIFICATION_DISPLAY_TIME = 1.5
