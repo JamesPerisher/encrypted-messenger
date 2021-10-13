@@ -1,18 +1,16 @@
-from asyncio import events
-from json import loads
 from app.customwidgets import KVNotifications
 from backend.session import Session
 from backend.client import Client
 from backend.config import Config
 from backend.handler import Handler
 from backend.signals import Event
-from backend.keymanagement import generate_key
+from backend.keymanagement import generate_key, checkpin, decrypt, get_pub
 from app.appmain import AppMain
 
 import os
 import asyncio
+import json
 
-from backend.asyncrun import run
 
 class Program:
     events = list()
@@ -38,7 +36,7 @@ class Program:
             Event.DISCONNECTED: self.empty,
 
             Event.NO_KEY      : self.nokey,
-            Event.UNLOCK_PIN  : self.empty
+            Event.UNLOCK_PIN  : self.unlockpin
         }[etype]
         return await e(etype, data)
 
@@ -46,6 +44,40 @@ class Program:
         # await self.app.shownotification(KVNotifications, "test")
         print(etype, data)
         return ""
+
+    async def unlockpin(self, etype, data):
+        old = self.app.sm.current
+
+        while True:
+            self.app.sm.transition.direction = 'left'
+            self.app.sm.current = self.app.PinPage.name
+
+            await self.app.PinPage.setmsg("Enter Pin.")
+            await self.pageevent.wait() # gets a pin
+            p1 = self.app.PinPage.pin
+            self.pageevent.clear()
+
+
+            if checkpin(self.session.data["privkey"], p1): break
+
+            await self.app.shownotification(KVNotifications, "Pin number incorrect")
+            await asyncio.sleep(1)
+
+        self.session.privkey = self.session.data["privkey"]
+        self.session.pin = p1
+        self.session.data["active"] = True
+
+
+        cliaccess = json.loads(decrypt(self.session.privkey, get_pub(self.session.privkey), self.session.data["login_token"], p1))
+
+        self.client.jid           = cliaccess["jid"]
+        self.client.password      = cliaccess["password"]
+        self.client.displayname   = cliaccess["displayname"]
+        self.client.displaycolour = cliaccess["displaycolour"]
+        
+        self.app.sm.transition.direction = 'right'
+        self.app.sm.current = old
+
     async def nokey(self, etype, data):
         old = self.app.sm.current
 

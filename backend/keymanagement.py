@@ -103,20 +103,36 @@ def encrypt(privkey, pubkey, data, auth=""):
         msg = pubkey.encrypt(msg)
     return str(msg)
 
-    
-def decrypt(privkey, pubkey, data):
-    privkey, _ = pgpy.PGPKey.from_blob(privkey)
-    pubkey, _ = pgpy.PGPKey.from_blob(pubkey)
 
+def checkpin(privkey, auth):
     try:
-        msg = privkey.decrypt(pgpy.PGPMessage.from_blob(data))
-    except:
-        return "Message decryption error."
-    if not pubkey.verify(msg).__bool__(): return "Message authenticity error."
+        privkey, _ = pgpy.PGPKey.from_blob(privkey)
+        with privkey.unlock(auth):
+            return True
+    except pgpy.pgp.PGPDecryptionError:
+        return False
+    
+def decrypt(privkey, pubkey, data, auth):
+    privkey, _ = pgpy.PGPKey.from_blob(privkey)
+    with privkey.unlock(auth):
+        pubkey, _ = pgpy.PGPKey.from_blob(pubkey)
+
+        try:
+            msg = privkey.decrypt(pgpy.PGPMessage.from_blob(data))
+        except:
+            return "Message decryption error."
+        if not pubkey.verify(msg).__bool__(): return "Message authenticity error."
     return msg.message if isinstance(msg.message, str) else msg.message.decode() # TODO: handle non convertable charecters
 
 if __name__ == "__main__":
-    key = generate_key("h23r2wegresr3rmm", "sergea23r23rhello")
+    key = generate_key("h23r2wegresr3rmm", "sergea23r23rhello", "1234")
+
+
+    print(checkpin(key, "1111"))
+
+
+
+
     sig = sign(key, "testing")
     print(sig)
     print(verify(key, "testing", sig))
