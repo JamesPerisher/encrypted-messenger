@@ -27,7 +27,7 @@ class Event(Enum):
     NET_ERROR    = auto()
     DISCONNECTED = auto()
 
-    NO_USER    = AUTH_ERROR
+    NO_KEY      = auto()
 
 
 

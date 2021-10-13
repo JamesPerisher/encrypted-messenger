@@ -77,8 +77,12 @@ class UserPropertyPage(BaseScreen):
     async def back(self): pass
 
 class PinPage(BaseScreen):
+    pin = ""
     async def next(self, pin):
-        print(pin)
+        self.pin = pin
+        self.prog.pageevent.set()
+    async def setmsg(self, txt):
+        self.children[0].children[2].text = txt
 
 from kivy.uix.boxlayout import BoxLayout
 class RootLayout(BoxLayout):

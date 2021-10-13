@@ -253,6 +253,10 @@
         spacing: 10
 
         Label:
+            text: ""
+            size_hint: 1, .1
+
+        Label:
             size_hint: 1, .2
             font_size: sp(90)
             halign:'center'
@@ -261,6 +265,6 @@
             color: superbright
 
         PinButtons:
-            size_hint: 1, 1
+            size_hint: 1, .6
             update: self.parent.children[1]
             callback: self.parent.parent.next

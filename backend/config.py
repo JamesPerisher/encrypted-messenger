@@ -5,13 +5,11 @@ class Config(BaseObject):
 
     USERDATA_DIR = "userdata"
 
-    CACHE_FILE    = "{}/cache.json".format(USERDATA_DIR)
+    SESSION_FILE    = "{}/session.json".format(USERDATA_DIR)
     PRIV_KEY      = "{}/privkey.pem".format(USERDATA_DIR)
     XMPPDATA_FILE = "{}/xmpdata.json".format(USERDATA_DIR)
 
     DEFAULT_SESSION = {"active":False}
-    DEFAULT_XMPP  = {"jid":"", "name":"", "colour":""}
-
 
     APPNAMELINK = "Kryptos"
 
@@ -24,7 +22,7 @@ class Config(BaseObject):
     BRIGHT            = "#787878"
     BUTTONBACKGROUND  = "#aaaaaa"
     SUPERDARK         = "#ffffff"
-    
+
     ERROR             = "#aa0000"
     HEIGHLIGHT_COLOUR = "#064ca0"
     APP_COLOUR        = "#290f47"

@@ -16,7 +16,7 @@ def generate_seed(length=16):
     return out
 
 
-def generate_key(name="DefaultName", colour=""):
+def generate_key(name="DefaultName", colour="", protection=""):
     key = pgpy.PGPKey.new(PubKeyAlgorithm.RSAEncryptOrSign, 4096)
 
     uid = pgpy.PGPUID.new(validate_name(name), comment=validate_hex(colour))
@@ -25,6 +25,8 @@ def generate_key(name="DefaultName", colour=""):
                 hashes=[HashAlgorithm.SHA256, HashAlgorithm.SHA384, HashAlgorithm.SHA512, HashAlgorithm.SHA224],
                 ciphers=[SymmetricKeyAlgorithm.AES256, SymmetricKeyAlgorithm.AES192, SymmetricKeyAlgorithm.AES128],
                 compression=[CompressionAlgorithm.ZLIB, CompressionAlgorithm.BZ2, CompressionAlgorithm.ZIP, CompressionAlgorithm.Uncompressed])
+
+    key.protect(protection, SymmetricKeyAlgorithm.AES256, HashAlgorithm.SHA256)
 
     return str(key)
 
@@ -91,13 +93,14 @@ def verify_msg(key, message):
 def get_msg_id(fromuser, touser, data):
     return sha256(("{}:{}:::{}".format(fromuser, touser, data)).encode()).hexdigest()
 
-def encrypt(privkey, pubkey, data):
+def encrypt(privkey, pubkey, data, auth=""):
     privkey, _ = pgpy.PGPKey.from_blob(privkey)
-    pubkey, _ = pgpy.PGPKey.from_blob(pubkey)
+    with privkey.unlock(auth):
+        pubkey, _ = pgpy.PGPKey.from_blob(pubkey)
 
-    msg = pgpy.PGPMessage.new(data)
-    msg |= privkey.sign(msg)
-    msg = pubkey.encrypt(msg)
+        msg = pgpy.PGPMessage.new(data)
+        msg |= privkey.sign(msg)
+        msg = pubkey.encrypt(msg)
     return str(msg)
 
     

@@ -1,24 +1,36 @@
+import re
 from backend.basics import BaseObject
 
 import json
 from backend.signals import Event
 from backend.keymanagement import encrypt, get_pub
+from backend.asyncrun import run
 
 class Session(BaseObject):
     def __init__(self, prog, data) -> None:
         super().__init__(prog)
         self.data = data
+        self.privkey = self.data.get("privkey", False)
+
+        if self.privkey: return
+        run(self.prog.event(Event.NO_KEY, ""))
+
 
     async def maketoken(self):
-        privkey = self.privkey
-        token = encrypt(privkey, get_pub(privkey), json.dumps(
+        token = encrypt(self.privkey, get_pub(self.privkey), json.dumps(
             {
-                "jid"          : "",
-                "password"     : "",
-                "displayname"  :"",
-                "displaycolour": ""
+                "jid"          : self.prog.client.jid,
+                "password"     : self.prog.client.password,
+                "displayname"  : self.prog.client.displayname,
+                "displaycolour": self.prog.client.displaycolour
             }
-        ))
+        ), self.pin) # store all XMPP data in encrypted form
+
+        self.data.update(
+        {
+            "privkey": self.privkey, # making assumption privkey is pin protected
+            "login_token": token
+        })
 
     async def status(self):
         if self.data["active"]:
@@ -36,10 +48,9 @@ class Session(BaseObject):
 
     @classmethod
     def from_prog(cls, prog):
-        return cls.from_file(prog, prog.config.CACHE_FILE)
+        return cls.from_file(prog, prog.config.SESSION_FILE)
 
-    async def save(self, data=False):
-        data = data if data else self.data
-        with open(self.prog.config.CACHE_FILE, "w") as f:
-            f.write(json.dumps(data))
+    async def save(self):
+        with open(self.prog.config.SESSION_FILE, "w") as f:
+            f.write(json.dumps(self.data))
     
