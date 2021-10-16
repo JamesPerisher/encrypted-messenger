@@ -6,10 +6,16 @@ class Config(BaseObject):
     USERDATA_DIR = "userdata"
 
     SESSION_FILE    = "{}/session.json".format(USERDATA_DIR)
-    PRIV_KEY      = "{}/privkey.pem".format(USERDATA_DIR)
-    XMPPDATA_FILE = "{}/xmpdata.json".format(USERDATA_DIR)
+    PRIV_KEY        = "{}/privkey.pem".format(USERDATA_DIR)
+    XMPPDATA_FILE   = "{}/xmpdata.json".format(USERDATA_DIR)
+    QRCODE_FILE     = "{}/shaire.png".format(USERDATA_DIR)
 
-    DEFAULT_SESSION = {"active":False}
+    DEFAULT_SESSION = {
+        "active":False,
+        "friends":[
+            {"jid":"user69@localhost", "key":"hi"}
+        ]
+    }
 
     APPNAMELINK = "Kryptos"
 

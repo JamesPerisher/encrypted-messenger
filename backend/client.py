@@ -1,4 +1,5 @@
 import asyncio
+from re import L
 from backend.basics import BaseObject
 from backend.signals import Event
 from backend.asyncrun import run
@@ -7,6 +8,16 @@ import slixmpp
 import logging
 logging.basicConfig(level=logging.INFO) # update config
 
+
+def connected(func):
+    def f(self, *args, **kwargs):
+        try:
+            if self.xmpp.is_connected():
+                return func(self, *args, **kwargs)
+        except AttributeError:
+            pass
+        return False
+    return f
 
 class Client(BaseObject):
     xmpp = None
@@ -50,6 +61,14 @@ class Client(BaseObject):
     def password(self, value):
         self._password = value
         self._active.set()
+
+    @connected
+    async def update_roster(self, item, *args, **kwargs):
+        return self.xmpp.update_roster(item)
+
+    @connected
+    def get_contacts(self):
+        return self.xmpp.get_contacts()
 
     async def start(self):
         while True:
@@ -101,7 +120,8 @@ class XMPPClient(slixmpp.ClientXMPP, BaseObject):
         self.send_presence(pnick=self.nick)
 
     async def get_contacts(self):
-        return await self.get_roster() # gets contacts TODO: some nice formatting
+        await self.get_roster()
+        return self.roster[self.jid]
     
     async def loggout(self):
         self.disconnect() # logout

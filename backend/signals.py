@@ -16,18 +16,22 @@ class Packet:
         return "{}::{}".format(self.intent.value, self.key)
 
 class Event(Enum):
-    UNLOCK_PIN   = auto()
-    LOGIN        = auto()
+    UNLOCK_PIN    = auto()
+    LOGIN         = auto()
 
-    ERROR        = auto()
-    ADD_FRIEND   = auto()
-    LOGGED_IN    = auto()
+    ERROR         = auto()
+    ADD_FRIEND    = auto()
+    LOGGED_IN     = auto()
 
-    AUTH_ERROR   = auto()
-    NET_ERROR    = auto()
-    DISCONNECTED = auto()
+    AUTH_ERROR    = auto()
+    NET_ERROR     = auto()
+    DISCONNECTED  = auto()
 
-    NO_KEY      = auto()
+    NO_KEY        = auto()
+
+    SEARCH        = auto()
+    USER_PROPERTY = auto()
+    SHAIRE        = auto()
 
 
 

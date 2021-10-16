@@ -14,6 +14,7 @@ from kivy.uix.button import Button
 import logging
 
 from backend.asyncrun import run, asynclambda
+from backend.keymanagement import contact_data
 
 
 class MessagePage: # should get overwritten on import
@@ -57,8 +58,8 @@ class CopyButton(Button):
         run(self.click())
 
 class KVPOPup(BaseWidget):
-    def __init__(self, app, rwidth=0, rheight=0, **kwargs):
-        self.app = app
+    def __init__(self, prog, rwidth=0, rheight=0, **kwargs):
+        self.prog = prog
         self.rwidth = rwidth
         self.rheight = rheight
 
@@ -86,9 +87,10 @@ class KVPOPupShair(KVPOPup):
     def __init__(self, prog, *args, **kwargs):
         super().__init__(prog, *args, **kwargs)
         
-        # self.children[0].children[3].source = "{}/shaire.png".format(prog.a) # shaire image
-        self.children[0].children[4].text = "hmm" # name
-        self.children[0].children[2].data = "hmm" # id
+        # self.prog.client.displaycolour
+        self.children[0].children[3].source = self.prog.config.QRCODE_FILE # shaire image
+        self.children[0].children[4].text = self.prog.client.displayname
+        self.children[0].children[2].data = self.prog.session.contactstring
 
 class KVPOPupChangeName(KVPOPup):
     def __init__(self, app, *args, **kwargs):
@@ -109,23 +111,13 @@ class KVPOPupSearch(KVPOPup):
         super().__init__(app, *args, **kwargs)
 
     async def go(self):
-
-        await self.close()
-
-class KVPOPupSearch(KVPOPup):
-    def __init__(self, app, *args, **kwargs):
-        super().__init__(app, *args, **kwargs)
-
-    async def go(self):
-        data = await self.app.cm.get_info(self.children[0].children[3].text)
-
-        await self.close()
-        if len(data.data) == 0:
-            await self.app.shownotification(KVNotifications(self.app, Window.width, Window.height), "Account not found.")
+        data = contact_data(self.children[0].children[3].text)
+        if not data:
+            await self.prog.app.shownotification(KVNotifications, "No user for: {}".format(data))
             return
-
-        await self.app.shownotification(KVPOPupAddUser(self.app,  User(self.app, username=data.data[0][1], colour=data.data[0][3], userid=data.data[0][0]), Window.width, Window.height))
-        
+        await self.prog.client.update_roster(data[0])
+        await self.prog.app.UsersPage.update()
+        await self.close()
 
 class KVPOPupAddUser(KVPOPup):
     def __init__(self, app, user, *args, **kwargs):
@@ -133,11 +125,7 @@ class KVPOPupAddUser(KVPOPup):
         super().__init__(app, *args, **kwargs)
 
     async def go(self): # add user to users in session
-        self.app.session["friends"][self.user.userid] = 1
-        await self.app.session.save()
-        await self.app.reset_UserPage()
-
-
+        pass
 
 
 class BaseScreen(Screen):

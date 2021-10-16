@@ -103,6 +103,11 @@ def encrypt(privkey, pubkey, data, auth=""):
         msg = pubkey.encrypt(msg)
     return str(msg)
 
+def get_id(pubkey):
+    pubkey, _ = pgpy.PGPKey.from_blob(pubkey)
+
+    return pubkey.fingerprint
+
 
 def checkpin(privkey, auth):
     try:
@@ -124,7 +129,25 @@ def decrypt(privkey, pubkey, data, auth):
         if not pubkey.verify(msg).__bool__(): return "Message authenticity error."
     return msg.message if isinstance(msg.message, str) else msg.message.decode() # TODO: handle non convertable charecters
 
+def contact_data(contactstring):
+    try:
+        d1 = contactstring.split("-", 1)[1].split("-")
+        address = "-".join(d1[0:-1])
+        id = d1[-1]
+        return address, id
+    except: # i blame the user for fucking something up; a catchall is always good practise lol
+        return False
+        
+
+
+
 if __name__ == "__main__":
+
+
+    contact_data("Kryptos://add-use-ewd-r1@localhost-B431 4E43 3DE2 07A9 8C37  E0EF 35E2 AA24 7764 121D")
+
+
+    exit()
     key = generate_key("h23r2wegresr3rmm", "sergea23r23rhello", "1234")
 
 

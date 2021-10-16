@@ -7,8 +7,10 @@ from kivy.uix.screenmanager import ScreenManager
 
 import app.customwidgets
 from app.customwidgets import *
+from backend.asyncrun import AsyncIterator
 from backend.basics import BaseObject
-
+from backend.keymanagement import get_id, get_pub
+from backend.signals import Event
 
 
 
@@ -29,14 +31,29 @@ class UsersPage(BaseScreen1):
     def __init__(self, prog, user=None, **kwargs):
         self.user = user if user else User(prog)
         super().__init__(prog, **kwargs)
-        run(self.build())
-    
-    async def build(self): pass
-    async def search(self): pass
-    async def userproperties(self): pass
-    async def shaire(self): pass
-    async def add_user(self, user): pass
 
+    async def update(self):
+        self.user = User(self.prog, self.prog.client.displayname, self.prog.client.displaycolour, get_id(get_pub(self.prog.session.privkey)))
+
+        self.prog.app.sm.remove_widget(self)
+        newself=self.__class__(self.prog, self.user, name=self.name)
+        self.prog.app.sm.add_widget(newself)
+        self.prog.app.sm.current = self.name
+
+
+        async for i in AsyncIterator(await self.prog.client.get_contacts()):
+            u = User(self.prog, await self.prog.session.get_key(i), await self.prog.session.get_key(i), i)
+            await newself.add_user(u)
+    
+    async def add_user(self, user):
+        self.children[0].children[0].children[0].add_widget(user)
+
+    async def search(self):
+        await self.prog.event(Event.SEARCH, "")
+    async def userproperties(self):
+        await self.prog.event(Event.USER_PROPERTY, "")
+    async def shaire(self):
+        await self.prog.event(Event.SHAIRE, "")
 
 class MessagePage(BaseScreen):
     def __init__(self, app, meuser, touser, **kwargs):
@@ -95,9 +112,7 @@ class AppMain(BaseObject, App):
         self.started = asyncio.Event()
 
     def on_request_close(self, arg): run(self.close())
-
     async def close(self): pass
-    async def reset_UserPage(self): pass
 
     async def shownotification(self, notificationclass, msg="msgerr", args=()):
         note = notificationclass(self.prog, *args, Window.width, Window.height)

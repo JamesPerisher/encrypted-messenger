@@ -38,6 +38,11 @@ class Session(BaseObject):
         else:
             await self.prog.event(Event.LOGIN)
 
+
+    async def get_key(self, jid):
+        return "unknown" # TEMP: lol
+
+
     @classmethod
     def from_file(cls, prog, file):
         with open(file, "r") as f:
