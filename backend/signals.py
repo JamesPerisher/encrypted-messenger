@@ -2,18 +2,28 @@
 from enum import Enum, auto
 
 
-class PAC(Enum): # need to clear cache everytime this is updated or massive bugs
-    PRIV_KEY = auto()
-    PUB_KEY  = auto()
-    USER_DATA= auto()
+class PAC(Enum):
+    GET_PUB  = auto()
+    DEN_PUB  = auto()
+
+    SEND_MSG = auto()
+    SEND_PUB = auto()
+
 
 class Packet:
-    def __init__(self, intent, key) -> None:
-        self.intent = intent
-        self.key = key
+    def __init__(self, pactype, data="") -> None:
+        self.pactype = pactype
+        self.data = data
+    def __repr__(self) -> str:
+        return "{}({}, \"{}\")".format(self.__class__.__name__, self.pactype, self.data)
+    @classmethod
+    def from_raw(cls, data):
+        a, b = data.split("::", 1)
+        return cls(PAC(int(a)), b)
 
     def read(self):
-        return "{}::{}".format(self.intent.value, self.key)
+        return "{}::{}".format(self.pactype.value, self.data)
+
 
 class Event(Enum):
     UNLOCK_PIN    = auto()

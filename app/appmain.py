@@ -9,7 +9,7 @@ import app.customwidgets
 from app.customwidgets import *
 from backend.asyncrun import AsyncIterator
 from backend.basics import BaseObject
-from backend.keymanagement import get_id, get_pub
+from backend.keymanagement import get_id, get_info, get_pub
 from backend.signals import Event
 
 
@@ -30,6 +30,7 @@ class LoginPage(BaseScreen):
 class UsersPage(BaseScreen1):
     def __init__(self, prog, user=None, **kwargs):
         self.user = user if user else User(prog)
+        self.userlist = {}
         super().__init__(prog, **kwargs)
 
     async def update(self):
@@ -39,13 +40,14 @@ class UsersPage(BaseScreen1):
         newself=self.__class__(self.prog, self.user, name=self.name)
         self.prog.app.sm.add_widget(newself)
         self.prog.app.sm.current = self.name
-
+        self.prog.app.UsersPage = newself
 
         async for i in AsyncIterator(await self.prog.client.get_contacts()):
-            u = User(self.prog, await self.prog.session.get_key(i), await self.prog.session.get_key(i), i)
+            u = User(self.prog, *get_info(await self.prog.session.get_key(i)), i)
             await newself.add_user(u)
     
     async def add_user(self, user):
+        self.userlist[user.userid] = user
         self.children[0].children[0].children[0].add_widget(user)
 
     async def search(self):

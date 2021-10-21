@@ -52,21 +52,22 @@ def get_info(key):
     key, _ = pgpy.PGPKey.from_blob(key)
     return (validate_name(key.userids[0].name), validate_hex(key.userids[0].comment))
 
-def change_info(key, name, colour):
+def change_info(key, name, colour, auth):
     old = get_info(key) # only update new shit
     name = old[0] if name == None else validate_name(name)
     colour = old[1] if colour == None else validate_hex(colour)
 
-    key, _ = pgpy.PGPKey.from_blob(key)
-    key.del_uid(old[0])
-    uid = pgpy.PGPUID.new(name, comment=colour)
+    privkey, _ = pgpy.PGPKey.from_blob(key)
+    with privkey.unlock(auth):
+        privkey.del_uid(old[0])
+        uid = pgpy.PGPUID.new(name, comment=colour)
 
-    key.add_uid(uid, usage={KeyFlags.Sign, KeyFlags.EncryptCommunications, KeyFlags.EncryptStorage},
-                hashes=[HashAlgorithm.SHA256, HashAlgorithm.SHA384, HashAlgorithm.SHA512, HashAlgorithm.SHA224],
-                ciphers=[SymmetricKeyAlgorithm.AES256, SymmetricKeyAlgorithm.AES192, SymmetricKeyAlgorithm.AES128],
-                compression=[CompressionAlgorithm.ZLIB, CompressionAlgorithm.BZ2, CompressionAlgorithm.ZIP, CompressionAlgorithm.Uncompressed])
+        privkey.add_uid(uid, usage={KeyFlags.Sign, KeyFlags.EncryptCommunications, KeyFlags.EncryptStorage},
+                    hashes=[HashAlgorithm.SHA256, HashAlgorithm.SHA384, HashAlgorithm.SHA512, HashAlgorithm.SHA224],
+                    ciphers=[SymmetricKeyAlgorithm.AES256, SymmetricKeyAlgorithm.AES192, SymmetricKeyAlgorithm.AES128],
+                    compression=[CompressionAlgorithm.ZLIB, CompressionAlgorithm.BZ2, CompressionAlgorithm.ZIP, CompressionAlgorithm.Uncompressed])
 
-    return str(key)
+    return str(privkey)
 
 def get_pub(key):
     key, _ = pgpy.PGPKey.from_blob(key)
@@ -144,26 +145,36 @@ def contact_data(contactstring):
 if __name__ == "__main__":
 
 
-    contact_data("Kryptos://add-use-ewd-r1@localhost-B431 4E43 3DE2 07A9 8C37  E0EF 35E2 AA24 7764 121D")
+    a = generate_key("Pending...", "#ff00ff")
 
-
-    exit()
-    key = generate_key("h23r2wegresr3rmm", "sergea23r23rhello", "1234")
-
-
-    print(checkpin(key, "1111"))
+    a = get_pub(a)
 
 
 
 
-    sig = sign(key, "testing")
-    print(sig)
-    print(verify(key, "testing", sig))
+    print(a.replace("\n", "\\n"))
 
-    a = encrypt(key, get_pub(key), "Hello World!!!")
-    print(a)
-    print(decrypt(key, get_pub(key), a))
 
-    print(id_from_priv(key))
+    # contact_data("Kryptos://add-use-ewd-r1@localhost-B431 4E43 3DE2 07A9 8C37  E0EF 35E2 AA24 7764 121D")
 
-    print(get_info(get_pub(key)))
+
+    # exit()
+    # key = generate_key("h23r2wegresr3rmm", "sergea23r23rhello", "1234")
+
+
+    # print(checkpin(key, "1111"))
+
+
+
+
+    # sig = sign(key, "testing")
+    # print(sig)
+    # print(verify(key, "testing", sig))
+
+    # a = encrypt(key, get_pub(key), "Hello World!!!")
+    # print(a)
+    # print(decrypt(key, get_pub(key), a))
+
+    # print(id_from_priv(key))
+
+    # print(get_info(get_pub(key)))

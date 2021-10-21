@@ -1,6 +1,6 @@
 from backend.signals import PAC, Packet, Event
 from backend.basics import BaseObject
-
+from backend.keymanagement import get_info, get_pub
 
 class Handler(BaseObject):
     def __init__(self, prog) -> None:
@@ -16,6 +16,28 @@ class Handler(BaseObject):
 
         return await self.prog.client.send(tojid, msg)
 
-    async def recv_msg(self, fromjid, data):
-        pass
+
+    def recv_msg(self, fromjid, data):
+        fromjid = str(fromjid).split("/")[0]
+        p = Packet.from_raw(data)
+        return {
+            PAC.GET_PUB: self.getpubkey,
+            PAC.SEND_PUB: self.send_pub,
+        }[p.pactype](fromjid, p)
+
+    async def getpubkey(self, fromjid, pack):
+        await self.prog.client.send(fromjid, Packet(PAC.SEND_PUB, get_pub(self.prog.session.privkey)))
+
+    async def send_pub(self, fromjid, p):
+        if await self.prog.session.get_key(self.prog.client.jid, False): return
+        self.prog.session.data["friends"][fromjid] = p.data
+        await self.prog.session.save()
+
+        try:
+            user = self.prog.app.UsersPage.userlist[fromjid]
+        except KeyError:
+            return
+
+        user.username, user.colour = get_info(p.data)
+        await self.prog.app.UsersPage.update()
 

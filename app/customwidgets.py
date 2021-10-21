@@ -15,6 +15,7 @@ import logging
 
 from backend.asyncrun import run, asynclambda
 from backend.keymanagement import contact_data
+from backend.signals import Packet, PAC
 
 
 class MessagePage: # should get overwritten on import
@@ -198,15 +199,10 @@ class User(BaseWidget):
         return "<User({}, {})>".format(self.username, self.userid)
 
     async def press(self):
-        name = "MessagePage-{}".format(self.userid)
-        if name in self.app.sm.screen_names:
-            self.app.sm.transition.direction = 'left'
-            self.app.sm.current = name
-            return
+        if not await self.prog.session.get_key(self.userid, False):
+            return await self.prog.client.send(self.userid, Packet(PAC.GET_PUB))
 
-        self.app.sm.add_widget(MessagePage.from_user(self.app, self.parent.parent.parent.parent.user, self, name=name))
-        self.app.sm.transition.direction = 'left'
-        self.app.sm.current = name
+        print("clicked", self)
 
     @classmethod
     def from_session(cls, app, session):

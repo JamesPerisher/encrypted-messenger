@@ -6,7 +6,7 @@ from backend.config import Config
 from backend.handler import Handler
 from backend.shaire import make_code
 from backend.signals import Event
-from backend.keymanagement import generate_key, checkpin, decrypt, get_id, get_pub
+from backend.keymanagement import change_info, generate_key, checkpin, decrypt, get_id, get_pub
 from app.appmain import AppMain
 
 import os
@@ -123,6 +123,8 @@ class Program:
         self.app.sm.current = old
 
     async def loggedin(self, etype, data):
+        self.session.privkey = change_info(self.session.privkey, self.client.displayname, self.client.displaycolour, self.session.pin)
+
         self.app.sm.transition.direction = 'left'
         self.app.sm.current = self.app.UsersPage.name
 
@@ -159,7 +161,10 @@ class Program:
             try:
                 print(eval(x))
             except Exception as e:
-                print(e.__class__.__name__,":", e)
+                try:
+                    exec(x)
+                except:
+                    print(e.__class__.__name__,":", e)
 
     def asyncstart(self):
         loop = asyncio.get_event_loop()

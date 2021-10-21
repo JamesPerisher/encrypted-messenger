@@ -70,12 +70,20 @@ class Client(BaseObject):
     def get_contacts(self):
         return self.xmpp.get_contacts()
 
+    @connected
+    async def send(self, tojid, packet):
+        return await self.xmpp.sendmsg(tojid, packet.read())
+
+    async def msgevent(self, fromjid, data):
+        print(fromjid, data)
+
     async def start(self):
         while True:
             await self._active.wait()
             self._active.clear()
 
             self.xmpp = XMPPClient(self.prog, self.jid, self.password)
+            self.xmpp.msgevent = self.msgevent
             await self.xmpp.setnick(self.nick)
             self.xmpp.connect()
 
@@ -100,6 +108,7 @@ class XMPPClient(slixmpp.ClientXMPP, BaseObject):
         self.plugin['xep_0172'].publish_nick(self.nick) # update on server
 
     async def msgevent(self, fromjid, data):
+        print("huh")
         pass # overide this in the handler
     
     async def autherror(self, event):

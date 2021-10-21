@@ -1,4 +1,3 @@
-import re
 from backend.basics import BaseObject
 
 import json
@@ -39,8 +38,11 @@ class Session(BaseObject):
             await self.prog.event(Event.LOGIN)
 
 
-    async def get_key(self, jid):
-        return "unknown" # TEMP: lol
+    async def get_key(self, jid, default="xyz"):
+        a = self.data["friends"].get(jid, default)
+        if a == "xyz":
+            return self.data["friends"]["empty"]
+        return a
 
 
     @classmethod
