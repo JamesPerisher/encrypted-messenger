@@ -108,7 +108,6 @@ class XMPPClient(slixmpp.ClientXMPP, BaseObject):
         self.plugin['xep_0172'].publish_nick(self.nick) # update on server
 
     async def msgevent(self, fromjid, data):
-        print("huh")
         pass # overide this in the handler
     
     async def autherror(self, event):

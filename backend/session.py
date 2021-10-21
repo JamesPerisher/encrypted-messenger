@@ -5,15 +5,14 @@ from backend.signals import Event
 from backend.keymanagement import encrypt, get_pub
 from backend.asyncrun import run
 
+
 class Session(BaseObject):
     def __init__(self, prog, data) -> None:
-        super().__init__(prog)
-        self.data = data
+        super().__init__(prog, data)
         self.privkey = self.data.get("privkey", False)
 
         if self.privkey: return
         run(self.prog.event(Event.NO_KEY, ""))
-
 
     async def maketoken(self):
         token = encrypt(self.privkey, get_pub(self.privkey), json.dumps(
@@ -44,20 +43,8 @@ class Session(BaseObject):
             return self.data["friends"]["empty"]
         return a
 
-
-    @classmethod
-    def from_file(cls, prog, file):
-        with open(file, "r") as f:
-            try:
-                return cls(prog, json.loads(f.read()))
-            except json.decoder.JSONDecodeError:
-                return cls(prog, prog.config.DEFAULT_SESSION)
-
     @classmethod
     def from_prog(cls, prog):
-        return cls.from_file(prog, prog.config.SESSION_FILE)
-
-    async def save(self):
-        with open(self.prog.config.SESSION_FILE, "w") as f:
-            f.write(json.dumps(self.data))
+        return cls.from_file(prog, prog.config.SESSION_FILE, prog.config.DEFAULT_SESSION)
+    def save(self): return super().save(self.prog.config.SESSION_FILE)
     

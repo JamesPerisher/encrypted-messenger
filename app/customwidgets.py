@@ -202,7 +202,15 @@ class User(BaseWidget):
         if not await self.prog.session.get_key(self.userid, False):
             return await self.prog.client.send(self.userid, Packet(PAC.GET_PUB))
 
-        print("clicked", self)
+        name = "MessagePage-{}".format(self.userid)
+        if name in self.prog.app.sm.screen_names:
+            self.prog.app.sm.transition.direction = 'left'
+            self.prog.app.sm.current = name
+            return
+
+        self.prog.app.sm.add_widget(MessagePage.from_user(self.prog, self.parent.parent.parent.parent.user, self, name=name))
+        self.prog.app.sm.transition.direction = 'left'
+        self.prog.app.sm.current = name
 
     @classmethod
     def from_session(cls, app, session):

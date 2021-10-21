@@ -72,8 +72,7 @@ class MessagePage(BaseScreen):
         self.touser = touser # can be (VirtualUser e.g. a group idk how the encryption would work)
         run(self.make())
 
-    async def ref(self, label, data):
-        print("clicked: ", data)
+    async def ref(self, label, data): pass
 
     async def make(self): # load cached messages
         pass

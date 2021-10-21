@@ -1,6 +1,6 @@
 from backend.signals import PAC, Packet, Event
 from backend.basics import BaseObject
-from backend.keymanagement import get_info, get_pub
+from backend.keymanagement import decrypt, get_info, get_pub
 
 class Handler(BaseObject):
     def __init__(self, prog) -> None:
@@ -10,18 +10,12 @@ class Handler(BaseObject):
     async def get_key(self, jid):
         self.prog.cache.get(Packet(PAC.PUB_KEY, jid), self.prog.event(Event.ADD_FRIEND, jid))
 
-    async def send_msg(self, tojid, data):
-        pubkey = await self.get_key(tojid)
-        msg = await self.prog.crypto.encypt(pubkey, data)
-
-        return await self.prog.client.send(tojid, msg)
-
-
     def recv_msg(self, fromjid, data):
         fromjid = str(fromjid).split("/")[0]
         p = Packet.from_raw(data)
         return {
-            PAC.GET_PUB: self.getpubkey,
+            PAC.SEND_MSG: self.send_msg,
+            PAC.GET_PUB : self.getpubkey,
             PAC.SEND_PUB: self.send_pub,
         }[p.pactype](fromjid, p)
 
@@ -40,4 +34,7 @@ class Handler(BaseObject):
 
         user.username, user.colour = get_info(p.data)
         await self.prog.app.UsersPage.update()
+
+    async def send_msg(self, fromjid, p):
+        print(fromjid, decrypt(self.prog.session.privkey, await self.prog.session.get_key(fromjid), p.data, self.prog.session.pin))
 

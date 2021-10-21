@@ -9,7 +9,7 @@ import app.customwidgets
 from app.customwidgets import *
 from backend.asyncrun import AsyncIterator
 from backend.basics import BaseObject
-from backend.keymanagement import get_id, get_info, get_pub
+from backend.keymanagement import encrypt, get_id, get_info, get_pub
 from backend.signals import Event
 
 
@@ -58,23 +58,43 @@ class UsersPage(BaseScreen1):
         await self.prog.event(Event.SHAIRE, "")
 
 class MessagePage(BaseScreen):
-    def __init__(self, app, meuser, touser, **kwargs):
-        super().__init__(app, **kwargs)
+    def __init__(self, prog, meuser, touser, **kwargs):
+        super().__init__(prog, **kwargs)
         self.meuser = meuser
         self.touser = touser # can be (VirtualUser e.g. a group idk how the encryption would work)
         run(self.make())
 
-    def key(self, other, keyboard, keycode, display, modifyers): pass
-    def update(self, a, b, c): pass
+    def key(self, other, keyboard, keycode, display, modifyers):
+        _, code = keycode
+        if code == "enter" and (not "shift" in modifyers):
+            run(self.send())
+            return
+        other.__class__.keyboard_on_key_down(other, keyboard, keycode, display, modifyers)
+
+    def update(self, a, b, c):
+        a.size[1] = c.size[1]
+        b.pos = [0, c.size[1]+10]
 
     async def ref(self, label, data): pass
+
     async def make(self): pass
     async def reload(self): pass
-    async def send(self): pass
+    async def send(self):
+        data = self.children[0].children[0].children[1].text
+        self.children[0].children[0].children[1].text = ""
+        if data.strip() == "": return
+
+        data = encrypt(self.prog.session.privkey, await self.prog.session.get_key(self.touser.userid), data.strip(), self.prog.session.pin)
+
+        await self.prog.client.send(self.touser.userid, Packet(PAC.SEND_MSG, data))
+
+
     async def draw_displacement(self, obj): pass
     async def refresh(self): pass
     async def recieve(self, message): pass
-    async def back(self): pass
+    async def back(self):
+        self.prog.app.sm.transition.direction = 'right'
+        self.prog.app.sm.current = self.prog.app.UsersPage.name
 
     @classmethod
     def from_user(cls, app, meuser, touser, *args, **kwargs):

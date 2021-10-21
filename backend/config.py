@@ -6,10 +6,12 @@ class Config(BaseObject):
     USERDATA_DIR = "userdata"
 
     SESSION_FILE    = "{}/session.json".format(USERDATA_DIR)
-    PRIV_KEY        = "{}/privkey.pem".format(USERDATA_DIR)
     XMPPDATA_FILE   = "{}/xmpdata.json".format(USERDATA_DIR)
-    QRCODE_FILE     = "{}/shaire.png".format(USERDATA_DIR)
+    CACHE_FILE      = "{}/cache.json "  .format(USERDATA_DIR)
+    QRCODE_FILE     = "{}/shaire.png"  .format(USERDATA_DIR)
 
+    DEFAULT_CACHE   = {}
+    
     DEFAULT_SESSION = {
         "active":False,
         "friends":{
