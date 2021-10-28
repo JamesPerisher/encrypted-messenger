@@ -16,6 +16,7 @@ import logging
 from backend.asyncrun import run, asynclambda
 from backend.keymanagement import contact_data
 from backend.signals import Packet, PAC
+from backend.config import Config
 
 
 class MessagePage: # should get overwritten on import
@@ -44,7 +45,7 @@ class KVNotifications(BaseWidget):
 
         self.anim  = Animation(y=self.rheight+6, duration=0)
         self.anim += Animation(y=self.rheight-self.height, duration=.5, t='in_back')
-        self.anim += Animation(y=self.rheight-self.height, duration= prog.config.NOTIFICATION_DISPLAY_TIME)
+        self.anim += Animation(y=self.rheight-self.height, duration= Config.NOTIFICATION_DISPLAY_TIME)
         self.anim += Animation(y=self.rheight+6, duration=.5, t='out_back')
 
         super().__init__(**kwargs)
@@ -89,7 +90,7 @@ class KVPOPupShair(KVPOPup):
         super().__init__(prog, *args, **kwargs)
         
         # self.prog.client.displaycolour
-        self.children[0].children[3].source = self.prog.config.QRCODE_FILE # shaire image
+        self.children[0].children[3].source = Config.QRCODE_FILE # shaire image
         self.children[0].children[4].text = self.prog.client.displayname
         self.children[0].children[2].data = self.prog.session.contactstring
 

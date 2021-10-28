@@ -1,5 +1,6 @@
 from app.customwidgets import KVNotifications, KVPOPupSearch, KVPOPupShair
 from backend.asyncrun import InputIterator, run
+from backend.cache import Cache
 from backend.session import Session
 from backend.client import Client
 from backend.config import Config
@@ -125,14 +126,16 @@ class Program:
     async def loggedin(self, etype, data):
         self.session.privkey = change_info(self.session.privkey, self.client.displayname, self.client.displaycolour, self.session.pin)
 
+        self.cache   = Cache.from_prog(self) # might be innefficent to have one cache per session but eh
+
         self.app.sm.transition.direction = 'left'
         self.app.sm.current = self.app.UsersPage.name
 
         await self.app.UsersPage.update()
 
-        self.session.contactstring = "{}://add-{}-{}".format(self.config.APPNAMELINK, self.client.jid, get_id(get_pub(self.session.privkey)))
-        im = make_code(self.session.contactstring, userdata_path=self.config.USERDATA_DIR)
-        im.save(self.config.QRCODE_FILE, formats=("png",))
+        self.session.contactstring = "{}://add-{}-{}".format(Config.APPNAMELINK, self.client.jid, get_id(get_pub(self.session.privkey)))
+        im = make_code(self.session.contactstring, userdata_path=Config.USERDATA_DIR)
+        im.save(Config.QRCODE_FILE, formats=("png",))
 
         await self.session.maketoken()
         await self.session.save()
@@ -153,8 +156,9 @@ class Program:
         pass
 
     def make_files(self):
-        if not os.path.isdir(self.config.USERDATA_DIR): os.mkdir(self.config.USERDATA_DIR)
-        open(self.config.SESSION_FILE, "a").close()\
+        if not os.path.isdir(Config.USERDATA_DIR): os.mkdir(Config.USERDATA_DIR)
+        open(Config.SESSION_FILE, "a").close()
+        open(Config.CACHE_FILE  , "a").close()
 
     async def terminal(self):
         async for x in InputIterator(">>> "):
@@ -183,7 +187,6 @@ class Program:
         
 
     def start(self): # make all the objects
-        self.config  = Config.from_prog(self)
         self.make_files()
 
         self.session = Session.from_prog(self)

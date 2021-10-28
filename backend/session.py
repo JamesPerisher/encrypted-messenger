@@ -4,7 +4,7 @@ import json
 from backend.signals import Event
 from backend.keymanagement import encrypt, get_pub
 from backend.asyncrun import run
-
+from backend.config import Config
 
 class Session(BaseObject):
     def __init__(self, prog, data) -> None:
@@ -45,6 +45,6 @@ class Session(BaseObject):
 
     @classmethod
     def from_prog(cls, prog):
-        return cls.from_file(prog, prog.config.SESSION_FILE, prog.config.DEFAULT_SESSION)
-    def save(self): return super().save(self.prog.config.SESSION_FILE)
+        return cls.from_file(prog, Config.SESSION_FILE, Config.DEFAULT_SESSION)
+    def save(self): return super().save(Config.SESSION_FILE)
     
