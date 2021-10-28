@@ -33,5 +33,7 @@ class Config:
     HEIGHLIGHT_COLOUR = "#064ca0"
     APP_COLOUR        = "#290f47"
 
+    FONT = "app/fonts/LEMONMILK-Medium.ttf"
+
 
     NOTIFICATION_DISPLAY_TIME = 1.5
