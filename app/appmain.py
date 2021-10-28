@@ -78,7 +78,9 @@ class MessagePage(BaseScreen):
     async def ref(self, label, data): pass
 
     async def make(self): pass
-    async def reload(self): pass
+    async def reload(self):
+        self.children[0].children[1].children[0].text = self.prog.cache[self.touser.userid]
+
     async def send(self):
         data = self.children[0].children[0].children[1].text
         self.children[0].children[0].children[1].text = ""

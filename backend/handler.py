@@ -1,6 +1,7 @@
 from backend.signals import PAC, Packet, Event
 from backend.basics import BaseObject
 from backend.keymanagement import decrypt, get_info, get_pub
+from backend.textrenderer import render_text
 
 class Handler(BaseObject):
     def __init__(self, prog) -> None:
@@ -36,5 +37,15 @@ class Handler(BaseObject):
         await self.prog.app.UsersPage.update()
 
     async def send_msg(self, fromjid, p):
-        print(fromjid, decrypt(self.prog.session.privkey, await self.prog.session.get_key(fromjid), p.data, self.prog.session.pin))
-
+        self.prog.cache[fromjid] += "\n{}".format(
+            await render_text(decrypt(
+                self.prog.session.privkey,
+                await self.prog.session.get_key(fromjid),
+                p.data,
+                self.prog.session.pin
+            ))
+        )
+        
+        name = "MessagePage-{}".format(fromjid)
+        if not name in self.prog.app.sm.screen_names: return # ignore unknown messages
+        await self.prog.app.sm.get_screen(name).reload()
