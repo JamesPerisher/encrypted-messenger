@@ -87,8 +87,8 @@ class MessagePage(BaseScreen):
         if data.strip() == "": return
 
         data = encrypt(self.prog.session.privkey, await self.prog.session.get_key(self.touser.userid), data.strip(), self.prog.session.pin)
-
-        await self.prog.client.send(self.touser.userid, Packet(PAC.SEND_MSG, data))
+        p = Packet(PAC.SEND_MSG, data)
+        await self.prog.client.send(self.touser.userid, p)
 
 
     async def draw_displacement(self, obj): pass
@@ -97,6 +97,7 @@ class MessagePage(BaseScreen):
     async def back(self):
         self.prog.app.sm.transition.direction = 'right'
         self.prog.app.sm.current = self.prog.app.UsersPage.name
+        await self.prog.cache.save()
 
     @classmethod
     def from_user(cls, app, meuser, touser, *args, **kwargs):
@@ -119,11 +120,19 @@ class UserPropertyPage(BaseScreen):
 
 class PinPage(BaseScreen):
     pin = ""
+    pinevent = asyncio.Event()
     async def next(self, pin):
         self.pin = pin
-        self.prog.pageevent.set()
+        self.pinevent.set()
     async def setmsg(self, txt):
         self.children[0].children[2].text = txt
+    
+    async def get_pin(self, message):
+        await self.setmsg(message)
+        await self.pinevent.wait() # gets a pin
+        p1 = self.pin
+        self.pinevent.clear()
+        return p1
 
 from kivy.uix.boxlayout import BoxLayout
 class RootLayout(BoxLayout):

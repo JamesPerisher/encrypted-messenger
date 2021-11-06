@@ -1,9 +1,14 @@
 import asyncio
-import threading
+
 
 def run(coroutine): # insert event into the event loop
     return asyncio.get_event_loop().create_task(coroutine)
 
+# asyncronously run a function when possible
+def asyncrun(func):
+    async def wrapper(*args, **kwargs):
+        return asyncio.run_coroutine_threadsafe(func(*args, **kwargs), asyncio.get_event_loop())
+    return wrapper
 
 async def asynclambda(func):
     return func

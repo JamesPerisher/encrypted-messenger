@@ -4,10 +4,13 @@ class Config:
 
     SESSION_FILE    = "{}/session.json".format(USERDATA_DIR)
     XMPPDATA_FILE   = "{}/xmpdata.json".format(USERDATA_DIR)
-    CACHE_FILE      = "{}/cache.json"  .format(USERDATA_DIR)
+    CACHE_FILE      = "{}/cache.txt"  .format(USERDATA_DIR)
     QRCODE_FILE     = "{}/shaire.png"  .format(USERDATA_DIR)
 
-    DEFAULT_CACHE   = {}
+    # TODO: Fix this idk why it doesnt work
+    DEFAULT_CACHE   = {
+        "colorindex": dict()
+    }
     
     DEFAULT_SESSION = {
         "active":False,
@@ -33,6 +36,7 @@ class Config:
     HEIGHLIGHT_COLOUR = "#064ca0"
     APP_COLOUR        = "#290f47"
 
+    DATE_FONT_SIZE   = 12
     FONT = "app/fonts/LEMONMILK-Medium.ttf"
 
 

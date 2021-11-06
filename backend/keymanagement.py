@@ -126,9 +126,12 @@ def decrypt(privkey, pubkey, data, auth):
         try:
             msg = privkey.decrypt(pgpy.PGPMessage.from_blob(data))
         except Exception as e:
-            # print("{}: {}".format(e.__class__.__name__, e))
             return "Message decryption error."
-        if not pubkey.verify(msg).__bool__(): return "Message authenticity error."
+        try:
+            if not pubkey.verify(msg).__bool__(): return "Message authenticity error."
+        except Exception as e:
+            return "Message authenticity error."
+
     return msg.message if isinstance(msg.message, str) else msg.message.decode() # TODO: handle non convertable charecters
 
 def contact_data(contactstring):

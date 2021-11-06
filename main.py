@@ -64,74 +64,55 @@ class Program:
 
 
     async def unlockpin(self, etype, data):
-        old = self.app.sm.current
-
         while True:
             self.app.sm.transition.direction = 'left'
             self.app.sm.current = self.app.PinPage.name
-
-            await self.app.PinPage.setmsg("Enter Pin.")
-            await self.pageevent.wait() # gets a pin
-            p1 = self.app.PinPage.pin
-            self.pageevent.clear()
-
+            p1 = await self.app.PinPage.get_pin("Enter pin.")
 
             if checkpin(self.session.data["privkey"], p1): break
 
             await self.app.shownotification(KVNotifications, "Pin number incorrect")
             await asyncio.sleep(1)
 
+
         self.session.privkey = self.session.data["privkey"]
         self.session.pin = p1
         self.session.data["active"] = True
-
-
+        
         cliaccess = json.loads(decrypt(self.session.privkey, get_pub(self.session.privkey), self.session.data["login_token"], p1))
 
         self.client.jid           = cliaccess["jid"]
         self.client.password      = cliaccess["password"]
         self.client.displayname   = cliaccess["displayname"]
         self.client.displaycolour = cliaccess["displaycolour"]
-        
-        self.app.sm.transition.direction = 'right'
-        self.app.sm.current = old
 
     async def nokey(self, etype, data):
-        old = self.app.sm.current
+        return
+
+    async def generate_pin(self):
+        self.app.sm.transition.direction = 'left'
+        self.app.sm.current = self.app.PinPage.name
 
         while True:
-            self.app.sm.transition.direction = 'left'
-            self.app.sm.current = self.app.PinPage.name
-
-            await self.app.PinPage.setmsg("Create a pin for quick access.")
-            await self.pageevent.wait() # gets a pin
-            p1 = self.app.PinPage.pin
-            self.pageevent.clear()
-
-            await self.app.PinPage.setmsg("Confirm pin.")
-            await self.pageevent.wait() # gets a pin
-            p2 = self.app.PinPage.pin
-            self.pageevent.clear()
+            p1 = await self.app.PinPage.get_pin("Create a pin for quick access.")
+            p2 = await self.app.PinPage.get_pin("Confirm pin.")
 
             if p1 == p2: break
             await self.app.shownotification(KVNotifications, "Pin numbers do not match.")
-
-        self.session.privkey = generate_key("NotImplementedError", "NotImplementedError", p1)
-        self.session.pin = p1
-        self.session.data["active"] = True
-
-        self.app.sm.transition.direction = 'right'
-        self.app.sm.current = old
+        return p1
 
     async def loggedin(self, etype, data):
-        self.session.privkey = change_info(self.session.privkey, self.client.displayname, self.client.displaycolour, self.session.pin)
-
-        self.cache   = Cache.from_prog(self) # might be innefficent to have one cache per session but eh
-
+        if not self.session.data["active"]:
+            self.session.pin = await self.generate_pin()
+            self.session.privkey = generate_key(self.client.displayname, self.client.displaycolour, self.session.pin)
+        
+        self.cache   = Cache.from_prog(self) # might be innefficent to have one cache per session
         self.app.sm.transition.direction = 'left'
         self.app.sm.current = self.app.UsersPage.name
-
         await self.app.UsersPage.update()
+
+        if self.session.data["active"]: return
+        self.session.data["active"] = True
 
         self.session.contactstring = "{}://add-{}-{}".format(Config.APPNAMELINK, self.client.jid, get_id(get_pub(self.session.privkey)))
         im = make_code(self.session.contactstring, userdata_path=Config.USERDATA_DIR)

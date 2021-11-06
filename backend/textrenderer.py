@@ -1,6 +1,31 @@
 import asyncio
+from collections import namedtuple
 import re
 from backend.config import Config
+from backend.keymanagement import get_info
+import datetime
+from hashlib import sha256
+import random
+
+
+# generate probabilitiscly unique id for each userline
+def nextn():
+    return sha256((str(datetime.datetime.now()) + str(random.randint(0, 256))).encode()).hexdigest()
+
+# get user line
+def get_user_line(prog, user):
+    name, colour = get_info(user)
+    index = nextn()
+    try:
+        prog.cache["colorindex"][index] = colour
+    except Exception as e:
+        prog.cache["colorindex"] = dict()
+        # prog.cache["colorindex"][index] = colour
+    return "\n[color={}]{}[anchor={}][/color]    [size={}]{}[/size]\n".format(
+        colour,
+        name,
+        index,
+        Config.DATE_FONT_SIZE, datetime.datetime.now().strftime("%a %d %b %y  %I:%M %p"))
 
 # replace charecter
 def replace_charecters(text):

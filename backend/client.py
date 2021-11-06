@@ -1,7 +1,7 @@
 import asyncio
 from re import L
 from backend.basics import BaseObject
-from backend.signals import Event
+from backend.signals import Event, Packet
 from backend.asyncrun import run
 
 import slixmpp
@@ -75,7 +75,7 @@ class Client(BaseObject):
         return await self.xmpp.sendmsg(tojid, packet.read())
 
     async def msgevent(self, fromjid, data):
-        print(fromjid, data)
+        pass
 
     async def start(self):
         while True:
@@ -121,7 +121,7 @@ class XMPPClient(slixmpp.ClientXMPP, BaseObject):
 
     async def message(self, msg):
         if msg['type'] in ('normal', 'chat'):
-            await self.msgevent(msg['from'], msg['body'])
+            await self.msgevent(msg['from'], Packet.from_raw(msg['body']))
 
     async def session_start(self, event):
         await self.prog.event(Event.LOGGED_IN , event)
