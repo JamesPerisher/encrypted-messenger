@@ -303,6 +303,49 @@
             spacing: 10
 
         Label:
-            _tmp: [self.parent.parent.userid[x:x+2].upper() for x in range(0, 12, 2)] #  "00 00 00\n00 00 00"
-            text: " ".join(self._tmp[0:3]) + "\n" + " ".join(self._tmp[3:6])
+            text: self.parent.parent.userid
             size_hint_x: .9
+
+<PinButton>:
+    background_normal: 'app/images/background1.png'
+    background_down: 'app/images/background1.png'
+    border: 30, 30, 30, 30
+    always_release: True
+    _color: appcolour
+    _default: superbright
+    font_size: sp(50)
+    font_name: font
+
+
+<PinButtons@GridLayout>:
+    cols: 3
+    data: ""
+    update: self
+
+    PinButton:
+        text:"1"
+    PinButton:
+        text:"2"
+    PinButton:
+        text:"3"
+
+    PinButton:
+        text:"4"
+    PinButton:
+        text:"5"
+    PinButton:
+        text:"6"
+
+    PinButton:
+        text:"7"
+    PinButton:
+        text:"8"
+    PinButton:
+        text:"9"
+
+    PinButton:
+        text:"↞​"
+    PinButton:
+        text:"0"
+    PinButton:
+        text:"OK"

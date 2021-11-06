@@ -1,0 +1,4 @@
+# rm -r userdata
+
+rm -r _copy -f
+rm -r ../_copy -f

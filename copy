@@ -1,0 +1,9 @@
+./cleanup
+mkdir ../_copy 
+
+
+# copy non hidden files
+cp -r  * ../_copy
+
+#move folder bash
+mv ../_copy ./_copy

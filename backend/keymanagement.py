@@ -5,9 +5,6 @@ import re
 from pgpy.constants import PubKeyAlgorithm, KeyFlags, HashAlgorithm, SymmetricKeyAlgorithm, CompressionAlgorithm
 from hashlib import sha256
 
-from globalconfig import MAX_UNAME
-
-
 def generate_seed(length=16):
     with open("backend/db/words.txt", "r") as f:
         words = f.read().strip().split("\n")
@@ -19,7 +16,7 @@ def generate_seed(length=16):
     return out
 
 
-def generate_key(name="DefaultName", colour=""):
+def generate_key(name="DefaultName", colour="", protection=""):
     key = pgpy.PGPKey.new(PubKeyAlgorithm.RSAEncryptOrSign, 4096)
 
     uid = pgpy.PGPUID.new(validate_name(name), comment=validate_hex(colour))
@@ -28,6 +25,8 @@ def generate_key(name="DefaultName", colour=""):
                 hashes=[HashAlgorithm.SHA256, HashAlgorithm.SHA384, HashAlgorithm.SHA512, HashAlgorithm.SHA224],
                 ciphers=[SymmetricKeyAlgorithm.AES256, SymmetricKeyAlgorithm.AES192, SymmetricKeyAlgorithm.AES128],
                 compression=[CompressionAlgorithm.ZLIB, CompressionAlgorithm.BZ2, CompressionAlgorithm.ZIP, CompressionAlgorithm.Uncompressed])
+
+    key.protect(protection, SymmetricKeyAlgorithm.AES256, HashAlgorithm.SHA256)
 
     return str(key)
 
@@ -47,27 +46,28 @@ def validate_hex(data): # verify valid hex colour
         return "#eeeeee"
 
 def validate_name(data): # verify username length
-    return data[0:MAX_UNAME]
+    return data[0:32] # TODO: add to config
 
 def get_info(key):
     key, _ = pgpy.PGPKey.from_blob(key)
     return (validate_name(key.userids[0].name), validate_hex(key.userids[0].comment))
 
-def change_info(key, name, colour):
+def change_info(key, name, colour, auth):
     old = get_info(key) # only update new shit
     name = old[0] if name == None else validate_name(name)
     colour = old[1] if colour == None else validate_hex(colour)
 
-    key, _ = pgpy.PGPKey.from_blob(key)
-    key.del_uid(old[0])
-    uid = pgpy.PGPUID.new(name, comment=colour)
+    privkey, _ = pgpy.PGPKey.from_blob(key)
+    with privkey.unlock(auth):
+        privkey.del_uid(old[0])
+        uid = pgpy.PGPUID.new(name, comment=colour)
 
-    key.add_uid(uid, usage={KeyFlags.Sign, KeyFlags.EncryptCommunications, KeyFlags.EncryptStorage},
-                hashes=[HashAlgorithm.SHA256, HashAlgorithm.SHA384, HashAlgorithm.SHA512, HashAlgorithm.SHA224],
-                ciphers=[SymmetricKeyAlgorithm.AES256, SymmetricKeyAlgorithm.AES192, SymmetricKeyAlgorithm.AES128],
-                compression=[CompressionAlgorithm.ZLIB, CompressionAlgorithm.BZ2, CompressionAlgorithm.ZIP, CompressionAlgorithm.Uncompressed])
+        privkey.add_uid(uid, usage={KeyFlags.Sign, KeyFlags.EncryptCommunications, KeyFlags.EncryptStorage},
+                    hashes=[HashAlgorithm.SHA256, HashAlgorithm.SHA384, HashAlgorithm.SHA512, HashAlgorithm.SHA224],
+                    ciphers=[SymmetricKeyAlgorithm.AES256, SymmetricKeyAlgorithm.AES192, SymmetricKeyAlgorithm.AES128],
+                    compression=[CompressionAlgorithm.ZLIB, CompressionAlgorithm.BZ2, CompressionAlgorithm.ZIP, CompressionAlgorithm.Uncompressed])
 
-    return str(key)
+    return str(privkey)
 
 def get_pub(key):
     key, _ = pgpy.PGPKey.from_blob(key)
@@ -94,37 +94,91 @@ def verify_msg(key, message):
 def get_msg_id(fromuser, touser, data):
     return sha256(("{}:{}:::{}".format(fromuser, touser, data)).encode()).hexdigest()
 
-def encrypt(privkey, pubkey, data):
+def encrypt(privkey, pubkey, data, auth=""):
     privkey, _ = pgpy.PGPKey.from_blob(privkey)
-    pubkey, _ = pgpy.PGPKey.from_blob(pubkey)
+    with privkey.unlock(auth):
+        pubkey, _ = pgpy.PGPKey.from_blob(pubkey)
 
-    msg = pgpy.PGPMessage.new(data)
-    msg |= privkey.sign(msg)
-    msg = pubkey.encrypt(msg)
+        msg = pgpy.PGPMessage.new(data)
+        msg |= privkey.sign(msg)
+        msg = pubkey.encrypt(msg)
     return str(msg)
 
-    
-def decrypt(privkey, pubkey, data):
-    privkey, _ = pgpy.PGPKey.from_blob(privkey)
+def get_id(pubkey):
     pubkey, _ = pgpy.PGPKey.from_blob(pubkey)
 
+    return pubkey.fingerprint
+
+
+def checkpin(privkey, auth):
     try:
-        msg = privkey.decrypt(pgpy.PGPMessage.from_blob(data))
-    except:
-        return "Message decryption error."
-    if not pubkey.verify(msg).__bool__(): return "Message authenticity error."
+        privkey, _ = pgpy.PGPKey.from_blob(privkey)
+        with privkey.unlock(auth):
+            return True
+    except pgpy.pgp.PGPDecryptionError:
+        return False
+    
+def decrypt(privkey, pubkey, data, auth):
+    privkey, _ = pgpy.PGPKey.from_blob(privkey)
+    with privkey.unlock(auth):
+        pubkey, _ = pgpy.PGPKey.from_blob(pubkey)
+
+        try:
+            msg = privkey.decrypt(pgpy.PGPMessage.from_blob(data))
+        except Exception as e:
+            return "Message decryption error."
+        try:
+            if not pubkey.verify(msg).__bool__(): return "Message authenticity error."
+        except Exception as e:
+            return "Message authenticity error."
+
     return msg.message if isinstance(msg.message, str) else msg.message.decode() # TODO: handle non convertable charecters
 
+def contact_data(contactstring):
+    try:
+        d1 = contactstring.split("-", 1)[1].split("-")
+        address = "-".join(d1[0:-1])
+        id = d1[-1]
+        return address, id
+    except: # i blame the user for fucking something up; a catchall is always good practise lol
+        return False
+        
+
+
+
 if __name__ == "__main__":
-    key = generate_key("h23r2wegresr3rmm", "sergea23r23rhello")
-    sig = sign(key, "testing")
-    print(sig)
-    print(verify(key, "testing", sig))
 
-    a = encrypt(key, get_pub(key), "Hello World!!!")
-    print(a)
-    print(decrypt(key, get_pub(key), a))
 
-    print(id_from_priv(key))
+    a = generate_key("Pending...", "#ff00ff")
 
-    print(get_info(get_pub(key)))
+    a = get_pub(a)
+
+
+
+
+    print(a.replace("\n", "\\n"))
+
+
+    # contact_data("Kryptos://add-use-ewd-r1@localhost-B431 4E43 3DE2 07A9 8C37  E0EF 35E2 AA24 7764 121D")
+
+
+    # exit()
+    # key = generate_key("h23r2wegresr3rmm", "sergea23r23rhello", "1234")
+
+
+    # print(checkpin(key, "1111"))
+
+
+
+
+    # sig = sign(key, "testing")
+    # print(sig)
+    # print(verify(key, "testing", sig))
+
+    # a = encrypt(key, get_pub(key), "Hello World!!!")
+    # print(a)
+    # print(decrypt(key, get_pub(key), a))
+
+    # print(id_from_priv(key))
+
+    # print(get_info(get_pub(key)))

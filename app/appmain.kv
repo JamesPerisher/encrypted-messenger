@@ -10,7 +10,7 @@
         pos: (root.width - self.width) /2, (root.height - self.height) /2
 
         Widget:
-            size_hint: 1, .2
+            size_hint: 1, .05
 
         Label:
             size_hint: 1, .1
@@ -18,94 +18,58 @@
             color: error
 
         TextInput:
-            hint_text: 'Username'
+            hint_text: 'Displayname'
             multiline: False
             background_color: background
             foreground_color: superbright
             hint_text_color: bright
-            size_hint: 1, .25
+            size_hint: 1, .1
+        Widget:
+            size_hint: 1, .01
+
+        TextInput:
+            hint_text: 'Userid (jid)'
+            multiline: False
+            background_color: background
+            foreground_color: superbright
+            hint_text_color: bright
+            size_hint: 1, .1
+        Widget:
+            size_hint: 1, .01
+
+        TextInput:
+            hint_text: 'Password'
+            multiline: False
+            background_color: background
+            foreground_color: superbright
+            hint_text_color: bright
+            size_hint: 1, .1
 
         Widget:
-            size_hint: 1, .1
+            size_hint: 1, .01
 
-        Label:
-            size_hint: 1, .1
+        ColorInput:
             text: "Select Colour"
             color: superbright
-        ColorInput:
             size_hint: 1, .1
 
         Widget:
+            size_hint: 1, .05
+
+        Button:
+            text: "Log in"
+            background_color: background
+            foreground_color: superbright
+            hint_text_color: bright
             size_hint: 1, .1
-
-        GridLayout:
-            cols: 2
-            rows: 2
-            spacing: 10
-            size_hint: 1, .25
-        
-            CheckBox:
-                id: licence
-                size_hint_x: root.width * 0.08
-
-            Label:
-                text: " I accept this license agreement."
-                halign:'left'
-                valign:'middle'
-                size_hint_x: root.width * 0.9
-                text_size: self.size
-
-            CheckBox:
-                id: terms
-                size_hint_x: 1
-
-            Label:
-                text: " I accept these terms of use."
-                halign:'left'
-                valign:'middle'
-                size_hint_x: root.width * 0.9
-                text_size: self.size
+            on_press: run(self.parent.parent.login())
 
         Widget:
-            size_hint: 1, .1
-
-        BoxLayout:
-            orientation: "vertical"
-            width: self.parent.width * .9
-            pos: ((root.width - self.width) / 2), ((root.height - self.height) / 2) - root.height /7
-
-            Button:
-                text: "Sign up"
-                width: 0.9 * root.width
-                height: 30
-                color: superbright
-                background_color: buttonbackground
-                hint_text_color: bright
-                border_width: 0
-
-                on_press: run(self.parent.parent.parent.signup())
-
-            Widget:
-                size_hint: 1, 1
-
-            Label:
-                text: "Already have an account?"
-
-            Button:
-                text: "Import account"
-                width: 0.9 * root.width
-                height: 30
-                color: superbright
-                background_color: buttonbackground
-                hint_text_color: bright
-                border_width: 0
-
-                on_press: run(self.parent.parent.parent.login())
-
+            size_hint: 1, .05
 
         Image:
             source: "app/images/logo.png"
-            size_hint: None, None
+            size_hint: None, .25
             size: self.parent.width, self.parent.height *.2
             center: self.parent.width/2, self.parent.children[1].pos[1] / 2
             allow_stretch: True
@@ -280,7 +244,7 @@
                     allow_stretch: True
 
 
-<SeedgenPage>:
+<PinPage>:
     BoxLayout:
         size_hint: None, None
         orientation: "vertical"
@@ -289,98 +253,18 @@
         spacing: 10
 
         Label:
-            size_hint: 1, .4
-            text_size: self.size
-            text: "Remember or write down this seed it is important and will be necessary to log into your account.\nNOTE: Do not write it on any digital device (especialy online) as that can be a security risk."
-
-        Widget:
+            text: ""
             size_hint: 1, .1
-        TextInput:
-            size_hint: 1, .4
-            background_normal: 'app/images/background.png'
-            background_active: 'app/images/background.png'
-            background_disabled_normal: 'app/images/background.png'
-            disabled_foreground_color: superdark
-
-            border: 30, 30, 30, 30
-            padding: 20
-            disabled: True
-
-            text: "Generating secure key..."
-            canvas.after: Clock.schedule_once(lambda x: self.parent.parent.update(self), 0)
-
-        Widget:
-            size_hint: 1, .1
-
-        BoxLayout:
-            orientation: "horizontal"
-            size_hint: 1, .2
-
-            Button:
-                size_hint: .4, .5
-                text: "Back"
-                on_press: self.parent.parent.parent.back()
-
-            Widget:
-                size_hint: .2, 1
-
-            Button:
-                size_hint: .4, .5
-                text: "Next"
-                on_press: self.parent.parent.parent.next()
-
-
-# this is basicly duplicated code couldn't be bothered to fix
-<ImportPage>:
-    BoxLayout:
-        size_hint: None, None
-        orientation: "vertical"
-        size: self.parent.width * .9, self.parent.height *.9
-        pos: (root.width - self.width) /2, (root.height - self.height) /2
-        spacing: 10
 
         Label:
             size_hint: 1, .2
-            text_size: self.size
+            font_size: sp(90)
             halign:'center'
             valign:'middle'
             text: ""
-            color: error
+            color: superbright
 
-        Label:
-            size_hint: 1, .4
-            text_size: self.size
-            text: "Enter the words for your seed below separated by a space.\nIf you have forgotten your seed try remember where you wrote it down as it is impossible to recover an account without it."
-        Widget:
-            size_hint: 1, .1
-        TextInput:
-            size_hint: 1, .4
-            background_normal: 'app/images/background.png'
-            background_active: 'app/images/background.png'
-            background_disabled_normal: 'app/images/background.png'
-            disabled_foreground_color: superdark
-
-            border: 30, 30, 30, 30
-            padding: 20
-
-            text_hint: "Enter your seed."
-
-        Widget:
-            size_hint: 1, .1
-
-        BoxLayout:
-            orientation: "horizontal"
-            size_hint: 1, .2
-
-            Button:
-                size_hint: .4, .5
-                text: "Back"
-                on_press: self.parent.parent.parent.back()
-
-            Widget:
-                size_hint: .2, 1
-
-            Button:
-                size_hint: .4, .5
-                text: "Next"
-                on_press: run(self.parent.parent.parent.next())
+        PinButtons:
+            size_hint: 1, .6
+            update: self.parent.children[1]
+            callback: self.parent.parent.next

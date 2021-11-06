@@ -1,8 +1,3 @@
-from backend.asyncrun import run, asynclambda
-from backend.keymanagement import *
-
-from app.makepfpic import make_pf_pic
-
 from kivy.core.clipboard import Clipboard
 from kivy.core.window import Window
 from kivy.lang import Builder
@@ -18,7 +13,10 @@ from kivy.uix.button import Button
 
 import logging
 
-from globalconfig import BASE_IMAGE, USERDATA_PATH
+from backend.asyncrun import run, asynclambda
+from backend.keymanagement import contact_data
+from backend.signals import Packet, PAC
+from backend.config import Config
 
 
 class MessagePage: # should get overwritten on import
@@ -41,13 +39,13 @@ class BaseWidget1(BaseWidget):
     pass
 
 class KVNotifications(BaseWidget):
-    def __init__(self, app, rwidth=0, rheight=0, **kwargs):
+    def __init__(self, prog, rwidth=0, rheight=0, **kwargs):
         self.rwidth = rwidth
         self.rheight = rheight
 
         self.anim  = Animation(y=self.rheight+6, duration=0)
         self.anim += Animation(y=self.rheight-self.height, duration=.5, t='in_back')
-        self.anim += Animation(y=self.rheight-self.height, duration= 1)
+        self.anim += Animation(y=self.rheight-self.height, duration= Config.NOTIFICATION_DISPLAY_TIME)
         self.anim += Animation(y=self.rheight+6, duration=.5, t='out_back')
 
         super().__init__(**kwargs)
@@ -62,8 +60,8 @@ class CopyButton(Button):
         run(self.click())
 
 class KVPOPup(BaseWidget):
-    def __init__(self, app, rwidth=0, rheight=0, **kwargs):
-        self.app = app
+    def __init__(self, prog, rwidth=0, rheight=0, **kwargs):
+        self.prog = prog
         self.rwidth = rwidth
         self.rheight = rheight
 
@@ -88,75 +86,40 @@ class KVPOPup(BaseWidget):
 
 
 class KVPOPupShair(KVPOPup):
-    def __init__(self, app, *args, **kwargs):
-        super().__init__(app, *args, **kwargs)
+    def __init__(self, prog, *args, **kwargs):
+        super().__init__(prog, *args, **kwargs)
         
-        self.children[0].children[3].source = "{}/shaire.png".format(USERDATA_PATH)
-        self.children[0].children[4].text = app.session["name"]
-        self.children[0].children[2].data = app.session["id"]
+        # self.prog.client.displaycolour
+        self.children[0].children[3].source = Config.QRCODE_FILE # shaire image
+        self.children[0].children[4].text = self.prog.client.displayname
+        self.children[0].children[2].data = self.prog.session.contactstring
 
 class KVPOPupChangeName(KVPOPup):
     def __init__(self, app, *args, **kwargs):
         super().__init__(app, *args, **kwargs)
 
     async def change(self):
-
-        session = self.app.session
-                
-        session["_privkey"] = change_info(session["_privkey"], self.children[0].children[3].text, None)
-        session["pubkey"] = get_pub(session["_privkey"])
-        await self.app.cm.register(session["id"], session["pubkey"])
-        session["name"], session["colour"] = get_info(session["pubkey"])
-
-        await self.app.cm.register(session["id"], session["pubkey"])
-        await self.app.reset_UserPage()
-        await self.close()
-        self.app.cm.cache.clear()
-        [x.clear() for x in self.app.lists]
+        pass
 
 class KVPOPupChangeColour(KVPOPup):
     def __init__(self, app, *args, **kwargs):
         super().__init__(app, *args, **kwargs)
 
     async def change(self):
-
-        session = self.app.session
-                
-        session["_privkey"] = change_info(session["_privkey"], None, self.children[0].children[3].colour)
-        session["pubkey"] = get_pub(session["_privkey"])
-        await self.app.cm.register(session["id"], session["pubkey"])
-        session["name"], session["colour"] = get_info(session["pubkey"])
-
-        await self.app.cm.register(session["id"], session["pubkey"])
-        await self.app.reset_UserPage()
-        await self.close()
-        self.app.cm.cache.clear()
-        [x.clear() for x in self.app.lists]
+        pass
 
 class KVPOPupSearch(KVPOPup):
     def __init__(self, app, *args, **kwargs):
         super().__init__(app, *args, **kwargs)
 
     async def go(self):
-
-        self.children[0].children[3].text
-
-        await self.close()
-
-class KVPOPupSearch(KVPOPup):
-    def __init__(self, app, *args, **kwargs):
-        super().__init__(app, *args, **kwargs)
-
-    async def go(self):
-        data = await self.app.cm.get_info(self.children[0].children[3].text)
-
-        await self.close()
-        if len(data.data) == 0:
-            await self.app.shownotification(KVNotifications(self.app, Window.width, Window.height), "Account not found.")
+        data = contact_data(self.children[0].children[3].text)
+        if not data:
+            await self.prog.app.shownotification(KVNotifications, "No user for: {}".format(data))
             return
-
-        await self.app.shownotification(KVPOPupAddUser(self.app,  User(self.app, username=data.data[0][1], colour=data.data[0][3], userid=data.data[0][0]), Window.width, Window.height))
-        
+        await self.prog.client.update_roster(data[0])
+        await self.prog.app.UsersPage.update()
+        await self.close()
 
 class KVPOPupAddUser(KVPOPup):
     def __init__(self, app, user, *args, **kwargs):
@@ -164,16 +127,12 @@ class KVPOPupAddUser(KVPOPup):
         super().__init__(app, *args, **kwargs)
 
     async def go(self): # add user to users in session
-        self.app.session["friends"][self.user.userid] = 1
-        await self.app.session.save()
-        await self.app.reset_UserPage()
-
-
+        pass
 
 
 class BaseScreen(Screen):
-    def __init__(self, app, **kw):
-        self.app = app
+    def __init__(self, prog, **kw):
+        self.prog = prog
         super().__init__(**kw)
 class BaseScreen1(BaseScreen): pass
 
@@ -182,12 +141,11 @@ class ColorInput(Button):
         self.colour = colour
         super().__init__(**kwargs)
 
-    async def getapp(self):
+    async def getprog(self):
         a = self
         while True:
             try:
-                if isinstance(a.app, App):
-                    return a.app
+                return a.prog
             except AttributeError:
                 pass
             a = a.parent
@@ -197,29 +155,24 @@ class ColorInput(Button):
         self.background_color = get_color_from_hex(self.colour)
 
     async def click(self):
-        app = await self.getapp()
+        prog = await self.getprog()
 
-        app.sm.add_widget(ColourPage(app, self, app.sm.current, name="ColourPage"))
-        app.sm.transition.direction = 'left'
-        app.sm.current = "ColourPage"
+        prog.app.sm.add_widget(ColourPage(prog, self, prog.app.sm.current, name="ColourPage"))
+        prog.app.sm.transition.direction = 'left'
+        prog.app.sm.current = "ColourPage"
 
 class ColourPage(BaseScreen):
-    def __init__(self, app, caller, back, **kw):
-        super().__init__(app, **kw)
+    def __init__(self, prog, caller, back, **kw):
+        super().__init__(prog, **kw)
         self.caller = caller
         self.back = back
 
     async def done(self):
         self.caller.colour = self.children[0].children[1].hex_color
         await self.caller.update()
-        self.app.sm.remove_widget(self)
-        self.app.sm.transition.direction = 'right'
-        self.app.sm.current = self.back
-
-
-
-
-
+        self.prog.app.sm.remove_widget(self)
+        self.prog.app.sm.transition.direction = 'right'
+        self.prog.app.sm.current = self.back
 
 class UserProperty(BaseWidget): # TODO: idk make all this crap
     def __init__(self, name="namerr", **kw):
@@ -234,33 +187,54 @@ class UserPropertySpace(UserProperty):
         super().__init__(name="", **kw)
 
 class User(BaseWidget):
-    def __init__(self, app, username="[Username err]", colour="#eeeeee", userid="[id err]", index=0, img=BASE_IMAGE, **kwargs):
-        self.app = app
+    def __init__(self, prog, username="[Username err]", colour="#eeeeee", userid="[id err]", index=0, img="", **kwargs):
+        self.prog = prog
         self.userid = userid
         self.username = username
-        self.colour = validate_hex(colour)
+        self.colour = "#ff00ff"
         self.index = index
-        self.img = img if img != BASE_IMAGE else make_pf_pic(userid, username, colour)
+        self.img = ""
         super().__init__(**kwargs)
 
     def __repr__(self) -> str:
         return "<User({}, {})>".format(self.username, self.userid)
 
     async def press(self):
+        if not await self.prog.session.get_key(self.userid, False):
+            return await self.prog.client.send(self.userid, Packet(PAC.GET_PUB))
+
         name = "MessagePage-{}".format(self.userid)
-        if name in self.app.sm.screen_names:
-            self.app.sm.transition.direction = 'left'
-            self.app.sm.current = name
+        if name in self.prog.app.sm.screen_names:
+            self.prog.app.sm.transition.direction = 'left'
+            self.prog.app.sm.current = name
             return
 
-        self.app.sm.add_widget(MessagePage.from_user(self.app, self.parent.parent.parent.parent.user, self, name=name))
-        self.app.sm.transition.direction = 'left'
-        self.app.sm.current = name
+        self.prog.app.sm.add_widget(MessagePage.from_user(self.prog, self.parent.parent.parent.parent.user, self, name=name))
+        self.prog.app.sm.transition.direction = 'left'
+        self.prog.app.sm.current = name
 
     @classmethod
     def from_session(cls, app, session):
         return cls(app, session["name"], session["colour"], session["id"])
 
+class PinButton(Button):
+    def on_press(self):
+        self.color = self._color
+        self.doupdate(self.text)
+        return super().on_press()
 
+    def doupdate(self, text):
+        if len(text) == 1:
+            self.parent.data += text
+        else:
+            if text == "OK":
+                run(self.parent.callback(self.parent.data))
+                self.parent.data = ""
+            else:
+                self.parent.data = self.parent.data[0:-1]
+                
+        self.parent.update.text = len(self.parent.data) * "*"
 
-
+    def on_release(self):
+        self.color = self._default
+        return super().on_release()
