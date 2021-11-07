@@ -2,11 +2,19 @@ from backend.signals import PAC, Packet, Event
 from backend.basics import BaseObject
 from backend.keymanagement import decrypt, get_info, get_pub
 from backend.textrenderer import get_user_line, render_text
+import asyncio
 
 class Handler(BaseObject):
     def __init__(self, prog) -> None:
         super().__init__(prog)
         self.prog.client.msgevent = self.recv_msg # handle incoming messages
+    
+    def send(self, to_jid, p):
+        ret = self.prog.client.send(to_jid, p)
+        if to_jid == self.prog.client.jid: return ret # dont self render messages to urself
+        
+        return asyncio.gather(ret, self.recv_msg(to_jid, p))
+
 
     async def get_key(self, jid):
         self.prog.cache.get(Packet(PAC.PUB_KEY, jid), self.prog.event(Event.ADD_FRIEND, jid))

@@ -181,6 +181,9 @@ class Program:
 
         print("end")
 
+    def debug(self):
+        return
+
 
 
 if __name__ == "__main__":

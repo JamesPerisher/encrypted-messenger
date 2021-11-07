@@ -7,6 +7,8 @@ from kivy.utils import get_color_from_hex
 from kivy.app import App
 
 from kivy.uix.stacklayout import StackLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
@@ -217,6 +219,15 @@ class User(BaseWidget):
     def from_session(cls, app, session):
         return cls(app, session["name"], session["colour"], session["id"])
 
+
+class PinButtons(GridLayout,FocusBehavior):
+    def keyboard_on_key_down(self, keyboard, keycode, display, modifyers):
+        _, code = keycode
+
+        if code in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "backspace", "enter"): # pass on acceptable keys to handler
+            self.children[0].doupdate(code)
+
+
 class PinButton(Button):
     def on_press(self):
         self.color = self._color
@@ -224,10 +235,10 @@ class PinButton(Button):
         return super().on_press()
 
     def doupdate(self, text):
-        if len(text) == 1:
+        if len(text) == 1: # assume len == 1 is pin number
             self.parent.data += text
         else:
-            if text == "OK":
+            if text in ("OK", "enter"): # key press or keybaord codes for continueing
                 run(self.parent.callback(self.parent.data))
                 self.parent.data = ""
             else:

@@ -13,7 +13,7 @@ package.domain = com.github.pauln07org
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,kv,otf
+source.include_exts = py,png,kv,ttf
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -45,7 +45,8 @@ requirements =
     Pillow,
     cryptography,
     libbz2,
-    pypng
+    pypng,
+    pyasn1
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes

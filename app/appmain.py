@@ -88,7 +88,7 @@ class MessagePage(BaseScreen):
 
         data = encrypt(self.prog.session.privkey, await self.prog.session.get_key(self.touser.userid), data.strip(), self.prog.session.pin)
         p = Packet(PAC.SEND_MSG, data)
-        await self.prog.client.send(self.touser.userid, p)
+        await self.prog.handler.send(self.touser.userid, p)
 
 
     async def draw_displacement(self, obj): pass
@@ -128,11 +128,18 @@ class PinPage(BaseScreen):
         self.children[0].children[2].text = txt
     
     async def get_pin(self, message):
+        await self.focus()
         await self.setmsg(message)
         await self.pinevent.wait() # gets a pin
         p1 = self.pin
         self.pinevent.clear()
         return p1
+
+    async def focus(self):
+        self.children[0].children[0].focus = True
+
+    def on_touch_up(self, touch):
+        run(self.focus())
 
 from kivy.uix.boxlayout import BoxLayout
 class RootLayout(BoxLayout):
@@ -170,7 +177,7 @@ class AppMain(BaseObject, App):
         # create
         self.EmptyPage        = BaseScreen      (self.prog, name="EmptyPage"       ) # overwrite with loadingpage later
         self.LoginPage        = LoginPage       (self.prog, name="LoginPage"       )
-        self.PinPage          = PinPage      (self.prog, name="ImportPage"      )
+        self.PinPage          = PinPage         (self.prog, name="PinPage"         )
         self.UsersPage        = UsersPage       (self.prog, name="UsersPage"       )
         self.UserPropertyPage = UserPropertyPage(self.prog, name="UserPropertyPage")
 
