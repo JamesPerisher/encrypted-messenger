@@ -9,7 +9,9 @@ import app.customwidgets
 from app.customwidgets import *
 from backend.asyncrun import AsyncIterator
 from backend.basics import BaseObject
-from backend.keymanagement import encrypt, get_id, get_info, get_pub
+from backend.keymanagement import encrypt, get_id, get_info, get_pub, validate_hex
+from kivy.graphics import Line, Color
+from kivy.clock import Clock
 from backend.signals import Event
 
 
@@ -80,6 +82,7 @@ class MessagePage(BaseScreen):
     async def make(self): pass
     async def reload(self):
         self.children[0].children[1].children[0].text = self.prog.cache[self.touser.userid]
+        await self.refresh()
 
     async def send(self):
         data = self.children[0].children[0].children[1].text
@@ -92,8 +95,30 @@ class MessagePage(BaseScreen):
         del data
 
 
-    async def draw_displacement(self, obj): pass
-    async def refresh(self): pass
+    async def draw_displacement(self, obj): # idfk whjat to do with this
+        anchors = self.children[0].children[1].children[0].anchors
+
+
+        # swap keys and values
+        anchors = {v: k for k, v in anchors.items()}
+        # sort anchors by key
+        anchors = sorted(anchors.items(), key=lambda x: x[0][1])
+        # conjoin them in pairs
+        anchors = [((anchors[y][0][1], anchors[y+1][0][1]),anchors[y+1][1]) for y in range(len(anchors)-1)]
+
+
+        with obj.canvas:
+            for (y0, y1), key in anchors:
+                Color(*get_color_from_hex(validate_hex(key.split("-")[0])))
+
+                a = obj.height-y0+5
+                b = obj.height-y1
+                Line(points=[10, a, 10, b], width=1)
+
+
+    async def refresh(self):
+        Clock.schedule_once(lambda x: run(self.draw_displacement(self.children[0].children[1].children[0])), 0) # draw sidebar color thingy
+
     async def recieve(self, message): pass
     async def back(self):
         self.prog.app.sm.transition.direction = 'right'

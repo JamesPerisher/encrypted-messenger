@@ -3,31 +3,19 @@ import re
 from backend.config import Config
 from backend.keymanagement import get_info
 import datetime
-from hashlib import sha256
-import random
-
+import time
 
 # generate probabilitiscly unique id for each userline
 def nextn():
-    return sha256((str(datetime.datetime.now()) + str(random.randint(0, 256))).encode()).hexdigest()
+    return int(time.time())
 
 # get user line
-def get_user_line(prog, userkey):
+def get_user_line(userkey):
     name, colour = get_info(userkey)
-    index = nextn()
-    try:
-        prog.cache["colorindex"][index] = colour
-    except Exception as e:
-        try:
-            prog.cache["colorindex"] = dict()
-        except Exception as f:
-            print(type(e), e, type(f), f)
-            
-        # prog.cache["colorindex"][index] = colour
     return "\n[color={}]{}[anchor={}][/color]    [size={}]{}[/size]\n".format(
         colour,
         name,
-        index,
+        "{}-{}".format(colour, nextn()),
         Config.DATE_FONT_SIZE, datetime.datetime.now().strftime("%a %d %b %y  %I:%M %p"))
 
 # replace charecter

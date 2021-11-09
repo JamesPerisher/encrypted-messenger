@@ -60,7 +60,7 @@ class Handler(BaseObject):
             if old == new:
                 userline = ""
             else:
-                userline = get_user_line(self.prog, self.prog.session.data["friends"].get(new, self.prog.session.data["friends"]["empty"]))
+                userline = get_user_line(self.prog.session.data["friends"].get(new, self.prog.session.data["friends"]["empty"]))
 
         self.prog.cache["{}_last".format(fromjid)] = new
 
