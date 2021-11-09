@@ -10,6 +10,7 @@ class PAC(Enum):
     SEND_PUB = auto()
 
     INTERNAL = auto()
+    ME       = auto()
 
 
 class Packet:

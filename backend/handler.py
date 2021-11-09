@@ -18,7 +18,7 @@ class Handler(BaseObject):
         ret = self.prog.client.send(to_jid, p)
         if to_jid == self.prog.client.jid: return ret # dont self render messages to urself
         
-        return asyncio.gather(ret, self.recived_msg(to_jid, Packet(PAC.INTERNAL, raw)))
+        return asyncio.gather(ret, self.recived_msg(to_jid, Packet(PAC.ME, raw)))
 
 
     async def get_key(self, jid):
@@ -46,15 +46,29 @@ class Handler(BaseObject):
         await self.prog.app.UsersPage.update()
 
     async def recived_msg(self, fromjid, p):
+        
+        # userline part of the current line
         userline = ""
 
-        if p.pactype == PAC.INTERNAL:
+        # use self.prog.cache["{}_last".format(fromjid)] stores the last message sender
+        old = self.prog.cache.get("{}_last".format(fromjid), None)      # the previouse messager
+        new = self.prog.client.jid if p.pactype == PAC.ME else fromjid  # the current messager
+
+        if old == None:
+            userline = "This is the beggining of your conversation with {}. \n".format(fromjid)
+        else:
+            if old == new:
+                userline = ""
+            else:
+                userline = get_user_line(self.prog, self.prog.session.data["friends"].get(new, self.prog.session.data["friends"]["empty"]))
+
+        self.prog.cache["{}_last".format(fromjid)] = new
+
+
+        # message part of the current line
+        if p.pactype == PAC.ME:
             message = p.data
         else:
-            if not self.prog.cache.get("{}_last".format(fromjid), None) == fromjid:
-                userline = get_user_line(self.prog, self.prog.session.data["friends"].get(fromjid, self.prog.session.data["friends"]["empty"]))
-            self.prog.cache["{}_last".format(fromjid)] = fromjid
-
             message = decrypt(
                     self.prog.session.privkey,
                     await self.prog.session.get_key(fromjid),
@@ -62,10 +76,8 @@ class Handler(BaseObject):
                     self.prog.session.pin
                 )
 
-        self.prog.cache[fromjid] += "\n{}{}".format(
-            userline ,
-            await render_text(message)
-        )
+        # render lines to page
+        self.prog.cache[fromjid] += "\n{}{}".format(userline, await render_text(message))
         
         name = "MessagePage-{}".format(fromjid)
         if not name in self.prog.app.sm.screen_names: return # ignore unknown messages

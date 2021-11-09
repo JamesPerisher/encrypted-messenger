@@ -12,13 +12,17 @@ def nextn():
     return sha256((str(datetime.datetime.now()) + str(random.randint(0, 256))).encode()).hexdigest()
 
 # get user line
-def get_user_line(prog, user):
-    name, colour = get_info(user)
+def get_user_line(prog, userkey):
+    name, colour = get_info(userkey)
     index = nextn()
     try:
         prog.cache["colorindex"][index] = colour
     except Exception as e:
-        prog.cache["colorindex"] = dict()
+        try:
+            prog.cache["colorindex"] = dict()
+        except Exception as f:
+            print(type(e), e, type(f), f)
+            
         # prog.cache["colorindex"][index] = colour
     return "\n[color={}]{}[anchor={}][/color]    [size={}]{}[/size]\n".format(
         colour,
