@@ -1,5 +1,4 @@
 import asyncio
-from collections import namedtuple
 import re
 from backend.config import Config
 from backend.keymanagement import get_info
@@ -41,7 +40,7 @@ def find_jids(text):
 
 # replace all jid addresses with a link
 def replace_jids(text):
-    for jid in find_jids(text):
+    for jid in set(find_jids(text)):
         text = text.replace(jid, "[ref={}]{}[/ref]".format(jid, heighlight(jid)))
     return text
 
@@ -55,15 +54,15 @@ def find_links(text):
 
 #replace all links with a link
 def replace_links(text):
-    for link in find_links(text):
+    for link in set(find_links(text)):
         text = text.replace(link, "[ref={}]{}[/ref]".format(link, heighlight(link)))
     return text
 
 # render links and references to a pre render format
 async def render_text(text):
     text = replace_charecters(text)
-    text = replace_jids(text)
     text = replace_links(text)
+    text = replace_jids(text)
     return text
 
 def heighlight(raw):
@@ -72,6 +71,8 @@ def heighlight(raw):
 
 # testing function
 async def main():
+    print(await render_text("user1@localhost is retarted motherfucker user1@localhost"))
+    print("    ")
     print(await render_text("some text http://url.idk somemore text mabaybe http://another maybe more idk and replaces"))
     print(await render_text("some text https://url.idk somemore text mabaybe https://another maybe more idk and replaces"))
     print(await render_text("some text encrypted-msger://user_wquf8uewgf more message"))

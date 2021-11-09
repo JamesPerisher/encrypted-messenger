@@ -42,7 +42,7 @@ class Handler(BaseObject):
         user = self.prog.app.UsersPage.userlist[fromjid]
 
         user.username, user.colour = get_info(p.data)
-        await self.recived_msg(fromjid, Packet(PAC.INTERNAL, "{} has a different encryption key (It is possible that this is not {})".format(fromjid, fromjid)))
+        await self.recived_msg(fromjid, Packet(PAC.INTERNAL, "{} has a different encryption key (Verify that {} is who they claim to be)".format(fromjid, fromjid)))
         await self.prog.app.UsersPage.update()
 
     async def recived_msg(self, fromjid, p):
