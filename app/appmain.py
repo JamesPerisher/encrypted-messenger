@@ -64,6 +64,7 @@ class MessagePage(BaseScreen):
         super().__init__(prog, **kwargs)
         self.meuser = meuser
         self.touser = touser # can be (VirtualUser e.g. a group idk how the encryption would work)
+        self.instructions = []
         run(self.make())
 
     def key(self, other, keyboard, keycode, display, modifyers):
@@ -98,22 +99,24 @@ class MessagePage(BaseScreen):
     async def draw_displacement(self, obj): # idfk whjat to do with this
         anchors = self.children[0].children[1].children[0].anchors
 
-
         # swap keys and values
         anchors = {v: k for k, v in anchors.items()}
         # sort anchors by key
         anchors = sorted(anchors.items(), key=lambda x: x[0][1])
+        anchors.append(((0, obj.height), "#ff0ff")) # add the last anchor for current message block
         # conjoin them in pairs
-        anchors = [((anchors[y][0][1], anchors[y+1][0][1]),anchors[y+1][1]) for y in range(len(anchors)-1)]
-
+        anchors = [((anchors[y][0][1], anchors[y+1][0][1]),anchors[y][1]) for y in range(len(anchors)-1)]
 
         with obj.canvas:
+            for i in self.instructions: # clear old instructions
+                obj.canvas.remove(i)
+            self.instructions = []
             for (y0, y1), key in anchors:
                 Color(*get_color_from_hex(validate_hex(key.split("-")[0])))
 
-                a = obj.height-y0+5
+                a = obj.height-y0-5
                 b = obj.height-y1
-                Line(points=[10, a, 10, b], width=1)
+                self.instructions.append(Line(points=[10, a, 10, b], width=1))
 
 
     async def refresh(self):

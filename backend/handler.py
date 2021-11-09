@@ -77,7 +77,7 @@ class Handler(BaseObject):
                 )
 
         # render lines to page
-        self.prog.cache[fromjid] += "\n{}{}".format(userline, await render_text(message))
+        self.prog.cache[fromjid] += "{}{}\n".format(userline, await render_text(message))
         
         name = "MessagePage-{}".format(fromjid)
         if not name in self.prog.app.sm.screen_names: return # ignore unknown messages

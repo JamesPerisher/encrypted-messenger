@@ -60,7 +60,6 @@ async def render_text(text):
 def heighlight(raw):
     return " [color={}]{}[/color] ".format(Config.HEIGHLIGHT_COLOUR, raw)
 
-
 # testing function
 async def main():
     print(await render_text("user1@localhost is retarted motherfucker user1@localhost"))
