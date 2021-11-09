@@ -42,3 +42,7 @@
                 size: self.size
                 pos: self.pos
         height: dp(25) if utils.platform == "android" else 0 # status bar compensation for android
+
+
+<TextInput@TextInput>:
+    keyboard_on_key_down: lambda window, keycode, text, modifiers: self.__class__.keyboard_on_key_down(self, window, keycode, text, modifiers) if keycode[1] != 'tab' else False

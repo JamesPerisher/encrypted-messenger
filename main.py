@@ -105,6 +105,7 @@ class Program:
         if not self.session.data["active"]:
             self.session.pin = await self.generate_pin()
             self.session.privkey = generate_key(self.client.displayname, self.client.displaycolour, self.session.pin)
+            await self.handler.key_change()
         
         self.cache   = Cache.from_prog(self) # might be innefficent to have one cache per session
         self.app.sm.transition.direction = 'left'

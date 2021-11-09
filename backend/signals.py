@@ -9,6 +9,8 @@ class PAC(Enum):
     SEND_MSG = auto()
     SEND_PUB = auto()
 
+    INTERNAL = auto()
+
 
 class Packet:
     def __init__(self, pactype, data="") -> None:

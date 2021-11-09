@@ -15,7 +15,7 @@ from backend.signals import Event
 
 
 Builder.load_file('app/kvsettings.kv')
-Builder.load_file('app/appmain.kv')
+# Builder.load_file('app/appmain.kv')
 # Window.size = (400, 700) # for desktop debug only
 
 
@@ -42,7 +42,7 @@ class UsersPage(BaseScreen1):
         self.prog.app.sm.current = self.name
         self.prog.app.UsersPage = newself
 
-        async for i in AsyncIterator(await self.prog.client.get_contacts()):
+        async for i in AsyncIterator(await self.prog.client.get_contacts()): # gets contacts from cloud
             u = User(self.prog, *get_info(await self.prog.session.get_key(i)), i)
             await newself.add_user(u)
     
@@ -86,9 +86,10 @@ class MessagePage(BaseScreen):
         self.children[0].children[0].children[1].text = ""
         if data.strip() == "": return
 
-        data = encrypt(self.prog.session.privkey, await self.prog.session.get_key(self.touser.userid), data.strip(), self.prog.session.pin)
-        p = Packet(PAC.SEND_MSG, data)
-        await self.prog.handler.send(self.touser.userid, p)
+        data1 = encrypt(self.prog.session.privkey, await self.prog.session.get_key(self.touser.userid), data.strip(), self.prog.session.pin)
+        p = Packet(PAC.SEND_MSG, data1)
+        await self.prog.handler.send(self.touser.userid, p, raw=data.strip())
+        del data
 
 
     async def draw_displacement(self, obj): pass
