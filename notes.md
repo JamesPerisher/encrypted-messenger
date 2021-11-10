@@ -53,3 +53,6 @@ sudo docker start ejabberd
 sudo docker exec -it ejabberd bin/ejabberdctl register user1 localhost password
 sudo docker exec -it ejabberd bin/ejabberdctl register user2 localhost password
 ```
+
+## userlist addresses
+https://list.jabber.at/api/?fields=website&format=json

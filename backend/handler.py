@@ -11,6 +11,7 @@ class Handler(BaseObject):
         self.prog.client.msgevent = self.recv_msg # handle incoming messages
 
     async def key_change(self):
+        self.prog.session.data["privkey"] = self.prog.session.privkey
         self.prog.session.data["pubkey"] = get_pub(self.prog.session.data["privkey"])
         self.prog.client.displayname, self.prog.client.displaycolour = get_info(self.prog.session.data["pubkey"])
         self.prog.session.data["friends"][self.prog.client.jid] = self.prog.session.data["pubkey"]

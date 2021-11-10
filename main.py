@@ -17,6 +17,8 @@ import json
 
 
 class Program:
+    def __init__(self, debug=False) -> None:
+        self.debug = debug
     events = list()
     pageevent = asyncio.Event()
     async def eventloop(self):
@@ -108,12 +110,23 @@ class Program:
             await self.handler.key_change()
         
         self.cache   = Cache.from_prog(self) # might be innefficent to have one cache per session
-        self.app.sm.transition.direction = 'left'
-        self.app.sm.current = self.app.UsersPage.name
         await self.app.UsersPage.update()
+       
+        with open(Config.TERMS, 'r') as f:
+            self.app.InfoPage.data = f.read()
+
+        self.app.InfoPage.data += "\n\n\n"
+
+        with open(Config.LICENCE, 'r') as f:
+            self.app.InfoPage.data += f.read()
+        self.app.InfoPage.data += "\n\n\n\n\n\n\n\n\n"
 
         if self.session.data["active"]: return
         self.session.data["active"] = True
+
+        self.app.InfoPage.backpage = self.app.UsersPage.name
+        self.app.sm.transition.direction = 'left'
+        self.app.sm.current = self.app.InfoPage.name
 
         self.session.contactstring = "{}://add-{}-{}".format(Config.APPNAMELINK, self.client.jid, get_id(get_pub(self.session.privkey)))
         im = make_code(self.session.contactstring, userdata_path=Config.USERDATA_DIR)
@@ -134,8 +147,7 @@ class Program:
         self.ignoreevents = False
 
 
-    # def handle_exception(self, loop, context):
-    #     pass
+    def handle_exception(self, loop, context): pass
 
     def make_files(self):
         if not os.path.isdir(Config.USERDATA_DIR): os.mkdir(Config.USERDATA_DIR)
@@ -143,6 +155,7 @@ class Program:
         open(Config.CACHE_FILE  , "a").close()
 
     async def terminal(self):
+        if not self.debug: return
         async for x in InputIterator(">>> "):
             try:
                 print(eval(x))
@@ -150,12 +163,11 @@ class Program:
                 try:
                     exec(x)
                 except:
-                    print(e.__class__.__name__,":", e)
+                    print(e.__class__.__name__,":", e)        
 
     def asyncstart(self):
         loop = asyncio.get_event_loop()
-        # loop.set_exception_handler(self.handle_exception)
-
+        if self.debug: loop.set_exception_handler(self.handle_exception)
         return asyncio.gather(
             self.session.status(), # check stored sessions
             self.app.async_run(async_lib='asyncio'), # run gui
@@ -168,7 +180,7 @@ class Program:
         pass
 
     async def close(self):
-        logging.warn("Exiting program")
+        logging.warning("Exiting program")
         asyncio.get_event_loop().stop()
         return False
 
@@ -196,4 +208,4 @@ class Program:
 
 
 if __name__ == "__main__":
-    Program().start()
+    Program(True).start()

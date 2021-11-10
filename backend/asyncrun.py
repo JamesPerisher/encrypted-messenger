@@ -1,5 +1,6 @@
 import asyncio
-
+import functools
+import contextvars
 
 def run(coroutine): # insert event into the event loop
     return asyncio.get_event_loop().create_task(coroutine)
@@ -13,6 +14,11 @@ def asyncrun(func):
 async def asynclambda(func):
     return func
 
+async def to_thread(func, /, *args, **kwargs):
+    loop = asyncio.get_running_loop()
+    ctx = contextvars.copy_context()
+    func_call = functools.partial(ctx.run, func, *args, **kwargs)
+    return await loop.run_in_executor(None, func_call)
 
 class AsyncIterator:
     def __init__(self, seq):
@@ -29,7 +35,8 @@ class AsyncIterator:
 
 
 def AsyncInput(txt):
-    return asyncio.to_thread(input, txt)
+    return asyncio.sleep(100000000)
+    return to_thread(input, txt)
 
 class InputIterator:
     def __init__(self, txt) -> None:

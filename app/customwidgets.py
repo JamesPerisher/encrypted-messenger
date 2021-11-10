@@ -170,7 +170,7 @@ class BaseScreen(Screen):
 class BaseScreen1(BaseScreen): pass
 
 class ColorInput(Button):
-    def __init__(self, colour="#eeeeee", **kwargs):
+    def __init__(self, colour="#555555", **kwargs):
         self.colour = colour
         super().__init__(**kwargs)
 
@@ -186,6 +186,7 @@ class ColorInput(Button):
     async def update(self, colour=None):
         if colour: self.colour = colour
         self.background_color = get_color_from_hex(self.colour)
+        self.color = 3*(0 if (sum([x for i,x in enumerate(get_color_from_hex(self.colour)) if i < 4])/3) > 0.5 else 1,)+(1,)
 
     async def click(self):
         prog = await self.getprog()

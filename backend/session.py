@@ -1,3 +1,4 @@
+import os
 from backend.basics import BaseObject
 
 import json
@@ -55,11 +56,15 @@ class Session(BaseObject):
         return cls.from_file(prog, Config.SESSION_FILE, Config.DEFAULT_SESSION)
     def save(self): return super().save(Config.SESSION_FILE)
 
-    async def logout(self):
-        self.data = None
-        self.prog.cache.data = None
-        self.prog.cache.save()
-        await self.save()
+    def cleanup(self, dir):
+        for x in os.listdir(dir):
+            if os.path.isdir(os.path.join(dir, x)):
+                self.cleanup(os.path.join(dir, x))
+            else:
+                os.remove(os.path.join(dir, x))
 
+
+    async def logout(self):
+        self.cleanup(Config.USERDATA_DIR)
         self.prog.on_request_close(None)
     

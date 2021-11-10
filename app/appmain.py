@@ -17,7 +17,6 @@ from backend.signals import Event
 
 
 Builder.load_file('app/kvsettings.kv')
-# Builder.load_file('app/appmain.kv')
 # Window.size = (400, 700) # for desktop debug only
 
 
@@ -28,6 +27,31 @@ class LoginPage(BaseScreen):
         self.prog.client.password      = self.children[0].children[6].text
         self.prog.client.displaycolour = self.children[0].children[4].colour
 
+    async def signup(self):
+        with open(Config.SIGNUP_TEXT, 'r') as f:
+            self.prog.app.InfoPage.data = f.read()
+
+        self.prog.app.InfoPage.data += "\n\n\n\n\n\n"
+
+        self.prog.app.InfoPage.backpage = self.name
+        self.prog.app.sm.transition.direction = 'left'
+        self.prog.app.sm.current = self.prog.app.InfoPage.name
+
+class InfoPage(BaseScreen):
+    _data = ""
+    @property
+    def data(self):
+        return self._data
+    @data.setter
+    def data(self, value):
+        self._data = value
+        self.children[0].children[0].children[0].text = value
+
+    backpage = ""
+
+    async def back(self):
+        self.prog.app.sm.transition.direction = 'right'
+        self.prog.app.sm.current = self.backpage
 
 class UsersPage(BaseScreen1):
     def __init__(self, prog, user=None, **kwargs):
@@ -197,8 +221,7 @@ class AppMain(BaseObject, App):
         App.__init__(self, **kwargs)
         self.started = asyncio.Event()
 
-    def on_request_close(self, arg): run(self.close())
-    async def close(self): pass
+    def on_request_close(self, arg): run(self.prog.close())
 
     async def shownotification(self, notificationclass, msg="msgerr", args=()):
         note = notificationclass(self.prog, *args, Window.width, Window.height)
@@ -221,8 +244,9 @@ class AppMain(BaseObject, App):
         root = RootLayout()
 
         # create
-        self.EmptyPage        = BaseScreen      (self.prog, name="EmptyPage"       ) # overwrite with loadingpage later
+        self.EmptyPage        = BaseScreen      (self.prog, name="EmptyPage"       ) # overwrite with loadingpage later idfk
         self.LoginPage        = LoginPage       (self.prog, name="LoginPage"       )
+        self.InfoPage         = InfoPage        (self.prog, name="InfoPage"       )
         self.PinPage          = PinPage         (self.prog, name="PinPage"         )
         self.UsersPage        = UsersPage       (self.prog, name="UsersPage"       )
         self.UserPropertyPage = UserPropertyPage(self.prog, name="UserPropertyPage")
@@ -230,6 +254,7 @@ class AppMain(BaseObject, App):
         # add
         self.sm.add_widget(self.EmptyPage       )
         self.sm.add_widget(self.LoginPage       )
+        self.sm.add_widget(self.InfoPage        )
         self.sm.add_widget(self.PinPage         )
         self.sm.add_widget(self.UsersPage       )
         self.sm.add_widget(self.UserPropertyPage)

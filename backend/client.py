@@ -16,7 +16,7 @@ def connected(func):
                 return func(self, *args, **kwargs)
         except AttributeError:
             pass
-        return asynclambda(lambda : False)
+        return asynclambda([])
     return f
 
 class Client(BaseObject):
@@ -67,8 +67,8 @@ class Client(BaseObject):
         return self.xmpp.update_roster(item)
 
     @connected
-    def get_contacts(self):
-        return self.xmpp.get_contacts()
+    async def get_contacts(self):
+        return await self.xmpp.get_contacts()
 
     @connected
     async def send(self, tojid, packet):

@@ -13,7 +13,7 @@ package.domain = com.github.pauln07org
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,kv,ttf
+source.include_exts = py,png,kv,ttf, sdf, otf
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -36,8 +36,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = 
-    python3,
+requirements = python3,
     kivy,
     PyCryptodome,
     PGPy,
@@ -46,7 +45,8 @@ requirements =
     cryptography,
     libbz2,
     pypng,
-    pyasn1
+    pyasn1,
+    slixmpp
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -75,7 +75,7 @@ orientation = portrait
 osx.python_version = 3
 
 # Kivy version to use
-osx.kivy_version = 1.0.9
+osx.kivy_version = 1.9.1
 
 #
 # Android specific
@@ -123,7 +123,7 @@ android.permissions = INTERNET
 #android.ndk_api = 21
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
-android.private_storage = True
+#android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
 #android.ndk_path =

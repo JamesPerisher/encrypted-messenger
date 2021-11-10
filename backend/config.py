@@ -4,9 +4,13 @@ class Config:
 
     SESSION_FILE    = "{}/session.json".format(USERDATA_DIR)
     XMPPDATA_FILE   = "{}/xmpdata.json".format(USERDATA_DIR)
-    CACHE_FILE      = "{}/cache.txt"  .format(USERDATA_DIR)
+    CACHE_FILE      = "{}/cache.txt"   .format(USERDATA_DIR)
     QRCODE_FILE     = "{}/shaire.png"  .format(USERDATA_DIR)
 
+    SIGNUP_TEXT     = "app/data/signuptext.txt"
+    LICENCE         = "LICENCE"
+    TERMS           = "app/data/terms.txt"
+    
     # TODO: Fix this idk why it doesnt work
     DEFAULT_CACHE   = {
         "colorindex": dict()

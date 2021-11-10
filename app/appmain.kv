@@ -50,19 +50,31 @@
 
         ColorInput:
             text: "Select Colour"
-            color: superbright
             size_hint: 1, .1
 
         Widget:
             size_hint: 1, .05
 
-        Button:
-            text: "Log in"
-            background_color: background
-            foreground_color: superbright
-            hint_text_color: bright
+        BoxLayout:
+            orientation: "horizontal"
             size_hint: 1, .1
-            on_press: run(self.parent.parent.login())
+
+            Button:
+                text: "Sign up"
+                background_color: bright
+                foreground_color: superbright
+                hint_text_color: bright
+                on_press: run(self.parent.parent.parent.signup())
+
+            Widget:
+                size_hint: .05, 1
+
+            Button:
+                text: "Log in"
+                background_color: bright
+                foreground_color: superbright
+                hint_text_color: bright
+                on_press: run(self.parent.parent.parent.login())
 
         Widget:
             size_hint: 1, .05
@@ -74,6 +86,36 @@
             center: self.parent.width/2, self.parent.children[1].pos[1] / 2
             allow_stretch: True
 
+<InfoPage>:
+    BoxLayout:
+        orientation: "vertical"
+        size: root.width, root.height
+
+        ScrollView:
+            do_scroll_x: False
+            do_scroll_y: True
+            size_hint: 1, 1.1
+            size: root.width, self.parent.height
+
+            Label:
+                size_hint: None, None
+                pos: (root.width-self.width) / 2 + 10, self.pos[1]
+                text_size: root.width * .95, None
+                halign: 'center'
+                valign:'top'
+                size: self.texture_size[0]-10, self.texture_size[1] + sum(x.height for x in self.children)*1.1
+                text: self.parent.parent.parent.data
+
+                markup: True
+
+                Button:
+                    text: "Done"
+                    background_color: bright
+                    foreground_color: superbright
+                    hint_text_color: bright
+                    pos: self.parent.pos[0], 0
+                    size: self.parent.width, self.height
+                    on_press: run(self.parent.parent.parent.parent.back())
 
 <UsersPage>:
     size_hint: 1, 1
