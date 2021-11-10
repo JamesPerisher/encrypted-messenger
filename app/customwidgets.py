@@ -16,7 +16,7 @@ from kivy.uix.button import Button
 import logging
 
 from backend.asyncrun import run, asynclambda
-from backend.keymanagement import contact_data
+from backend.keymanagement import change_info, contact_data
 from backend.signals import Packet, PAC
 from backend.config import Config
 
@@ -66,6 +66,7 @@ class KVPOPup(BaseWidget):
         self.prog = prog
         self.rwidth = rwidth
         self.rheight = rheight
+        self.hidden = False
 
         self.anim  = Animation(y=self.rheight+6, duration=0)
         self.anim += Animation(y=0.05*self.rheight, duration=.5, t='in_back')
@@ -74,6 +75,21 @@ class KVPOPup(BaseWidget):
         self.anim1 = Animation(y=self.rheight+6, duration=.5, t='out_back')
 
         super().__init__(**kwargs)
+    
+    def on_touch_down(self, touch):
+        if self.hidden: return False
+        return super().on_touch_down(touch)
+
+    async def hide(self):
+        if self.hidden: return
+        self._tmpdata = self.height, self.size_hint_y, self.opacity, self.disabled, self.pos
+        self.height, self.size_hint_y, self.opacity, self.disabled, self.pos = 0, None, 0, True, (-1000,-1000)
+        self.hidden = True
+
+    async def show(self):
+        if not self.hidden: return
+        self.height, self.size_hint_y, self.opacity, self.disabled, self.pos = self._tmpdata
+        self.hidden = False
 
     async def close(self):
         self.anim1.start(self.children[0])
@@ -101,14 +117,29 @@ class KVPOPupChangeName(KVPOPup):
         super().__init__(app, *args, **kwargs)
 
     async def change(self):
-        pass
+        self.prog.session.data["privkey"] = self.prog.session.privkey = change_info(self.prog.session.privkey, self.children[0].children[3].text, None, self.prog.session.pin)
+        await self.prog.handler.key_change()
+        await self.close()
 
 class KVPOPupChangeColour(KVPOPup):
     def __init__(self, app, *args, **kwargs):
         super().__init__(app, *args, **kwargs)
+        self.children[0].children[3].colour = self.prog.client.displaycolour
+
+    async def overide_click(self):
+        obj = self.children[0].children[3]
+        await self.hide()
+        await obj.__class__.click(obj)
+
+    async def overide_update(self):
+        obj = self.children[0].children[3]
+        await self.show()
+        await obj.__class__.update(obj)
 
     async def change(self):
-        pass
+        self.prog.session.data["privkey"] = self.prog.session.privkey = change_info(self.prog.session.privkey, None, self.children[0].children[3].colour, self.prog.session.pin)
+        await self.prog.handler.key_change()
+        await self.close()
 
 class KVPOPupSearch(KVPOPup):
     def __init__(self, app, *args, **kwargs):

@@ -2,7 +2,7 @@ import asyncio
 from re import L
 from backend.basics import BaseObject
 from backend.signals import Event, Packet
-from backend.asyncrun import run
+from backend.asyncrun import asynclambda
 
 import slixmpp
 import logging
@@ -16,7 +16,7 @@ def connected(func):
                 return func(self, *args, **kwargs)
         except AttributeError:
             pass
-        return False
+        return asynclambda(lambda : False)
     return f
 
 class Client(BaseObject):

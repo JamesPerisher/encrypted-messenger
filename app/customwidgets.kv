@@ -91,7 +91,7 @@
     TextInput:
         size_hint: 1, .2
         multiline: False
-        text: self.parent.parent.app.session["name"]
+        text: self.parent.parent.prog.client.displayname
 
     Widget:
         size_hint: 1, .4
@@ -114,9 +114,10 @@
 
     ColorInput:
         size_hint: 1, .2
-        colour: utils.get_color_from_hex(self.parent.parent.app.session["colour"])
-        text: self.parent.parent.app.session["colour"]
-        canvas.after: run(self.update(self.parent.parent.app.session["colour"]))
+        colour: utils.get_color_from_hex(self.parent.parent.prog.client.displaycolour)
+        text: self.parent.parent.prog.client.displaycolour
+        click: self.parent.parent.overide_click
+        update: self.parent.parent.overide_update
 
     Widget:
         size_hint: 1, .4

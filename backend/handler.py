@@ -11,6 +11,13 @@ class Handler(BaseObject):
         self.prog.client.msgevent = self.recv_msg # handle incoming messages
 
     async def key_change(self):
+        self.prog.session.data["pubkey"] = get_pub(self.prog.session.data["privkey"])
+        self.prog.client.displayname, self.prog.client.displaycolour = get_info(self.prog.session.data["pubkey"])
+        self.prog.session.data["friends"][self.prog.client.jid] = self.prog.session.data["pubkey"]
+
+        await self.prog.session.maketoken()
+        await self.prog.session.save()
+
         async for i in AsyncIterator(await self.prog.client.get_contacts()): # gets contacts from cloud
             await self.request_pug(i, Packet(PAC.GET_PUB))
     
@@ -55,7 +62,7 @@ class Handler(BaseObject):
         new = self.prog.client.jid if p.pactype == PAC.ME else fromjid  # the current messager
 
         if old == None:
-            userline = "This is the beggining of your conversation with {}. \n".format(fromjid)
+            userline = "This is the beggining of your conversation with {}. \n".format(await render_text(fromjid))
         else:
             if old == new:
                 userline = ""

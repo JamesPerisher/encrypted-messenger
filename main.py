@@ -1,3 +1,4 @@
+import logging
 from app.customwidgets import KVNotifications, KVPOPupSearch, KVPOPupShair
 from backend.asyncrun import InputIterator, run
 from backend.cache import Cache
@@ -58,9 +59,8 @@ class Program:
         await self.app.shownotification(KVPOPupShair)
 
     async def propertypage(self, etype, data):
-        pass
-        # self.app.sm.transition.direction = 'right'
-        # self.app.sm.current = "UserPropertyPage"
+        self.app.sm.transition.direction = 'right'
+        self.app.sm.current = self.app.UserPropertyPage.name
 
 
     async def unlockpin(self, etype, data):
@@ -134,8 +134,8 @@ class Program:
         self.ignoreevents = False
 
 
-    def handle_exception(self, loop, context):
-        pass
+    # def handle_exception(self, loop, context):
+    #     pass
 
     def make_files(self):
         if not os.path.isdir(Config.USERDATA_DIR): os.mkdir(Config.USERDATA_DIR)
@@ -154,7 +154,7 @@ class Program:
 
     def asyncstart(self):
         loop = asyncio.get_event_loop()
-        loop.set_exception_handler(self.handle_exception)
+        # loop.set_exception_handler(self.handle_exception)
 
         return asyncio.gather(
             self.session.status(), # check stored sessions
@@ -166,6 +166,14 @@ class Program:
 
     async def save(self):
         pass
+
+    async def close(self):
+        logging.warn("Exiting program")
+        asyncio.get_event_loop().stop()
+        return False
+
+    def on_request_close(self, arg): # close asyncio eventloop so program will exit
+        run(self.close())
         
 
     def start(self): # make all the objects

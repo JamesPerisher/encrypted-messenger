@@ -9,7 +9,11 @@ from backend.config import Config
 class Session(BaseObject):
     def __init__(self, prog, data) -> None:
         super().__init__(prog, data)
-        self.privkey = self.data.get("privkey", False)
+        try:
+            self.privkey = self.data.get("privkey", False)
+        except AttributeError:
+            run(self.prog.event(Event.NO_KEY, ""))
+            return
 
         if self.privkey: return
         run(self.prog.event(Event.NO_KEY, ""))
@@ -31,10 +35,13 @@ class Session(BaseObject):
         })
 
     async def status(self):
-        if self.data["active"]:
-            await self.prog.event(Event.UNLOCK_PIN)
-        else:
-            await self.prog.event(Event.LOGIN)
+        try:
+            if self.data["active"]:
+                return await self.prog.event(Event.UNLOCK_PIN)
+            else:
+                return await self.prog.event(Event.LOGIN)
+        except TypeError:
+            return await self.prog.event(Event.LOGIN)
 
 
     async def get_key(self, jid, default="xyz"):
@@ -47,4 +54,12 @@ class Session(BaseObject):
     def from_prog(cls, prog):
         return cls.from_file(prog, Config.SESSION_FILE, Config.DEFAULT_SESSION)
     def save(self): return super().save(Config.SESSION_FILE)
+
+    async def logout(self):
+        self.data = None
+        self.prog.cache.data = None
+        self.prog.cache.save()
+        await self.save()
+
+        self.prog.on_request_close(None)
     

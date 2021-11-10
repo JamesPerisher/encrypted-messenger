@@ -65,7 +65,7 @@ class MessagePage(BaseScreen):
         self.meuser = meuser
         self.touser = touser # can be (VirtualUser e.g. a group idk how the encryption would work)
         self.instructions = []
-        run(self.make())
+        run(self.reload())
 
     def key(self, other, keyboard, keycode, display, modifyers):
         _, code = keycode
@@ -80,10 +80,9 @@ class MessagePage(BaseScreen):
 
     async def ref(self, label, data): pass
 
-    async def make(self): pass
     async def reload(self):
         self.children[0].children[1].children[0].text = self.prog.cache[self.touser.userid]
-        await self.refresh()
+        run(self.refresh())
 
     async def send(self):
         data = self.children[0].children[0].children[1].text
@@ -129,23 +128,41 @@ class MessagePage(BaseScreen):
         await self.prog.cache.save()
 
     @classmethod
-    def from_user(cls, app, meuser, touser, *args, **kwargs):
-        return cls(app, meuser, touser, *args, **kwargs)
+    def from_user(cls, prog, meuser, touser, *args, **kwargs):
+        return cls(prog, meuser, touser, *args, **kwargs)
 app.customwidgets.MessagePage = MessagePage # do import overwrite
 
 
 
 class UserPropertyPage(BaseScreen):
-    def __init__(self, app, **kw):
-        super().__init__(app, **kw)
+    def __init__(self, prog, **kw):
+        super().__init__(prog, **kw)
         run(self.build())
 
-    async def logout(self): pass
-    async def changeusername(self): pass
-    async def changecolour(self): pass
-    async def build(self): pass
-    async def add_prop(self, userproperty): pass
-    async def back(self): pass
+    async def logout(self):
+        await self.prog.session.logout()
+
+        self.app.sm.transition.direction = 'right'
+        self.app.sm.current = "LoginPage"
+
+
+    async def changeusername(self):
+        await self.prog.app.shownotification(KVPOPupChangeName)
+
+    async def changecolour(self):
+        await self.prog.app.shownotification(KVPOPupChangeColour)
+
+
+    async def build(self):
+        await self.add_prop(UserPropertySpace())
+        await self.add_prop(UserPropertyButton(name="Change username", event=self.changeusername))
+        await self.add_prop(UserPropertyButton(name="Change colour", event=self.changecolour))
+        await self.add_prop(UserPropertyButton(name="Log out", event=self.logout))
+    async def add_prop(self, userproperty):
+        self.children[0].children[0].add_widget(userproperty)
+    async def back(self):
+        self.prog.app.sm.transition.direction = 'left'
+        self.prog.app.sm.current = self.prog.app.UsersPage.name
 
 class PinPage(BaseScreen):
     pin = ""
