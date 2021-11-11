@@ -13,7 +13,7 @@ package.domain = com.github.pauln07org
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,kv,ttf, sdf, otf
+source.include_exts = py,png,kv,ttf, sdf, otf, txt
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
