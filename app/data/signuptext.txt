@@ -1,1 +1,127 @@
-this is a placeholder signuptext file
+[b]Confidentiality Statement:[/b]
+
+Kryptos is designed to never collect or store any sensitive information. Kryptos messages cannot be accessed by us or other third parties because they are always end-to-end encrypted, private, and secure. We will not, in any circumstances, log or share any information with other individuals or organizations. However, users are responsible for managing the security of their own devices. We hold no responsibility for any user's misuse of the application. 
+
+
+[b]Create an Account:[/b]
+
+1. Visit one of these supported websites:
+    - jabber.at - https://jabber.at/
+    - jabber.no-sense.net - http://jabber.no-sense.net/
+    - igniterealtime.org - http://www.igniterealtime.org/
+    - default.rs - http://default.rs/
+    - linuxlovers.at - http://wiki.linuxlovers.at/de/jabber
+    - blah.im - http://www.blah.im/
+    - jabbim.cz - http://www.jabbim.cz/
+    - jabber.cz - http://www.jabbim.cz/
+    - jabbim.pl - http://www.jabbim.pl/
+    - jabbim.sk - http://www.jabbim.sk/
+    - jabbim.com - http://www.jabbim.com/
+    - jabber-br.org - https://jabber-br.org/
+    - jodo.im - http://jodo.im/
+    - creep.im - https://creep.im/
+    - xmpp.jp - http://www.xmpp.jp/
+    - jabber.minus273.org - http://jabber.minus273.org/
+    - jabber.de - http://www.jabber.de/
+    - jabber.zone - https://jabber.zone/
+    - xmpp.zone - 
+    - ybgood.de - https://www.jabjab.de/
+    - crab.im - http://crab.im/
+    - chinwag.im - https://chinwag.im/
+    - jabberzac.org - https://jabberzac.org/
+    - xmpp.is - https://xmpp.is/
+    - jix.im - https://jix.im/
+    - pimux.de - https://www.pimux.de
+    - jabber.hot-chilli.net - https://jabber.hot-chilli.net
+    - jabber.hot-chilli.eu - https://jabber.hot-chilli.net
+    - hot-chilli.net - https://jabber.hot-chilli.net
+    - hot-chilli.eu - https://jabber.hot-chilli.net
+    - im.hot-chilli.net - https://jabber.hot-chilli.net
+    - im.hot-chilli.eu - https://jabber.hot-chilli.net
+    - jabb3r.de - https://jabber.hot-chilli.net
+    - jabb3r.org - https://jabber.hot-chilli.net
+    - jabber-hosting.de - https://jabber.hot-chilli.net
+    - xmpp-hosting.de - https://jabber.hot-chilli.net
+    - draugr.de - https://www.draugr.de
+    - jabjab.de - https://www.jabjab.de/
+    - planetjabber.de - https://www.jabjab.de/
+    - pad7.de - https://www.jabjab.de/
+    - pad7.net - https://www.jabjab.de/
+    - lethyro.net - https://www.jabjab.de/
+    - jabberwiki.de - https://www.jabjab.de/
+    - jabberforum.de - https://www.jabjab.de/
+    - twattle.net - https://twattle.net/
+    - dismail.de - 
+    - conversations.im - http://conversations.im
+    - kitsune.one - https://kitsune.one/
+    - 4ept.net - https://4ept.net/xmpp
+    - jabber.systemausfall.org - https://systemausfall.org/
+    - magicbroccoli.de - https://magicbroccoli.de/xmpp/
+    - xmpp.co - https://xmpp.is/
+    - xmpp.cx - https://xmpp.is/
+    - xmpp.xyz - https://xmpp.is/
+    - xmpp.fi - https://xmpp.is/
+    - lightwitch.org - 
+    - jabber.tcpreset.net - https://jabber.tcpreset.net/
+    - jabber.sytes24.pl - http://jabber.sytes24.pl
+    - step.im - https://step.im/
+    - coniuncte.de - https://coniuncte.de
+    - eigenlab.org - https://git.eigenlab.org/eigenlab/do-it-yourJabber/wikis/home
+    - jabbers.one - https://jabbers.one
+    - thesecure.biz - https://thesecure.biz
+    - yax.im - https://yaxim.org/yax.im/
+    - yourdata.forsale - https://yourdata.forsale/
+    - xmpp.international - https://marxist.club/
+    - a3.pm - https://a3.pm/xmpp.html
+    - jabber.lqdn.fr - https://jabber.lqdn.fr/
+    - chatserver.space - https://chatserver.space
+    - jab.im - https://www.jab.im
+    - k7m.de - http://www.k7m.de/
+    - tigase.im - https://tigase.im/
+    - sure.im - https://sure.im/
+    - anoxinon.me - https://anoxinon.de
+    - jabber.today - https://jabber.today/
+    - 616.pub - https://616.pub
+    - chat.sum7.eu - https://sum7.eu/chat
+    - meckerspace.de - https://sum7.eu/chat
+    - ruwg.net - https://chat.ruwg.net
+    - linuxcult.net - https://www.linuxcult.net
+    - jabber.uk - https://jabber.uk
+    - jabbxi.de - https://jabbxi.de
+    - nerv.tech - https://nerv.tech
+    - movim.eu - https://movim.eu/
+    - suchtbasis.de - https://suchtbasis.de
+    - e2e.ee - https://e2e.ee
+    - marxist.club - https://marxist.club/
+    - skyn3t.in - https://www.skyn3t.in
+    - chapril.org - https://www.chapril.org/XMPP.html
+    - monocles.de - https://monocles.de/more/
+    - jabberx.io - http://www.jabberx.io
+    - jabberx.net - http://www.jabberx.net
+    - jabberx.ru - http://www.jabberx.ru
+    - jabberx.cc - http://www.jabberx.cc
+    - xmppx.io - http://www.xmppx.io
+    - sqli.io - http://www.shad0w.io
+    - hell.la - http://www.shad0w.io
+    - 0day.la - http://www.shad0w.io
+    - 0day.im - http://www.shad0w.io
+    - shad0w.ru - http://www.shad0w.io
+    - shad0w.la - http://www.shad0w.io
+    - shad0w.io - http://www.shad0w.io
+    - 01337.ru - http://www.shad0w.io
+    - 01337.io - http://www.shad0w.io
+    - hookipa.net - https://hookipa.net
+    - xmpp.social - https://hookipa.net
+    - nerdica.net - https://nerdica.net/
+    - nerdculture.de - https://nerdculture.de/
+    - xmppx.ru - http://www.jabberx.net
+    - stefgo.net - https://jabber.stefgo.net
+    - og.im - http://www.og.im
+    - alolise.org - https://alolise.org
+
+    Alternatively, you may use your own third party service.
+
+    
+2. Create an account by following the prompts provided by the service.
+3. Use your account password and JID to log into the application.
+    Your JID should look something like example@exampledomain.com

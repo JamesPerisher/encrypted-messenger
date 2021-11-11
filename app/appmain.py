@@ -40,6 +40,7 @@ class LoginPage(BaseScreen):
             self.prog.app.InfoPage.data = f.read()
 
         self.prog.app.InfoPage.data += "\n\n\n\n\n\n"
+        self.prog.app.InfoPage.halign = "left"
 
         self.prog.app.InfoPage.backpage = self.name
         self.prog.app.sm.transition.direction = 'left'
@@ -48,6 +49,7 @@ class LoginPage(BaseScreen):
 # page to render information to the user
 class InfoPage(BaseScreen):
     _data = ""
+    _halign = "left"
     @property
     def data(self):
         return self._data
@@ -55,6 +57,14 @@ class InfoPage(BaseScreen):
     def data(self, value):
         self._data = value
         self.children[0].children[0].children[0].text = value # update the kivy widget on valuechange
+    
+    @property
+    def halign(self):
+        return self._data
+    @data.setter
+    def halign(self, value):
+        self._halign = value
+        self.children[0].children[0].children[0].halign = value # update the kivy widget on valuechange
 
     backpage = ""
 
@@ -72,6 +82,7 @@ class UsersPage(BaseScreen1):
 
     # update all users information from new keys
     async def update(self):
+        c = self.prog.app.sm.current
         self.user = User(self.prog, self.prog.client.displayname, self.prog.client.displaycolour, get_id(get_pub(self.prog.session.privkey)))
 
         self.prog.app.sm.remove_widget(self)
@@ -83,6 +94,7 @@ class UsersPage(BaseScreen1):
         async for i in AsyncIterator(await self.prog.client.get_contacts()): # gets contacts from cloud and updates the userlist asyncronously
             u = User(self.prog, *get_info(await self.prog.session.get_key(i)), i)
             await newself.add_user(u)
+        self.prog.app.sm.current = c
     
     # Add the user
     async def add_user(self, user):
@@ -231,6 +243,7 @@ class PinPage(BaseScreen):
 
     # refocus when losing focus the attention whore
     def on_touch_up(self, touch):
+        return
         run(self.focus())
 
 # Overite a default class

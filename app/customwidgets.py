@@ -247,7 +247,7 @@ class UserPropertySpace(UserProperty):
 
 # The Base User class for users in the userpage
 class User(BaseWidget):
-    def __init__(self, prog, username="[Username err]", colour="#eeeeee", userid="[id err]", index=0, img="", **kwargs):
+    def __init__(self, prog, username="Loading...", colour="#eeeeee", userid="Loading..", index=0, img="", **kwargs):
         # all the properties a user has
         self.prog = prog
         self.userid = userid

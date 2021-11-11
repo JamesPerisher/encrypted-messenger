@@ -90,6 +90,9 @@ class Program:
         self.client.displayname   = cliaccess["displayname"]
         self.client.displaycolour = cliaccess["displaycolour"]
 
+        self.app.sm.transition.direction = 'right'
+        self.app.sm.current = self.app.UsersPage.name
+
     async def nokey(self, etype, data): return # Depricated
     # get user to generate a pin number
     async def generate_pin(self):
@@ -119,11 +122,12 @@ class Program:
         await self.app.UsersPage.update() # TODO: relocate
 
         # Spam user with terms and conditions
-       
+        self.app.InfoPage.halign = "center"
         with open(Config.TERMS, 'r') as f:
             self.app.InfoPage.data = f.read()
 
         self.app.InfoPage.data += "\n\n\n"
+        self.app.InfoPage.data += "[b]Licence Agreement:[/b]\n"
 
         with open(Config.LICENCE, 'r') as f:
             self.app.InfoPage.data += f.read()
