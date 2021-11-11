@@ -3,9 +3,6 @@
 
 
 
-
-
-
 ## appmain.py
 gui interface for proccessing user interaction
 

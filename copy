@@ -1,3 +1,5 @@
+# duplicate all files for local comunication testing
+
 ./cleanup
 mkdir ../_copy 
 

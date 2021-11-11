@@ -1,1 +1,2 @@
- buildozer android logcat | grep "I python"
+# get a debug log for the app running on phone
+buildozer android logcat | grep "I python"

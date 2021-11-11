@@ -1,4 +1,5 @@
-# rm -r userdata
+# cleanup all junk file for building
+rm -r userdata
 rm -r bin
 rm -r _copy -f
 rm -r ../_copy -f

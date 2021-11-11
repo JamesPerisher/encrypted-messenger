@@ -1,5 +1,7 @@
 #:kivy 1.0.9
 
+
+# base widget again idk why its probs important
 <BaseWidget>:
     canvas.before:
         Color:
@@ -16,9 +18,11 @@
             pos: self.pos
 
 
+# notification
 <KVNotifications>:
     size: 0, 0
     size_hint: 0, 0
+    # use a button to render it cos why not
     Button:
         pos: (self.parent.rwidth-self.width)/2, self.parent.rheight - self.height - 6
         disabled: True
@@ -27,6 +31,7 @@
         size_hint: 1, None
         size: self.parent.rwidth *.95, self.parent.rheight * .07
 
+        # the Error message renderer
         Label:
             halign:'center'
             valign:'middle'
@@ -36,10 +41,11 @@
             color: error
             text_size: self.size
 
-
+# Base popup
 <KVPOPup>:
     size: 0, 0
     size_hint: 0, 0
+    # all shit goes in this child widget
     BoxLayout:
         orientation: "vertical"
         padding: 10
@@ -57,17 +63,20 @@
         size_hint: 1, 1
         size: self.parent.rwidth *.9, self.parent.rheight * .9
 
-
+# popup shaire
 <KVPOPupShair>:
+    # username
     Label:
         text: "err"
         font_size: sp(30)
         size_hint: 1, .1
 
+    # QRCODE
     Image:
-        source: "app/images/logo.png"
+        source: "app/images/logo.png" # default prior to overite
         size_hint: 1, 1
 
+    # copy shair string to clipboard
     CopyButton:
         text: "Copy ID"
         font_size: sp(11)
@@ -76,18 +85,18 @@
     Widget:
         size_hint: 1, .05
 
+    # We done here
     Button:
         text: "Done"
         size_hint: 1, .1
         on_press: run(self.parent.parent.close())
 
-
+# Change username
 <KVPOPupChangeName>:
-
     Label:
         size_hint: 1, .1
         text: "Change username"
-
+    # name input
     TextInput:
         size_hint: 1, .2
         multiline: False
@@ -96,6 +105,7 @@
     Widget:
         size_hint: 1, .4
 
+    # self explanitory buttons
     Button:
         text: "Ok"
         size_hint: 1, .1
@@ -105,13 +115,14 @@
         size_hint: 1, .1
         on_press: run(self.parent.parent.close())
 
-
+# change color
 <KVPOPupChangeColour>:
 
     Label:
         size_hint: 1, .1
         text: "Change colour"
 
+    # input the color
     ColorInput:
         size_hint: 1, .2
         colour: utils.get_color_from_hex(self.parent.parent.prog.client.displaycolour)
@@ -122,6 +133,7 @@
     Widget:
         size_hint: 1, .4
 
+    # self explanitory buttons
     Button:
         text: "Ok"
         size_hint: 1, .1
@@ -131,23 +143,22 @@
         size_hint: 1, .1
         on_press: run(self.parent.parent.close())
 
-
+# search for a user
 <KVPOPupSearch>:
-
     Label:
         size_hint: 1, .1
         text: "Scan QR code"
 
-
+    # TODO: reimplemntt this qrcode scanning camera
     # ZBarCam:
     #     id: "camera"
     #     size_hint: 1, .9
     #     # code_types: ZBarSymbol.QRCODE
-
+    
     Label:
         size_hint: 1, .1
         text: "Enter id"
-
+    # manual code input
     TextInput:
         size_hint: 1, .2
         multiline: False
@@ -156,6 +167,7 @@
     Widget:
         size_hint: 1, .4
 
+    # self explanitory buttons
     Button:
         text: "Ok"
         size_hint: 1, .1
@@ -165,9 +177,8 @@
         size_hint: 1, .1
         on_press: run(self.parent.parent.close())
 
-
+# Depricated
 <KVPOPupAddUser>:
-
     Label:
         size_hint: 1, .1
         text: "Add user"
@@ -198,7 +209,7 @@
         size_hint: 1, .1
         on_press: run(self.parent.parent.close())
 
-
+# the base screens colors
 <BaseScreen>:
     canvas.before:
         Color:
@@ -214,14 +225,14 @@
             size: self.size
             pos: self.pos
 
-
+# color input widget
 <ColorInput>:
     background_normal: ''
     background_down: ''
     background_color: utils.get_color_from_hex(self.colour)
     on_press: run(self.click())
 
-
+# Color page for color selecting
 <ColourPage>:
     BoxLayout:
         orientation:"vertical"
@@ -232,15 +243,13 @@
             size_hint: 1, .1
             on_press: run(self.parent.parent.done())
 
-
+# empty
 <UserProperty>:
     size_hint: 1, .25
-
-
 <UserPropertySpace>:
     size_hint: 1, .1
 
-
+# adds the needed button
 <UserPropertyButton>:
     Button:
         size_hint: 1, None
@@ -249,8 +258,7 @@
         text: self.parent.name
         pos: self.parent.pos
         on_press: run(self.parent.event())
-
-
+# basic page to show the properties
 <UserPropertyPage>:
     size_hint: 1, 1
     pos: 0, 0
@@ -260,7 +268,7 @@
         size_hint: 1, .1
         pos: 0, self.parent.height-self.height
         on_press: run(self.parent.back())
-
+    # properties are scrollable
     ScrollView:
         do_scroll_x: False
         do_scroll_y: True
@@ -273,15 +281,17 @@
             size: root.width, sum([x.size[1] for x in self.children]) + self.spacing[1]*len(self.children) + 50
             spacing: 2
 
-
+# User class
 <User>:
     size_hint: 1, None
     height: sp(100)
+    # register click events
     Button:
         background_color: 0,0,0,0
         pos: self.parent.pos
         size: self.parent.size
         on_press: run(self.parent.press())
+    # rendering
     BoxLayout:
         orientation: "horizontal"
         width: sqrt(root.width) * 0.95
@@ -290,6 +300,7 @@
         spacing: 10
         height: self.parent.height
 
+        # profile picture
         Image:
             source: self.parent.parent.img
             size_hint: .1, .99
@@ -299,6 +310,7 @@
             orientation: "vertical"
             size_hint: .9, 1
 
+            # username
             Label:
                 font_size: sp(25)
                 text: self.parent.parent.parent.username
@@ -307,7 +319,7 @@
                 valign:'bottom'
                 text_size: self.size
                 spacing: 5
-
+            # Userid or jid
             Label:
                 text: self.parent.parent.parent.userid
                 halign:'left'
@@ -315,6 +327,7 @@
                 size_hint_y: 0.4
                 text_size: self.size
 
+# pin button
 <PinButton>:
     background_normal: 'app/images/background1.png'
     background_down: 'app/images/background1.png'
@@ -326,11 +339,13 @@
     font_name: font
 
 
+# Pin buttons grid
 <PinButtons>:
     cols: 3
     data: ""
     update: self
 
+    # all the buttons per row
     PinButton:
         text:"1"
     PinButton:
@@ -352,6 +367,7 @@
     PinButton:
         text:"9"
 
+    # has 0 width space so len(x) != 1, charecter made to look pretty in custom font
     PinButton:
         text:"↞​"
     PinButton:

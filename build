@@ -1,1 +1,2 @@
+# build the app with buildozer
 buildozer android debug deploy run

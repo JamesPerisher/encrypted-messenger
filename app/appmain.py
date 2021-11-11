@@ -1,19 +1,21 @@
+import app.customwidgets
 import asyncio
-from kivy.core.window import Window
-from kivy.lang import Builder
-from kivy.app import App
 
+from kivy.lang import Builder
+from kivy.core.window import Window
+
+from kivy.app import App
+from kivy.clock import Clock
+from kivy.core.window import Window
+from kivy.graphics import Line, Color
 from kivy.uix.screenmanager import ScreenManager
 
-import app.customwidgets
 from app.customwidgets import *
-from backend.asyncrun import AsyncIterator
 from backend.basics import BaseObject
+from backend.asyncrun import AsyncIterator
 from backend.keymanagement import encrypt, get_id, get_info, get_pub, validate_hex
-from kivy.graphics import Line, Color
-from kivy.clock import Clock
 from backend.signals import Event
-from kivy.core.window import Window
+
 
 # somehow keeps input visible for keyboard
 Window.keyboard_anim_args = {'d': .2, 't': 'in_out_expo'}
