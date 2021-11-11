@@ -1,7 +1,7 @@
 #:kivy 1.0.9
 
 
-
+# Page layout for login
 <LoginPage>:
     BoxLayout:
         size_hint: None, None
@@ -12,11 +12,13 @@
         Widget:
             size_hint: 1, .05
 
+        # Depricated
         Label:
             size_hint: 1, .1
             text: ""
             color: error
 
+        # Username input
         TextInput:
             hint_text: 'Displayname'
             multiline: False
@@ -27,6 +29,7 @@
         Widget:
             size_hint: 1, .01
 
+        # JID input
         TextInput:
             hint_text: 'Userid (jid)'
             multiline: False
@@ -37,6 +40,8 @@
         Widget:
             size_hint: 1, .01
 
+        # jabber password input
+        # TODO: make password input hidden idfk
         TextInput:
             hint_text: 'Password'
             multiline: False
@@ -48,6 +53,7 @@
         Widget:
             size_hint: 1, .01
 
+        # User colour input
         ColorInput:
             text: "Select Colour"
             size_hint: 1, .1
@@ -55,10 +61,12 @@
         Widget:
             size_hint: 1, .05
 
+        # button horizontal stacking
         BoxLayout:
             orientation: "horizontal"
             size_hint: 1, .1
 
+            # show how to sign up info
             Button:
                 text: "Sign up"
                 background_color: bright
@@ -69,6 +77,7 @@
             Widget:
                 size_hint: .05, 1
 
+            # log into the account
             Button:
                 text: "Log in"
                 background_color: bright
@@ -79,6 +88,7 @@
         Widget:
             size_hint: 1, .05
 
+        # application logo for fun
         Image:
             source: "app/images/logo.png"
             size_hint: None, .25
@@ -86,17 +96,18 @@
             center: self.parent.width/2, self.parent.children[1].pos[1] / 2
             allow_stretch: True
 
+# Page layout for information eg terms and conditions etc
 <InfoPage>:
     BoxLayout:
         orientation: "vertical"
         size: root.width, root.height
-
+        # scrollable text
         ScrollView:
             do_scroll_x: False
             do_scroll_y: True
             size_hint: 1, 1.1
             size: root.width, self.parent.height
-
+            # actual text
             Label:
                 size_hint: None, None
                 pos: (root.width-self.width) / 2 + 10, self.pos[1]
@@ -106,8 +117,9 @@
                 size: self.texture_size[0]-10, self.texture_size[1] + sum(x.height for x in self.children)*1.1
                 text: self.parent.parent.parent.data
 
-                markup: True
+                markup: True # allows markup
 
+                # back to set page event button
                 Button:
                     text: "Done"
                     background_color: bright
@@ -121,18 +133,18 @@
     size_hint: 1, 1
     pos: 0, 0
 
-
     BoxLayout:
         orientation: "vertical"
         size: root.width, root.height
         
-
+        # You the current user to render in top
         BoxLayout:
             orientation: "horizontal"
             size_hint: 1, .1
             padding: 5
             spacing: self.width/100
 
+            # user avatar and event for user property page
             Button:
                 background_color: 0,0,0,0
                 size_hint: .2, 1
@@ -142,14 +154,14 @@
                     size: self.parent.width, self.parent.height
                     center: self.parent.center_x, self.parent.pos[1] + self.parent.height/2
                     allow_stretch: True
-
+            # Username
             Label:
                 font_size: sp(25)
                 text: self.parent.parent.parent.user.username
                 halign:'left'
                 valign:'middle'
                 text_size: self.size
-
+            # search for a user
             Button:
                 background_color: 0,0,0,0
                 size_hint_x: .1
@@ -161,6 +173,7 @@
                     allow_stretch: True
             Widget:
                 size_hint: 0.01, 1
+            # Get your shairing QR code
             Button:
                 background_color: 0,0,0,0
                 size_hint_x: .1
@@ -179,33 +192,36 @@
             size_hint: 1, .002
             height: 5
 
+        # scrollable list of users
         ScrollView:
             do_scroll_x: False
             do_scroll_y: True
             size_hint: 1, .9
             size: root.width, self.parent.height
-
+            # list of users
             ScrollLayout:
                 orientation: "tb-lr"
                 size_hint_x: root.width
                 size: root.width, sum([x.size[1] for x in self.children]) + self.spacing[1]*len(self.children) + 50
                 spacing: 2
 
-
+# Base page for message rendering
 <MessagePage>:
     BoxLayout:
         orientation:"vertical"
-        BoxLayout: # fix this at some point
+        # Messaging top bar
+        BoxLayout:
             orientation:"horizontal"
             size_hint: 1, None
             height: self.parent.height * 0.07
-            canvas.before:
+            canvas.before: # image background color
                 Color:
                     rgb: background
                 Rectangle:
                     pos: self.pos
                     size: self.size
 
+            # button to go to usersliat page
             Button:
                 text:""
                 size_hint: .2, .9
@@ -218,13 +234,13 @@
                     size: self.parent.width, self.parent.height
                     center: self.parent.center_x, self.parent.pos[1] + self.parent.height/2
                     allow_stretch: True
-
+            # Depricated
             Button:
-                text:"Reload (debug)"
-                on_press: run(self.parent.parent.parent.reload())
+                text:""
         Widget:
             size_hint: 1, .01
 
+        # Scrollable messages
         ScrollView:
             do_scroll_x: False
             do_scroll_y: True
@@ -240,19 +256,20 @@
 
                 markup: True
 
+        # Messaging bottom bar
         BoxLayout:
             orientation: "horizontal"
             width: self.parent.width
             height: self.children[1].size[1]
             size_hint_y: None
 
-            canvas.before:
+            canvas.before: # image background color
                 Color:
                     rgb: lightbackground
                 Rectangle:
                     size: self.size
                     pos: self.pos
-
+            # Input for text
             TextInput:
                 background_color: lightbackground
                 on_text: Clock.schedule_once(lambda x: self.parent.parent.parent.update(self.parent, self.parent.parent.children[1], self), 0)
@@ -273,7 +290,8 @@
                 height: max(min(5*self.line_height*1.5, self.minimum_height), self.parent.children[0].children[0].width * 1.3)
 
                 keyboard_on_key_down: lambda *arg, **kwargs : self.parent.parent.parent.key(self, *arg, **kwargs)
-
+            
+            # send a message button
             Button:
                 size_hint: .1, .9
                 # height: self.width*1.3
@@ -285,7 +303,7 @@
                     center: self.parent.center_x + self.parent.width/100, self.parent.center_y + self.parent.height/100
                     allow_stretch: True
 
-
+# Pin number input and creation
 <PinPage>:
     BoxLayout:
         keyboard_on_key_down: lambda *arg, **kwargs : self.key(self, *arg, **kwargs)
@@ -299,6 +317,7 @@
             text: ""
             size_hint: 1, .1
 
+        # Prompt
         Label:
             size_hint: 1, .2
             font_size: sp(90)
@@ -307,6 +326,7 @@
             text: ""
             color: superbright
 
+        # actula pinpad
         PinButtons:
             size_hint: 1, .6
             update: self.parent.children[1]

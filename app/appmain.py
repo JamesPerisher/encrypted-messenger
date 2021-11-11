@@ -15,23 +15,25 @@ from kivy.clock import Clock
 from backend.signals import Event
 from kivy.core.window import Window
 
-
+# somehow keeps input visible for keyboard
 Window.keyboard_anim_args = {'d': .2, 't': 'in_out_expo'}
 Window.softinput_mode = "below_target"
 
-
+# preload settings
 Builder.load_file('app/kvsettings.kv')
 # Window.size = (400, 700) # for desktop debug only
 
-
+# handle login
 class LoginPage(BaseScreen):
-    async def login(self):
+    # Stores information
+    async def login(self) -> None:
         self.prog.client.displayname   = self.children[0].children[10].text
         self.prog.client.jid           = self.children[0].children[8].text
         self.prog.client.password      = self.children[0].children[6].text
         self.prog.client.displaycolour = self.children[0].children[4].colour
 
-    async def signup(self):
+    # move to information page
+    async def signup(self) -> None:
         with open(Config.SIGNUP_TEXT, 'r') as f:
             self.prog.app.InfoPage.data = f.read()
 
@@ -41,6 +43,7 @@ class LoginPage(BaseScreen):
         self.prog.app.sm.transition.direction = 'left'
         self.prog.app.sm.current = self.prog.app.InfoPage.name
 
+# page to render information to the user
 class InfoPage(BaseScreen):
     _data = ""
     @property
@@ -49,20 +52,23 @@ class InfoPage(BaseScreen):
     @data.setter
     def data(self, value):
         self._data = value
-        self.children[0].children[0].children[0].text = value
+        self.children[0].children[0].children[0].text = value # update the kivy widget on valuechange
 
     backpage = ""
 
+    # go back to the future
     async def back(self):
         self.prog.app.sm.transition.direction = 'right'
         self.prog.app.sm.current = self.backpage
 
+# List of users
 class UsersPage(BaseScreen1):
     def __init__(self, prog, user=None, **kwargs):
         self.user = user if user else User(prog)
         self.userlist = {}
         super().__init__(prog, **kwargs)
 
+    # update all users information from new keys
     async def update(self):
         self.user = User(self.prog, self.prog.client.displayname, self.prog.client.displaycolour, get_id(get_pub(self.prog.session.privkey)))
 
@@ -72,14 +78,16 @@ class UsersPage(BaseScreen1):
         self.prog.app.sm.current = self.name
         self.prog.app.UsersPage = newself
 
-        async for i in AsyncIterator(await self.prog.client.get_contacts()): # gets contacts from cloud
+        async for i in AsyncIterator(await self.prog.client.get_contacts()): # gets contacts from cloud and updates the userlist asyncronously
             u = User(self.prog, *get_info(await self.prog.session.get_key(i)), i)
             await newself.add_user(u)
     
+    # Add the user
     async def add_user(self, user):
         self.userlist[user.userid] = user
         self.children[0].children[0].children[0].add_widget(user)
 
+    # Make events on the main program handling
     async def search(self):
         await self.prog.event(Event.SEARCH, "")
     async def userproperties(self):
@@ -87,6 +95,7 @@ class UsersPage(BaseScreen1):
     async def shaire(self):
         await self.prog.event(Event.SHAIRE, "")
 
+# Base renderer for messages
 class MessagePage(BaseScreen):
     def __init__(self, prog, meuser, touser, **kwargs):
         super().__init__(prog, **kwargs)
@@ -95,6 +104,7 @@ class MessagePage(BaseScreen):
         self.instructions = []
         run(self.reload())
 
+    # do enter events to send messages
     def key(self, other, keyboard, keycode, display, modifyers):
         _, code = keycode
         if code == "enter" and (not "shift" in modifyers):
@@ -102,16 +112,19 @@ class MessagePage(BaseScreen):
             return
         other.__class__.keyboard_on_key_down(other, keyboard, keycode, display, modifyers)
 
+    # update bottom bar height from text input
     def update(self, a, b, c):
         a.size[1] = c.size[1]
         b.pos = [0, c.size[1]+10]
 
-    async def ref(self, label, data): pass
+    async def ref(self, label, data): pass # Depricated
 
+    # load messages from cache
     async def reload(self):
         self.children[0].children[1].children[0].text = self.prog.cache[self.touser.userid]
         run(self.refresh())
 
+    # send message event from kivy
     async def send(self):
         data = self.children[0].children[0].children[1].text
         self.children[0].children[0].children[1].text = ""
@@ -122,7 +135,7 @@ class MessagePage(BaseScreen):
         await self.prog.handler.send(self.touser.userid, p, raw=data.strip())
         del data
 
-
+    # draw pretty bars to left of text
     async def draw_displacement(self, obj): # idfk whjat to do with this
         anchors = self.children[0].children[1].children[0].anchors
 
@@ -145,42 +158,42 @@ class MessagePage(BaseScreen):
                 b = obj.height-y1
                 self.instructions.append(Line(points=[10, a, 10, b], width=1))
 
-
     async def refresh(self):
         Clock.schedule_once(lambda x: run(self.draw_displacement(self.children[0].children[1].children[0])), 0) # draw sidebar color thingy
 
-    async def recieve(self, message): pass
-    async def back(self):
+    async def recieve(self, message): pass # Depricated
+    async def back(self): # Go back to the future
         self.prog.app.sm.transition.direction = 'right'
         self.prog.app.sm.current = self.prog.app.UsersPage.name
         await self.prog.cache.save()
 
     @classmethod
-    def from_user(cls, prog, meuser, touser, *args, **kwargs):
+    def from_user(cls, prog, meuser, touser, *args, **kwargs): # create a new instance of the class from user Depricated
         return cls(prog, meuser, touser, *args, **kwargs)
 app.customwidgets.MessagePage = MessagePage # do import overwrite
 
 
-
+# Change your information
 class UserPropertyPage(BaseScreen):
     def __init__(self, prog, **kw):
         super().__init__(prog, **kw)
         run(self.build())
 
+     # Kill everything and close the app
     async def logout(self):
         await self.prog.session.logout()
 
         self.app.sm.transition.direction = 'right'
         self.app.sm.current = "LoginPage"
 
-
+    # change username
     async def changeusername(self):
         await self.prog.app.shownotification(KVPOPupChangeName)
-
+    # change colour
     async def changecolour(self):
         await self.prog.app.shownotification(KVPOPupChangeColour)
 
-
+    # add all the options to the page
     async def build(self):
         await self.add_prop(UserPropertySpace())
         await self.add_prop(UserPropertyButton(name="Change username", event=self.changeusername))
@@ -188,45 +201,51 @@ class UserPropertyPage(BaseScreen):
         await self.add_prop(UserPropertyButton(name="Log out", event=self.logout))
     async def add_prop(self, userproperty):
         self.children[0].children[0].add_widget(userproperty)
-    async def back(self):
+    async def back(self): # Go back to the future
         self.prog.app.sm.transition.direction = 'left'
         self.prog.app.sm.current = self.prog.app.UsersPage.name
 
+# Page for pin number input
 class PinPage(BaseScreen):
     pin = ""
     pinevent = asyncio.Event()
-    async def next(self, pin):
+    async def next(self, pin): # Depricated
         self.pin = pin
         self.pinevent.set()
-    async def setmsg(self, txt):
+    async def setmsg(self, txt): # show prompt
         self.children[0].children[2].text = txt
     
-    async def get_pin(self, message):
+    async def get_pin(self, message): # asyncronousely return after a pin is entered
         await self.focus()
         await self.setmsg(message)
         await self.pinevent.wait() # gets a pin
         p1 = self.pin
         self.pinevent.clear()
         return p1
-
+    
+    # refocus keyboard to this object
     async def focus(self):
         self.children[0].children[0].focus = True
 
+    # refocus when losing focus the attention whore
     def on_touch_up(self, touch):
         run(self.focus())
 
+# Overite a default class
 from kivy.uix.boxlayout import BoxLayout
 class RootLayout(BoxLayout):
     pass
 
+# The pages manager
 class AppMain(BaseObject, App):
     def __init__(self, prog, **kwargs):
         BaseObject.__init__(self, prog)
         App.__init__(self, **kwargs)
         self.started = asyncio.Event()
 
-    def on_request_close(self, arg): run(self.prog.close())
+    def on_request_close(self, arg): run(self.prog.close()) # close the app
 
+    # Show a notification
     async def shownotification(self, notificationclass, msg="msgerr", args=()):
         note = notificationclass(self.prog, *args, Window.width, Window.height)
         self.root.add_widget(note, 0)
@@ -234,14 +253,15 @@ class AppMain(BaseObject, App):
             note.children[0].children[0].text = msg
 
         note.anim.start(note.children[0])
-        note.anim.bind(on_complete=lambda a,b : self.root.remove_widget(note))
+        note.anim.bind(on_complete=lambda a,b : self.root.remove_widget(note)) # delete notification when animation completes
 
-
+    # Depricated
     async def update_images(self): pass
     async def login(self): pass
 
 
-    def build(self): # build all screens
+    # Build all the pages
+    def build(self):
         self.started.set()
         Window.bind(on_request_close=self.on_request_close)
         self.sm = ScreenManager()

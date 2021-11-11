@@ -19,8 +19,9 @@
 #:set font             GC.FONT
 
 
-# Debug settings
+# Debug settings comment out
 
+# replaces the base class to render it border
 # <Widget>:
 #     canvas.after:
 #         Line:
@@ -28,8 +29,10 @@
 #             dash_offset: 5
 #             dash_length: 3
 
+
 # Global settings
 
+# overide root layout for all screens
 <RootLayout>:
     orientation:"vertical"
 
@@ -47,3 +50,11 @@
 # overide tab for idiots like me
 <TextInput@TextInput>:
     keyboard_on_key_down: lambda window, keycode, text, modifiers: self.__class__.keyboard_on_key_down(self, window, keycode, text, modifiers) if keycode[1] != 'tab' else False
+
+
+# Information
+
+# Any Widget that is in any .kv file is simply for spacing and servers no other purpose
+# The BoxLayout in the base off all screens allows all object in a screen to be address as one e.g. for hiding (Depricated)
+# Any Image that is directly a child of the Button is a button icon
+# Go back to the future means this is a button event that goes back to the previouse page

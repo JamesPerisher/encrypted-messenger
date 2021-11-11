@@ -1,4 +1,4 @@
 # rm -r userdata
-
+rm -r bin
 rm -r _copy -f
 rm -r ../_copy -f
