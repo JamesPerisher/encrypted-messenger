@@ -192,7 +192,6 @@
             size_hint: 1, .002
             height: 5
 
-        # scrollable list of users
         ScrollView:
             do_scroll_x: False
             do_scroll_y: True
@@ -214,7 +213,8 @@
             orientation:"horizontal"
             size_hint: 1, None
             height: self.parent.height * 0.07
-            canvas.before: # image background color
+            # image background color
+            canvas.before:
                 Color:
                     rgb: background
                 Rectangle:
@@ -262,8 +262,9 @@
             width: self.parent.width
             height: self.children[1].size[1]
             size_hint_y: None
-
-            canvas.before: # image background color
+            
+            # image background color
+            canvas.before:
                 Color:
                     rgb: lightbackground
                 Rectangle:
