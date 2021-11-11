@@ -280,7 +280,7 @@
     Button:
         background_color: 0,0,0,0
         pos: self.parent.pos
-        width: self.parent.width
+        size: self.parent.size
         on_press: run(self.parent.press())
     BoxLayout:
         orientation: "horizontal"
@@ -292,21 +292,28 @@
 
         Image:
             source: self.parent.parent.img
-            size_hint: .7, .99
+            size_hint: .1, .99
             width: self.parent.width * 0.2
+        
+        BoxLayout:
+            orientation: "vertical"
+            size_hint: .9, 1
 
-        Label:
-            font_size: sp(25)
-            text: self.parent.parent.username
-            size_hint_x: 2.5
-            halign:'left'
-            valign:'middle'
-            text_size: self.size
-            spacing: 10
+            Label:
+                font_size: sp(25)
+                text: self.parent.parent.parent.username
+                size_hint_y: 0.5
+                halign:'left'
+                valign:'bottom'
+                text_size: self.size
+                spacing: 5
 
-        Label:
-            text: self.parent.parent.userid
-            size_hint_x: .9
+            Label:
+                text: self.parent.parent.parent.userid
+                halign:'left'
+                valign:'top'
+                size_hint_y: 0.4
+                text_size: self.size
 
 <PinButton>:
     background_normal: 'app/images/background1.png'

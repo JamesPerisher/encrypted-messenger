@@ -13,7 +13,11 @@ from backend.keymanagement import encrypt, get_id, get_info, get_pub, validate_h
 from kivy.graphics import Line, Color
 from kivy.clock import Clock
 from backend.signals import Event
+from kivy.core.window import Window
 
+
+Window.keyboard_anim_args = {'d': .2, 't': 'in_out_expo'}
+Window.softinput_mode = "below_target"
 
 
 Builder.load_file('app/kvsettings.kv')
