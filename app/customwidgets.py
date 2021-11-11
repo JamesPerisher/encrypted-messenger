@@ -19,6 +19,7 @@ from backend.asyncrun import run, asynclambda
 from backend.keymanagement import change_info, contact_data
 from backend.signals import Packet, PAC
 from backend.config import Config
+from backend.makepfp import make_pf_pic
 
 
 class MessagePage: # should get overwritten on import
@@ -227,7 +228,7 @@ class User(BaseWidget):
         self.username = username
         self.colour = "#ff00ff"
         self.index = index
-        self.img = ""
+        self.img = make_pf_pic(userid, username, colour)
         super().__init__(**kwargs)
 
     def __repr__(self) -> str:

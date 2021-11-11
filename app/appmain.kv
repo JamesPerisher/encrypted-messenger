@@ -144,7 +144,7 @@
                     allow_stretch: True
 
             Label:
-                font_size: 25
+                font_size: sp(25)
                 text: self.parent.parent.parent.user.username
                 halign:'left'
                 valign:'middle'
@@ -258,7 +258,7 @@
                 on_text: Clock.schedule_once(lambda x: self.parent.parent.parent.update(self.parent, self.parent.parent.children[1], self), 0)
                 canvas.after: Clock.schedule_once(lambda x: self.parent.parent.parent.update(self.parent, self.parent.parent.children[1], self), 1)
                 hint_text: 'Send message'
-                font_size: 18
+                font_size: sp(18)
                 background_color: background
                 foreground_color: superbright
 

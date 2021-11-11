@@ -4,6 +4,7 @@ from backend.basics import BaseObject
 from backend.keymanagement import decrypt, get_info, get_pub
 from backend.textrenderer import get_user_line, render_text
 import asyncio
+from kivy.cache import Cache
 
 class Handler(BaseObject):
     def __init__(self, prog) -> None:
@@ -21,6 +22,10 @@ class Handler(BaseObject):
 
         async for i in AsyncIterator(await self.prog.client.get_contacts()): # gets contacts from cloud
             await self.request_pug(i, Packet(PAC.GET_PUB))
+            
+        Cache.remove('kv.image')
+        Cache.remove('kv.texture')
+
     
     def send(self, to_jid, p, raw="Hidden..."):
         ret = self.prog.client.send(to_jid, p)

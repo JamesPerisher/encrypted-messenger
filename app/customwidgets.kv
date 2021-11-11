@@ -61,7 +61,7 @@
 <KVPOPupShair>:
     Label:
         text: "err"
-        font_size: 30
+        font_size: sp(30)
         size_hint: 1, .1
 
     Image:
@@ -70,7 +70,7 @@
 
     CopyButton:
         text: "Copy ID"
-        font_size: 11
+        font_size: sp(11)
         size_hint: 1, .1
 
     Widget:
@@ -276,6 +276,7 @@
 
 <User>:
     size_hint: 1, None
+    height: sp(100)
     Button:
         background_color: 0,0,0,0
         pos: self.parent.pos
@@ -295,7 +296,7 @@
             width: self.parent.width * 0.2
 
         Label:
-            font_size: 25
+            font_size: sp(25)
             text: self.parent.parent.username
             size_hint_x: 2.5
             halign:'left'
