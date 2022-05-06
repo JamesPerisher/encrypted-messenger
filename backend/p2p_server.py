@@ -48,11 +48,11 @@ class Server:
             client = self.clients[clientid]
             target = self.clients[targetid]
 
-            logger.info(f"send client info {client.id} to client {target.id}")
-            Packet(PACKET_TYPE.DOUBLE_ADDRESS, *client.address.get(), *target.id.get()).send(target.conn)
+            logger.info(f"send client info of {client.id} to client {target.id}")
+            Packet(PACKET_TYPE.ADDRESS, *client.address.get(), client.id.get()).send(target.conn)
 
             logger.info(f"send client info {target.id} to client {client.id}")
-            Packet(PACKET_TYPE.DOUBLE_ADDRESS, *target.address.get(), *client.id.get()).send(client.conn)
+            Packet(PACKET_TYPE.ADDRESS, *target.address.get(), target.id.get()).send(client.conn)
 
             self.clients.pop(clientid)
             self.clients.pop(targetid)
