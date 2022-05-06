@@ -1,8 +1,0 @@
-[b]Confidentiality Statement:[/b]
-
-Kryptos is designed to never collect or store any sensitive information. Kryptos messages cannot be accessed by us or other third parties because they are always end-to-end encrypted, private, and secure. We will not, in any circumstances, log or share any information with other individuals or organizations. However, users are responsible for managing the security of their own devices. We hold no responsibility for any user's misuse of the application. 
-
-
-[b]Terms of Service:[/b]
-
-Kryptos utilizes state-of-the-art security and end-to-end encryption to provide private messaging free of charge to users worldwide. You agree to our Terms of Service (“Terms”) by installing or using our apps or services (together, “Services”).

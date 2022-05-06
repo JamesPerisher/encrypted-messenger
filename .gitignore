@@ -4,11 +4,7 @@ __pycache__/
 *$py.class
 
 #custom crap
-*.db
-.*
-userdata/session*
-userdata/cache*
-userdata/*.png
+
 # C extensions
 *.so
 

@@ -1,3 +1,14 @@
 # build the app with buildozer
-./cleanup
+
+
+
+
+# cleanup all junk file for building
+rm -r userdata
+rm -r bin
+rm -r _copy -f
+rm -r ../_copy -f
+
+
+# build the app
 buildozer android debug deploy run
