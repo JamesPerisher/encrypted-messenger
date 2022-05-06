@@ -3,8 +3,8 @@ from aenum import MultiValueEnum
 from backend.p2p_utils import recv
 
 class PACKET_TYPE(MultiValueEnum):
-    ADDRESS        = 0, "16sI64s"      # ip, port, id
-    DOUBLE_ADDRESS = 1, "16sI16sI64s"  # ip, port, ip, port, id
+    ADDRESS        = 0, "16sI64s"         # ip, port, id
+    DOUBLE_ADDRESS = 1, "16sI64s16sI64s"  # ip, port, id, ip, port, id
 
 
 class Packet:

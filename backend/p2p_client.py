@@ -72,10 +72,10 @@ class LiveConnection:
 
         # recieve back my public address
         ppublic = Packet.from_socket(sa)
-        logger.info(f"got public address {ppublic} from priavte {priv_addr}")
+        logger.info(f"got public address {ppublic} from private {priv_addr}")
 
-        # send my address again
-        ppublic.send(sa)
+        # send my address again and target
+        Packet(PACKET_TYPE.ADDRESS, *priv_addr, self.target.get()).send(sa)
 
         # where to target
         forignaddress = Packet.from_socket(sa) # recives a double address

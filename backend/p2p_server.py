@@ -5,12 +5,59 @@ from backend.tcp_util import *
 import socket
 
 logger = logging.getLogger()
-clients = {}
 
+
+class Client:
+    def __init__(self, conn, address: Address, id: Id) -> None:
+        self.conn = conn
+        self.address = address
+        self.id = id
 
 class Server:
     def __init__(self, bind_address: Address) -> None:
         self.bind_address = bind_address
+        self.clients = {}
+
+    def handle_client(self, conn, addr):
+        # recieve a client address
+        logger.info(f"connection address: {addr}")
+
+        ip, port, clientid = Packet.from_socket(conn).data
+        priv_addr, clientid = Address(ip, port), Id(clientid)
+
+        # send back the address
+        Packet(PACKET_TYPE.ADDRESS, *priv_addr.get(), clientid.get()).send(conn)
+
+        # client address 2
+        ip, port, id = Packet.from_socket(conn).data
+        data_addr, targetid = Address(ip, port), Id(id)
+
+        # check if client address matches will fail if tampered with half way through
+        if priv_addr == data_addr: # could do key verification here as well
+            logger.info("client partialy verified")
+            self.clients[clientid] = Client(conn, priv_addr, clientid) # register the client
+        else:
+            logger.info("client not verified")
+            conn.close()
+
+        logger.info(f"private addre: {priv_addr}, data addr: {data_addr}")
+
+        if targetid in self.clients:
+            logger.info(f"client {targetid} found")
+            client = self.clients[clientid]
+            target = self.clients[targetid]
+
+            logger.info(f"send client info {client.id} to client {target.id}")
+            Packet(PACKET_TYPE.DOUBLE_ADDRESS, *client.address.get(), *target.id.get()).send(target.conn)
+
+            logger.info(f"send client info {target.id} to client {client.id}")
+            Packet(PACKET_TYPE.DOUBLE_ADDRESS, *target.address.get(), *client.id.get()).send(client.conn)
+
+            self.clients.pop(clientid)
+            self.clients.pop(targetid)
+
+        logger.info(f"client list: {self.clients}")
+
 
     def start(self):
         logger.info("server started")
@@ -26,44 +73,13 @@ class Server:
                 addr = Address(*addr)
             except socket.timeout:
                 continue
-
-            # recieve a client address
-            logger.info(f"connection address: {addr}")
-
-            ip, port, id = Packet.from_socket(conn).data
-            priv_addr, id1 = Address(ip, port), Id(id)
-
-            # send back the address
-            Packet(PACKET_TYPE.ADDRESS, *priv_addr.get(), id1.get()).send(conn)
-
-            # client address 2
-            ip, port, id = Packet.from_socket(conn).data
-            data_addr, id2 = Address(ip, port), Id(id)
-            
-
-
-
-
-            if data_addr == addr:
-                logger.info('client reply matches')
-                clients[addr] = Client(conn, addr, priv_addr)
-            else:
-                logger.info('client reply did not match')
-                conn.close()
-
-            logger.info(f"private addre: {priv_addr}, data addr: {data_addr}")
-
-            if len(clients) == 2:
-                # send clients data on where to connect
-                (addr1, c1), (addr2, c2) = clients.items()
-                logger.info('server - send client info to: %s', c1.pub)
-                send_msg(c1.conn, c2.peer_msg())
-                logger.info('server - send client info to: %s', c2.pub)
-                send_msg(c2.conn, c1.peer_msg())
-                clients.pop(addr1)
-                clients.pop(addr2)
-
-        conn.close()
+            except KeyboardInterrupt:
+                break # safe exit
+            self.handle_client(conn, addr)
+        for i in self.clients.keys(): # close all connections
+            if self.clients[i].conn.is_alive():
+                self.clients[i].conn.close()
+        logger.info("server stopped")
 
 
 if __name__ == '__main__':

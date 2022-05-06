@@ -28,6 +28,15 @@ class Address: # network address for heigher level
 class Id: # user id for heigher level
     def __init__(self, id) -> None:
         self.id = id
+    def __repr__(self) -> str:
+        return f"Id({self.get()})"
+    def __eq__(self, __o: object) -> bool:
+        if isinstance(__o, Id): # becouse cant have self referential types WHYYYYYYYYYYYYY!!
+            return self.id == __o.id
+        return False
+    def __ne__(self, __o: object) -> bool:
+        return not self.__eq__(__o)
+
     def get(self):
         return self.id
 
