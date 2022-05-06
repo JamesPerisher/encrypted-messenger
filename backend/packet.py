@@ -1,5 +1,6 @@
 import struct
 from aenum import MultiValueEnum
+from backend.p2p_utils import recv
 
 class PACKET_TYPE(MultiValueEnum):
     ADDRESS        = 0, "16sI64s"      # ip, port, id
@@ -53,11 +54,12 @@ class Packet:
     @classmethod
     def from_socket(cls, sock):
         # unpack data from socket
-        lb = sock.recv(4)
+        lb = recv(sock, 4)
         length = struct.unpack("I", lb)[0]
-        type = sock.recv(4)
+        type = recv(sock, 4)
+        data = recv(sock, length)
 
-        return cls.from_bytes(lb+type+sock.recv(length))
+        return cls.from_bytes(lb+type+data)
 
 
 if __name__ == "__main__":

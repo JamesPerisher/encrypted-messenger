@@ -31,7 +31,7 @@ class Server:
             logger.info(f"connection address: {addr}")
             data = Packet.from_socket(conn)
 
-            ip,port, id = data.get_data()
+            ip,port, id = data.data
             priv_addr, id = Address(ip, port), Id(id)
 
             # send back the address
