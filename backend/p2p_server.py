@@ -33,6 +33,7 @@ class Server:
         data_addr, targetid = Address(ip, port), Id(id)
 
         # check if client address matches will fail if tampered with half way through
+        logger.debug(f"Addresses: {priv_addr}, {data_addr}")
         if priv_addr == data_addr: # could do key verification here as well
             logger.info("client partialy verified")
             self.clients[clientid] = Client(conn, priv_addr, clientid) # register the client
