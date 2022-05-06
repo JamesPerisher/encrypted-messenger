@@ -29,16 +29,16 @@ class Server:
 
             # recieve a client address
             logger.info(f"connection address: {addr}")
-            data = Packet.from_socket(conn)
 
-            ip,port, id = data.data
-            priv_addr, id = Address(ip, port), Id(id)
+            ip, port, id = Packet.from_socket(conn).data
+            priv_addr, id1 = Address(ip, port), Id(id)
 
             # send back the address
             Packet(PACKET_TYPE.ADDRESS, *addr.get(), id.get()).send(conn)
 
             # client address 2
-            data_addr = Address(*[Packet.from_socket(conn).data[0:2]])
+            ip, port, id = Packet.from_socket(conn).data
+            data_addr, id2 = Address(ip, port), Id(id)
             
 
 
@@ -51,7 +51,7 @@ class Server:
                 logger.info('client reply did not match')
                 conn.close()
 
-            logger.info('server - received data: %s', data)
+            logger.info(f"private addre: {priv_addr}, data addr: {data_addr}")
 
             if len(clients) == 2:
                 # send clients data on where to connect
