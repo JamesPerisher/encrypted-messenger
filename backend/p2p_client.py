@@ -2,7 +2,7 @@ import socket
 from backend.packet import PACKET_TYPE, Packet
 import logging
 from threading import Thread
-from p2p_utils import *
+from backend.p2p_utils import *
 
 logger = logging.getLogger('client')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
@@ -122,4 +122,4 @@ class LiveConnection:
 
 
 if __name__ == '__main__':
-    l = LiveConnection(Address("iniver.net", 7788), Id.from_time()).run()
+    LiveConnection(Address("iniver.net", 7788), Id.from_time()).run()
