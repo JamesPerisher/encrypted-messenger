@@ -1,6 +1,5 @@
 import logging
-from backend.p2p_client import Address
-from backend.p2p_utils import Id
+from backend.p2p_utils import Id, Address
 from backend.packet import PACKET_TYPE, Packet
 from backend.tcp_util import *
 import socket
@@ -14,6 +13,7 @@ class Server:
         self.bind_address = bind_address
 
     def start(self):
+        logger.info("server started")
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind(self.bind_address.get())
