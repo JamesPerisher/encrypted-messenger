@@ -36,6 +36,8 @@ class Id: # user id for heigher level
         return False
     def __ne__(self, __o: object) -> bool:
         return not self.__eq__(__o)
+    def __hash__(self) -> int:
+        return self.id.__hash__()
 
     def get(self):
         return self.id
