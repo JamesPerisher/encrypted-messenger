@@ -17,9 +17,17 @@ class Address: # network address for heigher level
     def __init__(self, ip, port):
         self.ip = ip
         self.port = port
-
     def __repr__(self) -> str:
         return f"Address({self.ip}, {self.port})"
+
+    def __eq__(self, __o: object) -> bool:
+        if isinstance(__o, Address):
+            return self.ip == __o.ip and self.port == __o.port
+        return False
+    def __ne__(self, __o: object) -> bool:
+        return not self.__eq__(__o)
+    def __hash__(self) -> int:
+        return [self.ip, self.port].__hash__()
 
     def get(self):
         return self.ip, self.port
