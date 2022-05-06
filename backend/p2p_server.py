@@ -34,7 +34,7 @@ class Server:
             priv_addr, id1 = Address(ip, port), Id(id)
 
             # send back the address
-            Packet(PACKET_TYPE.ADDRESS, *addr.get(), id.get()).send(conn)
+            Packet(PACKET_TYPE.ADDRESS, *priv_addr.get(), id1.get()).send(conn)
 
             # client address 2
             ip, port, id = Packet.from_socket(conn).data
