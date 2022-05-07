@@ -1,0 +1,25 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "profile pre",
+            "type": "shell",
+            "command": "rm",
+            "args": [
+                "/tmp/tmp.prof"
+            ],
+            "group": "test",
+        },
+        {
+            "label": "profile post",
+            "type": "shell",
+            "command": "snakeviz",
+            "args": [
+                "/tmp/tmp.prof"
+            ],
+            "group": "test",
+        }
+    ]
+}

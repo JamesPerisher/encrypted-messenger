@@ -4,12 +4,25 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Python: Run app",
             "type": "python",
             "request": "launch",
             "program": "${cwd}/main.py",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Run app with profiling",
+            "type": "python",
+            "request": "launch",
+            "module": "cProfile",
+            "args": [
+                "-o", "/tmp/tmp.prof", "${cwd}/main.py"
+            ],
+            "console": "integratedTerminal",
+            "preLaunchTask": "profile pre",
+            "postDebugTask": "profile post"
         },
         {
             "name": "Python: Run app secondary",

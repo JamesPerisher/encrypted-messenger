@@ -11,10 +11,11 @@ class Packet:
     def __init__(self, type : PACKET_TYPE, *args):
         self.type = type
         self.data = args
-    
     def __repr__(self) -> str:
         d = ", ".join(str(x) for x in self.data)
         return f"Packet({self.type.name}, {d})"
+    def __getitem__(self, index):
+        return self.data[index]
 
     def pack(self):
         # pack string/bytes to bytes
@@ -45,7 +46,7 @@ class Packet:
         out = []
         for i in args:
             if isinstance(i, bytes):
-                out.append(i.decode('utf-8'))
+                out.append(i.decode('utf-8').replace("\x00", "").strip())
                 continue
             out.append(i)
 

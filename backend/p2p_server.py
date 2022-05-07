@@ -5,6 +5,7 @@ from backend.tcp_util import *
 import socket
 
 logger = logging.getLogger()
+logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(asctime)s - %(message)s')
 
 
 class Client:
@@ -77,11 +78,13 @@ class Server:
             except KeyboardInterrupt:
                 break # safe exit
             self.handle_client(conn, addr)
-        for i in self.clients.keys(): # close all connections
-            if self.clients[i].conn.is_alive():
+        for i in self.clients.keys(): # close all connections as not to leave clients hanging
+            try:
                 self.clients[i].conn.close()
+            except:
+                pass
         logger.info("server stopped")
 
 
-if __name__ == '__main__':
+def main():
     Server(Address("0.0.0.0", 7788)).start()

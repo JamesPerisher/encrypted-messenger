@@ -56,3 +56,7 @@ class Id: # user id for heigher level
     @classmethod
     def from_time(cls):
         return cls(cls.idhash(cls, time.time()))
+
+    @classmethod
+    def from_string(cls, string: str):
+        return cls(cls.idhash(cls, string))
