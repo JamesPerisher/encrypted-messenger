@@ -81,19 +81,17 @@ class LiveConnection:
         forignaddress = Packet.from_socket(sa) # recives a double address
 
 
-        client_priv_addr = Address(forignaddress[0], forignaddress[1])
-        client_pub_addr  = Address(forignaddress[2], forignaddress[3])
-
-
-        logger.info(f"client_priv_addr {client_priv_addr}, client_pub_addr {client_pub_addr}, id {id}")
+        peer_priv_addr = Address(forignaddress[0], forignaddress[1])
+        # client_pub_addr  = Address(forignaddress[2], forignaddress[3])
+        logger.info(f"found target at {peer_priv_addr}")
 
 
         # make threads
         threads = {
             '0_accept': Thread(target=self._accept, args=(priv_addr,)),
-            # '1_accept': Thread(target=accept, args=(client_pub_addr[1],)), # not needed??
-            # '2_connect': Thread(target=connect, args=(priv_addr, client_pub_addr,)), # not needed?
-            '3_connect': Thread(target=self._connect, args=(priv_addr, client_priv_addr,)),
+            # '1_accept': Thread(target=accept, args=(client_pub_addr[1],)), # not needed?? can use alternative methid if issues come up
+            # '2_connect': Thread(target=connect, args=(priv_addr, client_pub_addr,)), 
+            '3_connect': Thread(target=self._connect, args=(priv_addr, peer_priv_addr,)),
         }
 
 

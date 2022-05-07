@@ -41,7 +41,7 @@ class Server:
             logger.info("client not verified")
             conn.close()
 
-        logger.info(f"private addre: {priv_addr}, data addr: {data_addr}")
+        logger.info(f"private addre: {priv_addr}:{clientid}, data addr: {data_addr}:{targetid}")
 
         if targetid in self.clients:
             logger.info(f"client {targetid} found")
