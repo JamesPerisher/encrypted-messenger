@@ -10,6 +10,8 @@ from backend.p2p_utils import *
 logger = logging.getLogger('client')
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(asctime)s - %(message)s')
 
+# set loger to log all levels
+logger.setLevel(logging.DEBUG)
 
 class LiveConnection(Asyncable):
     def __init__(self, mediator: Address, myid: Id, target: Id) -> None:
@@ -131,7 +133,7 @@ class LiveConnection(Asyncable):
         return self
 
 async def comunicate(a, b):
-    print("hi")
+    print("testing client")
     await a.send_packet(Packet(PACKET_TYPE.TEST, "test1"))
     print("sent")
     print(await b.recv_packet())
