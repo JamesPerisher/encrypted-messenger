@@ -1,4 +1,5 @@
 from asyncio import Event
+import asyncio
 from threading import Thread
 
 from backend.packet import Packet
@@ -11,7 +12,6 @@ class CEvent(Event):
             self._loop.call_soon_threadsafe(super().set)
         else:
             super().set()
-
 
 class ResetEvent(Event):
     def _set(self):
@@ -52,6 +52,10 @@ def threadasync(func):
         event.clear()
         return thread.out
     return wrapper
+
+# starts a corutine in a new event loop
+def run_async(corutine):
+    asyncio.new_event_loop().run_until_complete(corutine)
 
 def isalive(func):
     async def wrapper(self, *args, **kwargs):

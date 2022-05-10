@@ -13,6 +13,8 @@ class Client:
         self.conn = conn
         self.address = address
         self.id = id
+    def __repr__(self) -> str:
+        return f"<Client({self.address}, {self.id})>"
 
 class Server:
     def __init__(self, bind_address: Address) -> None:

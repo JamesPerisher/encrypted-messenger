@@ -1,7 +1,7 @@
 from pickle import TRUE
 import socket
 import asyncio
-from backend.asyncutils import Asyncable, asyncConnection, CEvent
+from backend.asyncutils import Asyncable, asyncConnection, CEvent, run_async
 from backend.packet import PACKET_TYPE, Packet
 import logging
 from threading import Thread
@@ -26,13 +26,17 @@ class LiveConnection(Asyncable):
     def kill(self):
         self.keepalive = False
 
-    def sockready(self, conn, addre: Address):
+    async def sockready(self, conn, addre: Address):
+        print("running baby")
         self.socket = conn
         self.alive.set()
         while self.keepalive: # this is where our connection is established and good to go
-            time.sleep(1) # TODO: fix this
+            await asyncio.sleep(0.5)
         self.alive.clear()
 
+    def _sockready(self, *args, **kwargs):
+        print("start me")
+        return run_async(self.sockready(*args, **kwargs))
 
     def _accept(self, address): # client connection protocal
         logger.info("accept %s", address.port)
@@ -46,8 +50,7 @@ class LiveConnection(Asyncable):
             try:
                 conn, addr = s.accept()
                 addr = Address(addr[0], addr[1])
-                self.sockready(conn, addr)
-
+                self._sockready(conn, addr)
             except socket.timeout:
                 continue
 
@@ -57,14 +60,12 @@ class LiveConnection(Asyncable):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         s.bind(local_addr.get())
-        
+
         while self.keepalive:
             try:
                 s.connect(addr.get())
                 logger.info("connected from %s to %s success!", local_addr, addr)
-                self.sockready(s, addr)
-                while self.keepalive:
-                    time.sleep(1)
+                self._sockready(s, addr)
             except socket.error:
                 continue
             except Exception as exc:
