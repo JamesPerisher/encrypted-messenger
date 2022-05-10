@@ -1,7 +1,6 @@
 import time
 from hashlib import sha256
 
-
 def recv(sock, bytes): # will hang if no data is available
     # Helper function to recv n bytes
     data = b''
@@ -34,10 +33,11 @@ class Address: # network address for heigher level
 
 
 class Id: # user id for heigher level
-    def __init__(self, id) -> None:
+    def __init__(self, id, display="") -> None:
         self.id = id
+        self.display = display
     def __repr__(self) -> str:
-        return f"Id({self.get()})"
+        return f"Id({self.get()}, {self.display})"
     def __eq__(self, __o: object) -> bool:
         if isinstance(__o, Id): # becouse cant have self referential types WHYYYYYYYYYYYYY!!
             return self.id == __o.id
@@ -59,4 +59,4 @@ class Id: # user id for heigher level
 
     @classmethod
     def from_string(cls, string: str):
-        return cls(cls.idhash(cls, string))
+        return cls(cls.idhash(cls, string), string)

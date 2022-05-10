@@ -5,6 +5,7 @@ from backend.p2p_utils import recv
 class PACKET_TYPE(MultiValueEnum):
     ADDRESS        = 0, "16sI64s"         # ip, port, id
     DOUBLE_ADDRESS = 1, "16sI64s16sI64s"  # ip, port, id, ip, port, id
+    TEST           = 2, "64s"             # 64char string
 
 
 class Packet:
@@ -60,7 +61,8 @@ class Packet:
         type = recv(sock, 4)
         data = recv(sock, length)
 
-        return cls.from_bytes(lb+type+data)
+        pac = cls.from_bytes(lb+type+data)
+        return pac
 
 
 if __name__ == "__main__":

@@ -1,4 +1,7 @@
+from pickle import TRUE
 import socket
+import asyncio
+from backend.asyncutils import Asyncable, asyncConnection, CEvent
 from backend.packet import PACKET_TYPE, Packet
 import logging
 from threading import Thread
@@ -8,23 +11,27 @@ logger = logging.getLogger('client')
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(asctime)s - %(message)s')
 
 
-class LiveConnection:
+class LiveConnection(Asyncable):
     def __init__(self, mediator: Address, myid: Id, target: Id) -> None:
         self.mediator = mediator
         self.myid = myid
         self.target = target
-        self.alive = False
+        self.alive = CEvent()
+        self.socket = None
+        self.keepalive = True
 
     def __repr__(self) -> str:
         return f"<LiveConnection({self.mediator}, {self.target}, {self.alive})>"
 
-    def socket(self, conn, addre: Address):
-        self.alive = True
-        while True: # this is where our connection is established and good to go
-            conn.send(b"test")
-            print(conn.recv(4096))
-            print(conn.recv(4096))
-        self.alive = False
+    def kill(self):
+        self.keepalive = False
+
+    def sockready(self, conn, addre: Address):
+        self.socket = conn
+        self.alive.set()
+        while self.keepalive: # this is where our connection is established and good to go
+            time.sleep(1) # TODO: fix this
+        self.alive.clear()
 
 
     def _accept(self, address): # client connection protocal
@@ -32,21 +39,17 @@ class LiveConnection:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        s.bind(('', address.port)) # accept anything lol might have security issue but fuck it
+        s.bind(('', address.port)) # accept anything lol might have security issue but fuck it ill deal with it when its a problem
         s.listen(1)
         s.settimeout(5) # wait 5 seconds for connection at a time
-        while True:
+        while self.keepalive:
             try:
                 conn, addr = s.accept()
                 addr = Address(addr[0], addr[1])
-                self.socket(conn, addr)
+                self.sockready(conn, addr)
 
             except socket.timeout:
                 continue
-            else:
-                logger.info("Accept %s connected!", port)
-                # STOP.set()
-
 
     def _connect(self, local_addr: Address, addr: Address): # client connection protocal
         logger.info(f"connect from {local_addr} to {addr}")
@@ -54,13 +57,14 @@ class LiveConnection:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         s.bind(local_addr.get())
-        while True:
+        
+        while self.keepalive:
             try:
-                print(addr.get())
                 s.connect(addr.get())
                 logger.info("connected from %s to %s success!", local_addr, addr)
-                self.socket(s, addr)
-                break
+                self.sockready(s, addr)
+                while self.keepalive:
+                    time.sleep(1)
             except socket.error:
                 continue
             except Exception as exc:
@@ -111,7 +115,7 @@ class LiveConnection:
             thread.start()
 
                 #join threads
-        while len(threads) > 0:
+        while len(threads) > 0 and self.keepalive:
             for i in sorted(threads.keys()):
                 thread = threads[i]
                 try:
@@ -125,8 +129,27 @@ class LiveConnection:
         self._main(self.myid)
         return self
 
+async def comunicate(a, b):
+    print("hi")
+    await a.send_packet(Packet(PACKET_TYPE.TEST, "test1"))
+    print("sent")
+    print(await b.recv_packet())
+    await b.send_packet(Packet(PACKET_TYPE.TEST, "test2"))
+    print("sent")
+    print(await a.recv_packet())
+    print("done")
+
+    a.kill()
+    b.kill()
+
+async def amain():
+    a = asyncConnection(LiveConnection(Address("iniver.net", 7788), Id.from_string("A"), Id.from_string("B")))
+    b = asyncConnection(LiveConnection(Address("iniver.net", 7788), Id.from_string("B"), Id.from_string("A")))
+
+    await asyncio.gather(a.start(), b.start(), comunicate(a, b))
+
 
 
 
 def main():
-    LiveConnection(Address("iniver.net", 7788), Id.from_string("A"), Id.from_string("B")).run()
+    asyncio.run(amain())
