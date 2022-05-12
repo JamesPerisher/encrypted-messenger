@@ -2,12 +2,15 @@ import struct
 from aenum import MultiValueEnum
 from backend.p2p.p2p_utils import recv
 
+
+# Packet types for p2p protocol
 class PACKET_TYPE(MultiValueEnum):
     ADDRESS        = 0, "16sI64s"         # ip, port, id
     DOUBLE_ADDRESS = 1, "16sI64s16sI64s"  # ip, port, id, ip, port, id
     TEST           = 2, "64s"             # 64char string
 
 
+# data packaging and unpacking
 class Packet:
     def __init__(self, type : PACKET_TYPE, *args):
         self.type = type
@@ -15,10 +18,10 @@ class Packet:
     def __repr__(self) -> str:
         d = ", ".join(str(x) for x in self.data)
         return f"Packet({self.type.name}, {d})"
-    def __getitem__(self, index):
+    def __getitem__(self, index): # get data from packet
         return self.data[index]
 
-    def pack(self):
+    def pack(self): # converts packet to raw bytes
         # pack string/bytes to bytes
         out = []
         for i in self.data:
@@ -30,12 +33,12 @@ class Packet:
         data = struct.pack(self.type.values[1], *out)
         return struct.pack(f"II{len(data)}s", len(data), self.type.value, data)
 
-    def send(self, sock):
+    def send(self, sock): # send this packet to a socket
         return sock.sendall(self.pack())
     
 
     @classmethod
-    def from_bytes(cls, data: bytes):
+    def from_bytes(cls, data: bytes): # make packet from raw bytes
         # unpack data into packet object
         length, type = struct.unpack(f"II", data[0:8])
         data = data[8:8+length]
@@ -54,7 +57,7 @@ class Packet:
         return cls(type, *out)
 
     @classmethod
-    def from_socket(cls, sock):
+    def from_socket(cls, sock): # get the next packet form a socket
         # unpack data from socket
         lb = recv(sock, 4)
         length = struct.unpack("I", lb)[0]

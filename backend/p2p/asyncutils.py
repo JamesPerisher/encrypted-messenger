@@ -6,7 +6,7 @@ from backend.p2p.p2p_utils import DeadConnection
 from backend.p2p.packet import Packet
 
 
-
+# threadsafe flagging thread
 class CEvent(Event):
     def set(self):
         if self._loop is not None:
@@ -14,6 +14,7 @@ class CEvent(Event):
         else:
             super().set()
 
+# threadsafe flagging thread can be reused needed for decorators as they are all the same function will caurse errors if done incorrectly
 class ResetEvent(Event):
     def _set(self):
         super().set()
@@ -25,12 +26,14 @@ class ResetEvent(Event):
         else:
             super()._set()
 
+# represents an asynconouse wrapper for blocking class
 class AsyncWrapper:
     def __init__(self, oject):
         self.object = oject
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}({self.object.__repr__()})>" 
 
+# handles a function in a new thread with returnable result
 class FlaggingThread(Thread):
     def __init__(self, func, event, *args, **kwargs):
         self.func = func
@@ -44,6 +47,7 @@ class FlaggingThread(Thread):
         self.out = self.func(*self.args, **self.kwargs)
         self.event.set()
 
+# wrapper to make function async via threading
 def threadasync(func):
     event = ResetEvent()
     async def wrapper(*args, **kwargs):
@@ -58,6 +62,7 @@ def threadasync(func):
 def run_async(corutine):
     asyncio.new_event_loop().run_until_complete(corutine)
 
+# async connection is the thread socket alice checker
 def isalive(func):
     async def wrapper(self, *args, **kwargs):
         await self.object.alive.wait() # doesnt trigger for some reason i think asyncio is broken fuuuuuuuck
@@ -66,6 +71,7 @@ def isalive(func):
         return await func(self, *args, **kwargs)
     return wrapper
 
+# asyncable class base
 class Asyncable:
     def __init__(self):
         self.run = None # thread where this proccess runs
@@ -76,6 +82,7 @@ class Asyncable:
     async def start(self): # finishes when run is finished
         return await threadasync(self.run)()
 
+# is a async interpreter for a socket connection using Packets
 class asyncConnection(AsyncWrapper):
     def __init__(self, object: Asyncable):
         super().__init__(object)

@@ -26,11 +26,11 @@ class Server:
         self.clients = {}
         self.keep_alive = True
 
-    def stop(self):
+    def stop(self): # stops server
         logger.debug("Server stopping...")
         self.keep_alive = False
 
-    def handle_client(self, conn, addr):
+    def handle_client(self, conn, addr): # handler one client
         # recieve a client address
         logger.info(f"Connection from: {addr}")
 
@@ -55,7 +55,7 @@ class Server:
 
         logger.info(f"Connection request from: {priv_addr}:{clientid}, to: {data_addr}:{targetid}")
 
-        if targetid in self.clients:
+        if targetid in self.clients: # swaps the clients data
             logger.info(f"Client {targetid} found")
             client = self.clients[clientid]
             target = self.clients[targetid]

@@ -137,8 +137,9 @@ class LiveConnection(Asyncable):
             self.alive.set()
             return False
 
+# testing the client
 async def comunicate(a, b):
-    logger.debug("testing client")
+    logger.debug("Testing client")
     try:
         await a.send_packet(Packet(PACKET_TYPE.TEST, "Test1"))
         logger.debug("Sent Test1")
@@ -148,18 +149,17 @@ async def comunicate(a, b):
         logger.debug(await a.recv_packet())
     except DeadConnection as e:
         logger.warning(f"{e}")
-    logger.debug("done")
+    logger.debug("Done testing")
 
     a.kill()
     b.kill()
 
+# gathering the clients
 async def amain():
     a = asyncConnection(LiveConnection(Address("iniver.net", 7788), Id.from_string("A"), Id.from_string("B")))
     b = asyncConnection(LiveConnection(Address("iniver.net", 7788), Id.from_string("B"), Id.from_string("A")))
 
     await asyncio.gather(a.start(), b.start(), comunicate(a, b))
-
-
 
 
 def main():
