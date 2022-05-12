@@ -1,6 +1,6 @@
 import struct
 from aenum import MultiValueEnum
-from backend.p2p_utils import recv
+from backend.p2p.p2p_utils import recv
 
 class PACKET_TYPE(MultiValueEnum):
     ADDRESS        = 0, "16sI64s"         # ip, port, id

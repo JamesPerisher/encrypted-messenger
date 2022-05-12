@@ -1,11 +1,11 @@
 from pickle import TRUE
 import socket
 import asyncio
-from backend.asyncutils import Asyncable, asyncConnection, CEvent, run_async
-from backend.packet import PACKET_TYPE, Packet
+from backend.p2p.asyncutils import Asyncable, asyncConnection, CEvent, run_async
+from backend.p2p.packet import PACKET_TYPE, Packet
 import logging
 from threading import Thread
-from backend.p2p_utils import *
+from backend.p2p.p2p_utils import *
 
 logger = logging.getLogger('client')
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(asctime)s - %(message)s')
@@ -129,18 +129,26 @@ class LiveConnection(Asyncable):
                     threads.pop(i)
 
     def run(self):
-        self._main(self.myid)
-        return self
+        try:
+            self._main(self.myid)
+            return True
+        except ConnectionError:
+            self.keepalive = False
+            self.alive.set()
+            return False
 
 async def comunicate(a, b):
-    print("testing client")
-    await a.send_packet(Packet(PACKET_TYPE.TEST, "test1"))
-    print("sent")
-    print(await b.recv_packet())
-    await b.send_packet(Packet(PACKET_TYPE.TEST, "test2"))
-    print("sent")
-    print(await a.recv_packet())
-    print("done")
+    logger.debug("testing client")
+    try:
+        await a.send_packet(Packet(PACKET_TYPE.TEST, "Test1"))
+        logger.debug("Sent Test1")
+        logger.debug(await b.recv_packet())
+        await b.send_packet(Packet(PACKET_TYPE.TEST, "Test2"))
+        logger.debug("Sent Test2")
+        logger.debug(await a.recv_packet())
+    except DeadConnection as e:
+        logger.warning(f"{e}")
+    logger.debug("done")
 
     a.kill()
     b.kill()

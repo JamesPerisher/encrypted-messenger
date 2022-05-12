@@ -1,9 +1,5 @@
 from asyncio.log import logger
-from backend.p2p_server import Server
-from backend.p2p_utils import Address, Id
-from backend.p2p_client import LiveConnection
-from backend import p2p_server, p2p_client
-import sys
+from backend.p2p import p2p_server, p2p_client
 import logging
 import argparse
 

@@ -1,8 +1,9 @@
 from asyncio import Event
 import asyncio
 from threading import Thread
+from backend.p2p.p2p_utils import DeadConnection
 
-from backend.packet import Packet
+from backend.p2p.packet import Packet
 
 
 
@@ -20,7 +21,7 @@ class ResetEvent(Event):
 
     def set(self):
         if self._loop is not None:
-            self._loop.call_soon_threadsafe(super()._set)
+            self._loop.call_soon_threadsafe(self._set)
         else:
             super()._set()
 
@@ -44,7 +45,7 @@ class FlaggingThread(Thread):
         self.event.set()
 
 def threadasync(func):
-    event = CEvent()
+    event = ResetEvent()
     async def wrapper(*args, **kwargs):
         thread = FlaggingThread(func, event, *args, **kwargs) # push bloking func to thread to not block asyncio loop
         thread.start()
@@ -60,6 +61,8 @@ def run_async(corutine):
 def isalive(func):
     async def wrapper(self, *args, **kwargs):
         await self.object.alive.wait() # doesnt trigger for some reason i think asyncio is broken fuuuuuuuck
+        if not self.object.keepalive:
+            raise DeadConnection("Connection is dead")
         return await func(self, *args, **kwargs)
     return wrapper
 

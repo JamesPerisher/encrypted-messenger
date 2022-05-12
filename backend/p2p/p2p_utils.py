@@ -11,6 +11,9 @@ def recv(sock, bytes): # will hang if no data is available
 
     return data
 
+class DeadConnection(Exception):
+    pass
+
 class Address: # network address for heigher level
     def __init__(self, ip, port):
         self.ip = ip
