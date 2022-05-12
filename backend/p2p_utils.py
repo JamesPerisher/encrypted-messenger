@@ -1,5 +1,7 @@
+import base64
 import time
 from hashlib import sha256
+from base64 import b64encode
 
 def recv(sock, bytes): # will hang if no data is available
     # Helper function to recv n bytes
@@ -8,9 +10,6 @@ def recv(sock, bytes): # will hang if no data is available
         data += sock.recv(bytes - len(data))
 
     return data
-
-
-
 
 class Address: # network address for heigher level
     def __init__(self, ip, port):
@@ -37,6 +36,8 @@ class Id: # user id for heigher level
         self.id = id
         self.display = display
     def __repr__(self) -> str:
+        if self.display == "":
+            return f"Id({self.id})"
         return f"Id({self.get()}, {self.display})"
     def __eq__(self, __o: object) -> bool:
         if isinstance(__o, Id): # becouse cant have self referential types WHYYYYYYYYYYYYY!!
@@ -51,7 +52,7 @@ class Id: # user id for heigher level
         return self.id
 
     def idhash(self, data):
-        return sha256(str(data).encode()).hexdigest()
+        return b64encode(sha256(str(data).encode()).digest())
 
     @classmethod
     def from_time(cls):
