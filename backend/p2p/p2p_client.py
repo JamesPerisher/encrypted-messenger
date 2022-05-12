@@ -1,8 +1,8 @@
 from pickle import TRUE
 import socket
 import asyncio
-from backend.p2p.asyncutils import Asyncable, asyncConnection, CEvent, run_async
-from backend.p2p.packet import PACKET_TYPE, Packet
+from backend.asyncutils import AsyncWrapper, Asyncable, CEvent, isalive, run_async, threadasync
+from backend.packet import PACKET_TYPE, Packet
 import logging
 from threading import Thread
 from backend.p2p.p2p_utils import *
@@ -137,14 +137,42 @@ class LiveConnection(Asyncable):
             self.alive.set()
             return False
 
+# is a async interpreter for a socket connection using Packets
+class AsyncConnection(AsyncWrapper):
+    def __init__(self, object: Asyncable):
+        super().__init__(object)
+
+    def kill(self):
+        self.object.kill()
+
+    def start(self, *args, **kwargs):
+        return self.object.start(*args, **kwargs)
+
+    @classmethod
+    def from_id(cls, myid: Id, targetid: Id, mediator: Address):
+        return cls(LiveConnection(mediator, myid, targetid))
+
+    @isalive
+    @threadasync
+    def recv_packet(self):
+        p = Packet.from_socket(self.object.socket)
+        return p
+
+    @isalive
+    @threadasync
+    def send_packet(self, packet: Packet):
+        return packet.send(self.object.socket)
+        
+
+        
 # testing the client
 async def comunicate(a, b):
     logger.debug("Testing client")
     try:
-        await a.send_packet(Packet(PACKET_TYPE.TEST, "Test1"))
+        await a.send_packet(Packet(PACKET_TYPE.PING, "Test1"))
         logger.debug("Sent Test1")
         logger.debug(await b.recv_packet())
-        await b.send_packet(Packet(PACKET_TYPE.TEST, "Test2"))
+        await b.send_packet(Packet(PACKET_TYPE.PING, "Test2"))
         logger.debug("Sent Test2")
         logger.debug(await a.recv_packet())
     except DeadConnection as e:
@@ -156,8 +184,8 @@ async def comunicate(a, b):
 
 # gathering the clients
 async def amain():
-    a = asyncConnection(LiveConnection(Address("iniver.net", 7788), Id.from_string("A"), Id.from_string("B")))
-    b = asyncConnection(LiveConnection(Address("iniver.net", 7788), Id.from_string("B"), Id.from_string("A")))
+    a = AsyncConnection(LiveConnection(Address("iniver.net", 7788), Id.from_string("A"), Id.from_string("B")))
+    b = AsyncConnection(LiveConnection(Address("iniver.net", 7788), Id.from_string("B"), Id.from_string("A")))
 
     await asyncio.gather(a.start(), b.start(), comunicate(a, b))
 

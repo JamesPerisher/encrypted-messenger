@@ -1,6 +1,6 @@
 import logging
 from backend.p2p.p2p_utils import Id, Address
-from backend.p2p.packet import PACKET_TYPE, Packet
+from backend.packet import PACKET_TYPE, Packet
 import socket
 
 logger = logging.getLogger()

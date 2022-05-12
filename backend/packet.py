@@ -7,7 +7,9 @@ from backend.p2p.p2p_utils import recv
 class PACKET_TYPE(MultiValueEnum):
     ADDRESS        = 0, "16sI64s"         # ip, port, id
     DOUBLE_ADDRESS = 1, "16sI64s16sI64s"  # ip, port, id, ip, port, id
-    TEST           = 2, "64s"             # 64char string
+    PING           = 2, "64s"             # 64char string
+    GETKEY         = 3, "32s"             # 32char challenge to sign
+    PUBKEY         = 4, "2048s1024s"      # 2048char public key, 1024char signature of challenge
 
 
 # data packaging and unpacking

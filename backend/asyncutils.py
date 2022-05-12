@@ -3,8 +3,6 @@ import asyncio
 from threading import Thread
 from backend.p2p.p2p_utils import DeadConnection
 
-from backend.p2p.packet import Packet
-
 
 # threadsafe flagging thread
 class CEvent(Event):
@@ -81,26 +79,3 @@ class Asyncable:
 
     async def start(self): # finishes when run is finished
         return await threadasync(self.run)()
-
-# is a async interpreter for a socket connection using Packets
-class asyncConnection(AsyncWrapper):
-    def __init__(self, object: Asyncable):
-        super().__init__(object)
-
-    def kill(self):
-        self.object.kill()
-
-    def start(self, *args, **kwargs):
-        return self.object.start(*args, **kwargs)
-
-    @isalive
-    @threadasync
-    def recv_packet(self):
-        p = Packet.from_socket(self.object.socket)
-        return p
-
-    @isalive
-    @threadasync
-    def send_packet(self, packet: Packet):
-        return packet.send(self.object.socket)
-        

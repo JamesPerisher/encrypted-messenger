@@ -1,5 +1,6 @@
 from asyncio.log import logger
 from backend.p2p import p2p_server, p2p_client
+from backend.client import client
 import logging
 import argparse
 
@@ -16,9 +17,12 @@ if __name__ == '__main__':
 
         if args.mode == "server":
             p2p_server.main()
-        elif args.mode == "client":
+        elif args.mode == "p2p":
             p2p_client.main()
+        elif args.mode == "client":
+            client.main()
+            
     except SystemExit:
         logger.debug("No mode defaulting to client")
-        p2p_client.main()
+        client.main()
         
