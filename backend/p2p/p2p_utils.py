@@ -35,13 +35,10 @@ class Address: # network address for heigher level
 
 
 class Id: # user id for heigher level
-    def __init__(self, id, display="") -> None:
+    def __init__(self, id) -> None:
         self.id = id
-        self.display = display
     def __repr__(self) -> str:
-        if self.display == "":
-            return f"Id({self.id})"
-        return f"Id({self.get()}, {self.display})"
+        return f"Id({self.id})"
     def __eq__(self, __o: object) -> bool:
         if isinstance(__o, Id): # becouse cant have self referential types WHYYYYYYYYYYYYY!!
             return self.id == __o.id
@@ -54,13 +51,14 @@ class Id: # user id for heigher level
     def get(self):
         return self.id
 
-    def idhash(self, data):
-        return b64encode(sha256(str(data).encode()).digest())
+    @staticmethod
+    def idhash(data):
+        return b64encode(sha256(str(data).encode()).digest()).decode()
 
     @classmethod
     def from_time(cls):
-        return cls(cls.idhash(cls, time.time()))
+        return cls(cls.idhash(time.time()))
 
     @classmethod
     def from_string(cls, string: str):
-        return cls(cls.idhash(cls, string), string)
+        return cls(cls.idhash(string))

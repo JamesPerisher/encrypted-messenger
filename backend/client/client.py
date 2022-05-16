@@ -1,35 +1,40 @@
-from backend.asyncutils import run_async
+import asyncio
+from asyncio.log import logger
+import json
+from backend.client.crypto_utils import generate_key, generate_mediator, getid, getmediator, getname, make_id
 from backend.p2p.p2p_utils import Address, Id
 from backend.p2p.p2p_client import AsyncConnection
-from pgpy import PGPKey, PGPUID
-from pgpy.constants import PubKeyAlgorithm, KeyFlags, HashAlgorithm, SymmetricKeyAlgorithm, CompressionAlgorithm
-import os
+from pgpy import PGPKey
 
 from backend.packet import PACKET_TYPE, Packet
 
 
+class UserInterface:
+    def __init__(self, client) -> None:
+        self.client = client
+    async def none(self): # nothing to do to ui, but is called every time a packet is handled
+        pass
 
-# key = PGPKey.new(PubKeyAlgorithm.RSAEncryptOrSign, 4096)
-# uid = PGPUID.new('Abraham Lincoln', comment='Honest Abe', email='abraham.lincoln@whitehouse.gov')
-# key.add_uid(uid, usage={KeyFlags.Sign, KeyFlags.EncryptCommunications, KeyFlags.EncryptStorage},
-#             hashes=[HashAlgorithm.SHA256, HashAlgorithm.SHA384, HashAlgorithm.SHA512, HashAlgorithm.SHA224],
-#             ciphers=[SymmetricKeyAlgorithm.AES256, SymmetricKeyAlgorithm.AES192, SymmetricKeyAlgorithm.AES128],
-#             compression=[CompressionAlgorithm.ZLIB, CompressionAlgorithm.BZ2, CompressionAlgorithm.ZIP, CompressionAlgorithm.Uncompressed])
-# s = key.sign(b"hello")
-# s = key.sign(b"hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohello")
-# print(s)
+    async def get_name(self):
+        return input("Name: ")
 
+    async def get_key(self):
+        return input("keystring: ")
 
-def generate_challenge(): # might have to do some data mashing to make struct happy idk should be fine
-    return os.urandom(32)
+    async def get_pin(self):
+        return input("pin: ")
+
+    async def get_friends(self):
+        return [] # TODO: make a commandline input for this idk
 
 
 class User:
-    def __init__(self, id: Id, key) -> None:
+    def __init__(self, id: Id, me, key) -> None:
         self.id = id
+        self.me = me
         self.key = key
     def __repr__(self) -> str:
-        return f"User({self.id})"
+        return f"User({self.id}, <ME>, {self.key})"
     def __hash__(self) -> int:
         return self.id.__hash__()
     def __eq__(self, other: object) -> bool:
@@ -37,15 +42,13 @@ class User:
     def __ne__(self, other: object) -> bool:
         return self.id != other.id
 
-    def haskey(self):
-        return isinstance(self.key, PGPKey)
-
     async def ping(self, pac, conn): # pong
         await conn.send(Packet(PACKET_TYPE.PING, "PONG!!!"))
+        await self.me.ui.none()
 
-    async def handle(self, me): # to be called each time we want to sync data #TODO: implement lock
+    async def handle(self): # to be called each time we want to sync data #TODO: implement lock
         # handles all incoming packets
-        conn = AsyncConnection.from_id(me.id, self.id, me.mediator)
+        conn = AsyncConnection.from_id(self.me.id, self.id, self.sme.mediator)
         while conn.object.keepalive:
             pac = await conn.recv() # get the next packet from the connection
 
@@ -53,29 +56,125 @@ class User:
                 PACKET_TYPE.PING: self.ping,
             }[pac.type](pac, conn)
         
-
     @classmethod
-    def from_string(cls, string: str, key=None) -> 'User':
-        return cls(Id.from_string(string), None)
+    def from_string(cls, string: str, me, key=None) -> 'User':
+        return cls(Id.from_string(string), me, None)
+
+    def export_dict(self):
+        return {
+            "id": self.id.get(),
+            "key": str(self.key),
+        }
+    def export_file(self):
+        return json.dumps(self.export_dict())
 
 class Client(User):
-    def __init__(self, name: str, id: Id, friends: list, key: PGPKey, pin, mediator) -> None:
-        super().__init__(id, key)
+    def __init__(self, name: str, id: Id, friends: list, key: PGPKey, pin, mediator, ui: UserInterface) -> None:
+        super().__init__(id, self, key)
+        self.name = name
         self.friends = friends
         self.key = key
         self.pin = pin
         self.mediator = mediator
+        self.ui = ui
+    def __repr__(self) -> str:
+        return f"Client({self.name}, {self.id}, {self.friends}, {self.key}, {self.pin}, {self.mediator}, {self.ui})"
 
     @classmethod
-    def from_dict(cls, data: dict, pin: str):
-        return cls(data['name'], Id(data['id']), [User.from_string(x) for x in data['friends']], PGPKey.from_blob(data['key']), pin, Address(data['mediator']['ip'], data['mediator']['port']) )
+    def from_dict(cls, data: dict, pin: str, ui):
+        self = cls(data['name'], Id(data['id']), [], PGPKey.from_blob(data['key']), pin, Address(data['mediator']['ip'], data['mediator']['port']), ui)
+        self.friends = [User.from_string(x, self) for x in data['friends']] # self referential might be dodgy
+        return self
 
-    async def message(self, message: str, to: User):
-        pass
-        
+    def export_dict(self):
+        a = super().export_dict()
+        a.update({"friends":[x.export_dict() for x in self.friends]})
+        return a
+
+
+# Used as driver for ui to create a new client before the ui can be assigned a client
+# Calles function in ui to get name, key, pin, and friends, then passes off control to the ui(maybe i might change this)
+class ClientFactory:
+    def __init__(self, ui) -> None:
+        self.name     = None
+        self.id       = None
+        self.key      = None
+        self.pin      = None
+        self.mediator = None
+        self.friends  = None
+        self.ui       = ui
+
+    @staticmethod
+    def isnone(x): # checks if x is None or ""
+        if x == None:
+            return True
+        if isinstance(x, str):
+            return x.strip() == ""
+        return False
+
+    async def make(self): # get data and make a client
+        while True: # can be jumped to if we need to recheck the data instead of doing recursion
+            if self.isnone(self.name):
+                self.name = await self.ui.get_name()
+                continue
+
+            if self.isnone(self.key):
+                try:
+                    self.import_key(str(await self.ui.get_key()))
+                except ValueError:
+                    logger.warning("Invalid key, generating new key")
+
+            if self.isnone(self.id):
+                self.id = make_id(self.key)
+
+            if self.isnone(self.pin):
+                self.pin = await self.ui.get_pin()
+                continue
+
+            if self.isnone(self.mediator) and self.isnone(self.key):
+                self.mediator = generate_mediator()
+
+            if self.isnone(self.mediator):
+                self.mediator = getmediator(self.key)
+
+            if self.isnone(self.friends):
+                self.friends = await self.ui.get_friends()
+                continue
+            
+            if self.isnone(self.key):
+                self.key = generate_key(self.name, self.id, self.mediator, self.pin)
+
+            break
+
+        return Client(self.name, self.id, self.friends, self.key, self.pin, self.mediator, self.ui)
+
+    # imports all data in the key
+    def import_key(self, key):
+        self.key = PGPKey.from_blob(key)
+        # data embaeded in the key
+        self.id       = getid(self.key)
+        self.name     = getname(self.key)
+        self.mediator = getmediator(self.key)
+
+    # imports all data in the file
+    def import_file(self, file):
+        with open(file, "r") as f:
+            data = json.loads(f.read())
+
+        # raw data in the file
+        self.key      = data.get("key", None)
+        self.pin      = None # pin must always be fetched form the user on startup
+        self.friends  = data.get("friends", None)
+
+        self.import_key(self.key)
+
 
 
 def main():
-    key = '-----BEGIN PGP PRIVATE KEY BLOCK-----\n\n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\n=Rf7B\n-----END PGP PRIVATE KEY BLOCK-----\n'
-    c = Client.from_dict({'name':'bob', 'id': 'test', 'friends': ['test2'], 'key': key, 'mediator':{'ip':"test", 'port':1234}}, '1234')
-    print(c)
+    ui = UserInterface(None)
+    cf = ClientFactory(ui)
+
+    client = asyncio.run(cf.make()) # async handle so ui can function
+    ui.client = client # becouase loop of reference bad idea but is neetest method so far
+    # print(client)
+    print(client.export_file())
