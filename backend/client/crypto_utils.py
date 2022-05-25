@@ -1,3 +1,4 @@
+from asyncio.log import logger
 from pgpy import PGPKey, PGPUID
 from pgpy.constants import PubKeyAlgorithm, KeyFlags, HashAlgorithm, SymmetricKeyAlgorithm, CompressionAlgorithm
 import os
@@ -55,3 +56,14 @@ def getmediator(key: PGPKey) -> Address: # TODO: idiot handling to prevent error
 # make a challenge for crypto packets
 def generate_challenge(): # might have to do some data mashing to make struct (Packet) happy idk should be fine
     return os.urandom(32) # should probably load bytes length from a file
+
+
+def key_import(keystring: str):
+    try:
+        k = PGPKey.from_blob(keystring)
+        return k
+    except ValueError: # well lets see how this goes
+        logger.warning("Invalid key")
+        return None
+    else:
+        return k
